@@ -19,7 +19,8 @@
 module Parser
     (Statement  (..),
      Expression (..),
-     Element    (..))
+     Element    (..),
+     parseSource)
 where
 
 -- Import Section --
@@ -27,6 +28,8 @@ where
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as Token
+import Data.List
+import Control.Applicative ((<$>))
 
 -- Data Structures --
 
@@ -38,15 +41,16 @@ type Expression = [Element]
 
 data Element = Value Int
              | Reference String
-             | Replicaton Int Int
+             | Replication Expression Int
              | Range Int Int
-             | Random Int
+             | Random Expression
                deriving (Show)
 
 -- Parsing --
 
-noteShortcuts :: [String]
-noteShortcuts = [ch : show i | ch <- ['a'..'g'], i <- [0..7]]
+notes :: [String]
+notes = [n ++ show i | i <- [0..8],
+         n <- ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]]
 
 language =
     emptyDef { Token.commentStart    = "/*",
@@ -55,28 +59,23 @@ language =
                Token.nestedComments  = True,
                Token.identStart      = letter,
                Token.identLetter     = alphaNum,
-               Token.reservedNames   = "R" : noteShortcuts,
+               Token.reservedNames   = "R" : notes,
                Token.reservedOpNames = ["*", "..","R","="],
                Token.caseSensitive   = True }
 
 lexer = Token.makeTokenParser language
 
 identifier = Token.identifier lexer
+reserved   = Token.reserved   lexer
 reservedOp = Token.reservedOp lexer
 parens     = Token.parens     lexer
-integer    = Token.integer    lexer
+natural    = Token.natural    lexer
 whiteSpace = Token.whiteSpace lexer
 comma      = Token.comma      lexer
+braces     = Token.braces     lexer
 
 midaParser :: Parser [Statement]
-midaParser = sepBy pStatement eol
-
-eol :: Parser String
-eol =  try (string "\n\r")
-   <|> try (string "\r\n")
-   <|> string "\n"
-   <|> string "\r"
-   <?> "end of line"
+midaParser = many pStatement
 
 pStatement :: Parser Statement
 pStatement = whiteSpace >> (try pDefinition <|> pExposition)
@@ -95,30 +94,57 @@ pExposition :: Parser Statement
 pExposition = pExpression >>= return . Exposition
 
 pExpression :: Parser Expression
-pExpression = sepBy pElement (optional comma)
+pExpression = sepBy1 pElement (optional comma)
 
 pElement :: Parser Element
 pElement =  try pValue
         <|> try pReference
-        <|> try pReplication
-        <|> try pRange
+        <|> try (parens pReplication)
+        <|> try (parens pRange)
         <|> pRandom
-        <?> "expression element"
+        <?> "element of expression"
 
 pValue :: Parser Element
-pValue = undefined
+pValue = pNatural <|> pNote <?> "number or note alias"
+
+pNatural :: Parser Element
+pNatural = natural >>= return . Value . fromIntegral
+
+pNote :: Parser Element
+pNote =
+    do note <- choice $ (try . string) <$> notes
+       return $ Value $ simplify . toNumber $ note
+       where toNumber x = (+ 12) <$> elemIndex x notes
+             simplify (Just x) = x
+             simplify Nothing  = 0
 
 pReference :: Parser Element
-pReference = undefined
+pReference =
+    do name <- identifier
+       notFollowedBy $ reservedOp "="
+       return $ Reference name
 
 pReplication :: Parser Element
-pReplication = undefined
+pReplication =
+    do expr <- pExpression
+       reservedOp "*"
+       n    <- fromIntegral <$> natural
+       return $ Replication expr n
 
 pRange :: Parser Element
-pRange = undefined
+pRange =
+    do (Value x) <- pValue
+       reservedOp ".."
+       (Value y) <- pValue
+       return $ Range (fromIntegral x) (fromIntegral y)
 
 pRandom :: Parser Element
-pRandom = undefined
+pRandom =
+    do reserved "R"
+       expr <- braces pExpression
+       return $ Random expr
 
-parseString :: String -> Either String [Statement]
-parseString = undefined
+parseSource :: String -> String -> Either String [Statement]
+parseSource file str = case parse midaParser file str of
+                         (Right x) -> Right x
+                         (Left  x) -> Left $ "parsing error: " ++ show x
