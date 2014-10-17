@@ -1,6 +1,6 @@
 -- -*- Mode: HASKELL; -*-
 
--- Basic IO operations for interpreter and compiler.
+-- Translator converts series of numbers into MIDI file.
 
 -- Copyright (c) 2014 Mark Karpov
 
@@ -14,4 +14,4 @@
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 -- General Public License for more details.
 
-module IO where
+module Translator where

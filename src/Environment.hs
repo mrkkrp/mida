@@ -1,7 +1,7 @@
 -- -*- Mode: HASKELL; -*-
 
--- Evaluator works on parsed statements that can define relations
--- between elements of program.
+-- Environment is formed via evaluation of definitions. Envionment can
+-- be changed with a number of different methods.
 
 -- Copyright (c) 2014 Mark Karpov
 
@@ -15,6 +15,6 @@
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 -- General Public License for more details.
 
-module Evaluator where
+module Environment where
 
 import Parser

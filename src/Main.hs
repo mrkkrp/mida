@@ -17,8 +17,8 @@
 module Main where
 
 import Parser
-import Evaluator
-import IO
+import Environment
+import Translator
 
 main :: IO ()
 main =
