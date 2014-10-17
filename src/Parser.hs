@@ -20,7 +20,7 @@ module Parser
     (Statement  (..),
      Expression (..),
      Element    (..),
-     parseSource)
+     parseMida)
 where
 
 -- Import Section --
@@ -59,8 +59,8 @@ language =
                Token.nestedComments  = True,
                Token.identStart      = letter,
                Token.identLetter     = alphaNum,
-               Token.reservedNames   = "R" : notes,
-               Token.reservedOpNames = ["*", "..","R","="],
+               Token.reservedNames   = notes,
+               Token.reservedOpNames = ["*", "..","="],
                Token.caseSensitive   = True }
 
 lexer = Token.makeTokenParser language
@@ -73,12 +73,10 @@ natural    = Token.natural    lexer
 whiteSpace = Token.whiteSpace lexer
 comma      = Token.comma      lexer
 braces     = Token.braces     lexer
+brackets   = Token.brackets   lexer
 
-midaParser :: Parser [Statement]
-midaParser = many pStatement
-
-pStatement :: Parser Statement
-pStatement = whiteSpace >> (try pDefinition <|> pExposition)
+pSource :: Parser [Statement]
+pSource = whiteSpace >> many pDefinition
 
 pDefinition :: Parser Statement
 pDefinition =
@@ -90,8 +88,8 @@ pDefinition =
        return $ Definition name expr $ consumed x y
     where consumed x y = take (length x - length y) x
 
-pExposition :: Parser Statement
-pExposition = pExpression >>= return . Exposition
+pExposition :: Parser [Statement]
+pExposition = whiteSpace >> pExpression >>= return . (: []) . Exposition
 
 pExpression :: Parser Expression
 pExpression = sepBy1 pElement (optional comma)
@@ -99,8 +97,8 @@ pExpression = sepBy1 pElement (optional comma)
 pElement :: Parser Element
 pElement =  try pValue
         <|> try pReference
-        <|> try (parens pReplication)
-        <|> try (parens pRange)
+        <|> try pReplication
+        <|> try (brackets pRange)
         <|> pRandom
         <?> "element of expression"
 
@@ -113,6 +111,7 @@ pNatural = natural >>= return . Value . fromIntegral
 pNote :: Parser Element
 pNote =
     do note <- choice $ (try . string) <$> notes
+       whiteSpace
        return $ Value $ simplify . toNumber $ note
        where toNumber x = (+ 12) <$> elemIndex x notes
              simplify (Just x) = x
@@ -126,7 +125,7 @@ pReference =
 
 pReplication :: Parser Element
 pReplication =
-    do expr <- pExpression
+    do expr <- brackets pExpression
        reservedOp "*"
        n    <- fromIntegral <$> natural
        return $ Replication expr n
@@ -139,12 +138,12 @@ pRange =
        return $ Range (fromIntegral x) (fromIntegral y)
 
 pRandom :: Parser Element
-pRandom =
-    do reserved "R"
-       expr <- braces pExpression
-       return $ Random expr
+pRandom = braces pExpression >>= return . Random
 
-parseSource :: String -> String -> Either String [Statement]
-parseSource file str = case parse midaParser file str of
+parseMida :: String -> String -> Either String [Statement]
+parseMida file str = case parse parser file str of
                          (Right x) -> Right x
                          (Left  x) -> Left $ "parsing error: " ++ show x
+                     where parser = if elem '=' str
+                                    then pSource
+                                    else pExposition
