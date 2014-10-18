@@ -17,10 +17,10 @@
 -- General Public License for more details.
 
 module Parser
-    (Statement  (..),
-     Expression (..),
-     Element    (..),
-     parseMida)
+    ( Statement  (..)
+    , Expression
+    , Element    (..)
+    , parseMida )
 where
 
 -- Import Section --
@@ -95,10 +95,10 @@ pExpression :: Parser Expression
 pExpression = sepBy1 pElement (optional comma)
 
 pElement :: Parser Element
-pElement =  try pValue
+pElement =  try pRange
+        <|> try pValue
         <|> try pReference
         <|> try pReplication
-        <|> try (brackets pRange)
         <|> pRandom
         <?> "element of expression"
 
@@ -142,8 +142,10 @@ pRandom = braces pExpression >>= return . Random
 
 parseMida :: String -> String -> Either String [Statement]
 parseMida file str = case parse parser file str of
-                         (Right x) -> Right x
-                         (Left  x) -> Left $ "parsing error: " ++ show x
+                         (Right x) -> if length x == 0
+                                      then Left "invalid definition syntax"
+                                      else Right x
+                         (Left  x) -> Left $ show x
                      where parser = if elem '=' str
                                     then pSource
                                     else pExposition

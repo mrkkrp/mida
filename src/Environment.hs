@@ -15,7 +15,18 @@
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 -- General Public License for more details.
 
-module Environment where
+module Environment
+    ( Env
+    , DefRep (..)
+    , MidaM
+    , purgeEnv
+    , getSrc
+    , addDef
+    , remDef
+    , source)
+    --, eval
+    --, evalItem )
+where
 
 -- Import Section --
 
@@ -32,10 +43,6 @@ type Env = Map.Map String DefRep
 
 data DefRep = DefRep { getExpression :: Expression,
                        getSource     :: String }
-
-data Result = Defined String
-            | Evaluated [Int]
-              deriving (Show)
 
 type MidaM = StateT Env IO
 
@@ -81,21 +88,64 @@ getSrc name =
          Just x  -> return $ getSource x
          Nothing -> return []
 
-addDef :: Statement -> MidaM ()
-addDef (Definition name exp src) =
-    Map.insert name (DefRep exp src) <$> getEnv >>= setEnv
+addDef :: String -> Expression -> String -> MidaM ()
+addDef name exp src = Map.insert name (DefRep exp src) <$> getEnv >>= setEnv
 
 remDef :: String -> MidaM ()
 remDef name = Map.delete name <$> getEnv >>= setEnv
 
-completeSource :: MidaM String
-completeSource = concatMap (++ "\n\n") . map getSource . Map.elems <$> getEnv
+source :: MidaM String
+source = concat . map getSource . Map.elems <$> getEnv
 
 -- Evaluation --
 
-eval :: Statement -> MidaM Result
-eval d@(Definition name _ _) = addDef d >> return (Defined name)
-eval d@(Exposition expr)     = undefined
+data Elt = Vl Int
+         | Rn [Int]
+           deriving (Show)
 
-evalSource :: [Statement] -> MidaM ()
-evalSource = mapM_ eval
+resolve :: Expression -> MidaM [Elt]
+resolve = liftM concat . mapM f
+    where f (Value       x)   = return $ [Vl x]
+          f (Reference   x)   = getExp x >>= resolve
+          f (Replication x n) = concat . replicate n <$> resolve x
+          f (Range       x y) = return $ map Vl $
+                                if x <= y then [x..y] else [x,x-1..y]
+          f (Random      x)   = (: []) . Rn . derand <$> resolve x
+
+derand :: [Elt] -> [Int]
+derand xs = concatMap r xs
+    where r (Vl x) = replicate n x
+          r (Rn x) = concatMap (replicate $ n `div` length x) x
+          n = foldr1 lcm $ map f xs
+          f (Vl _) = 1
+          f (Rn x) = length x
+
+resElt :: [Elt] -> MidaM [Int]
+resElt xs =
+    do std <- liftIO newStdGen
+       return $ zipWith f xs $ randoms std
+    where f (Vl x) _ = x
+          f (Rn x) v = x !! mod (abs v) (length x)
+
+eval :: Expression -> MidaM [Int]
+eval expr = cycle <$> resolve expr >>= resElt
+
+evalItem :: String -> MidaM [Int]
+evalItem name = getExp name >>= eval
+
+-- Testing --
+
+repl :: MidaM ()
+repl =
+    do str <- liftIO $ putStr "mida> " >> getLine
+       when (str == "quit") (fail "bad!")
+       result <- case parseMida "interactive" str of
+                   (Right x) -> case (x !! 0) of
+                                  (Definition n e s) -> addDef n e s >> (return $ "defined " ++ n)
+                                  (Exposition e) -> show . take 10 <$> eval e
+                   (Left  x) -> return $ "parse error: " ++ x
+       liftIO $ putStrLn $ result
+       repl
+
+main :: IO ()
+main = void $ runStateT repl Map.empty
