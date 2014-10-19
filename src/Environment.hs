@@ -23,9 +23,9 @@ module Environment
     , getSrc
     , addDef
     , remDef
-    , source)
-    --, eval
-    --, evalItem )
+    , source
+    , eval
+    , evalItem )
 where
 
 -- Import Section --
@@ -95,7 +95,8 @@ remDef :: String -> MidaM ()
 remDef name = Map.delete name <$> getEnv >>= setEnv
 
 source :: MidaM String
-source = concat . map getSource . Map.elems <$> getEnv
+source = concat . map getSource . Map.elems . Map.filter f <$> getEnv
+    where f (DefRep x _) = length x > 0
 
 -- Evaluation --
 
@@ -128,24 +129,10 @@ resElt xs =
           f (Rn x) v = x !! mod (abs v) (length x)
 
 eval :: Expression -> MidaM [Int]
-eval expr = cycle <$> resolve expr >>= resElt
+eval expr = f <$> resolve expr >>= resElt
+    where f [] = []
+          f x  = cycle x
 
 evalItem :: String -> MidaM [Int]
 evalItem name = getExp name >>= eval
 
--- Testing --
-
-repl :: MidaM ()
-repl =
-    do str <- liftIO $ putStr "mida> " >> getLine
-       when (str == "quit") (fail "bad!")
-       result <- case parseMida "interactive" str of
-                   (Right x) -> case (x !! 0) of
-                                  (Definition n e s) -> addDef n e s >> (return $ "defined " ++ n)
-                                  (Exposition e) -> show . take 10 <$> eval e
-                   (Left  x) -> return $ "parse error: " ++ x
-       liftIO $ putStrLn $ result
-       repl
-
-main :: IO ()
-main = void $ runStateT repl Map.empty
