@@ -92,7 +92,7 @@ pExposition :: Parser [Statement]
 pExposition = whiteSpace >> pExpression >>= return . (: []) . Exposition
 
 pExpression :: Parser Expression
-pExpression = sepBy1 pElement (optional comma)
+pExpression = sepBy pElement (optional comma)
 
 pElement :: Parser Element
 pElement =  try pRange
