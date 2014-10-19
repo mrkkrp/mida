@@ -24,12 +24,14 @@ import Translator
 import Control.Monad.State
 import Control.Applicative ((<$>))
 import qualified Data.Map.Lazy as Map
+import System.Random.Mersenne.Pure64
 
 -- Testing --
 
 repl :: MidaM ()
 repl =
-    do str <- liftIO $ putStr "mida> " >> getLine
+    do prompt <- getPrompt
+       str <- liftIO $ putStr prompt >> getLine
        when (str == "quit") (saveMidi 0 24 16 "test.midi")
        result <- case parseMida "interactive" (str ++ "\n") of
                    (Right x) -> case (x !! 0) of
@@ -43,4 +45,8 @@ repl =
        repl
 
 main :: IO ()
-main = void $ runStateT repl Map.empty
+main = void $ runStateT repl $ Env { eDefinitions  = Map.empty
+                                   , eRandGen      = pureMT 0
+                                   , ePrompt       = "mida> "
+                                   , ePrvLength    = 16
+                                   , eFileName     = "test.da" }

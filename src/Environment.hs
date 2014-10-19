@@ -16,14 +16,21 @@
 -- General Public License for more details.
 
 module Environment
-    ( Env
-    , DefRep (..)
+    ( Env (..)
     , MidaM
+    , getRandGen
+    , setRandGen
+    , getPrompt
+    , setPrompt
+    , getPrvLength
+    , setPrvLength
+    , getFileName
+    , setFileName
     , purgeEnv
     , getSrc
     , addDef
     , remDef
-    , source
+    , getSource
     , eval
     , evalItem )
 where
@@ -33,26 +40,47 @@ where
 import Parser
 import Control.Monad.State
 import Control.Applicative ((<$>))
-import System.Random
+import System.Random.Mersenne.Pure64
 import qualified Data.Map.Lazy as Map
 import Data.List
 
 -- Data Structures --
 
-type Env = Map.Map String DefRep
+data Env = Env { eDefinitions  :: Definitions
+               , eRandGen      :: PureMT
+               , ePrompt       :: String
+               , ePrvLength    :: Int
+               , eFileName     :: String }
 
-data DefRep = DefRep { getExpression :: Expression,
-                       getSource     :: String }
+type Definitions = Map.Map String DefRep
+
+data DefRep = DefRep { dpExpression :: Expression
+                     , dpSource     :: String }
 
 type MidaM = StateT Env IO
 
 -- Environment API --
 
-getEnv :: MidaM Env
-getEnv = get
-
-setEnv :: Env -> MidaM ()
-setEnv x = modify (\_ -> x)
+getDefs :: MidaM Definitions
+getDefs = eDefinitions <$> get
+setDefs :: Definitions -> MidaM ()
+setDefs x = modify (\e -> e { eDefinitions = x })
+getRandGen :: MidaM PureMT
+getRandGen = eRandGen <$> get
+setRandGen :: PureMT -> MidaM ()
+setRandGen x = modify (\e -> e { eRandGen = x })
+getPrompt :: MidaM String
+getPrompt = ePrompt <$> get
+setPrompt :: String -> MidaM ()
+setPrompt x = modify (\e -> e { ePrompt = x })
+getPrvLength :: MidaM Int
+getPrvLength = ePrvLength <$> get
+setPrvLength :: Int -> MidaM ()
+setPrvLength x = modify (\e -> e { ePrvLength = x })
+getFileName :: MidaM String
+getFileName = eFileName <$> get
+setFileName :: String -> MidaM ()
+setFileName x = modify (\e -> e { eFileName = x })
 
 traverseDefs :: String -> Map.Map String Expression -> [String]
 traverseDefs name env =
@@ -65,37 +93,37 @@ traverseDefs name env =
           f (Range _ _)       = []
           f (Random x)        = concatMap f x
 
-badItems :: [String] -> Env -> [String]
-badItems given env = filter (\x -> not $ elem x goodItems) $ Map.keys env
+badItems :: [String] -> Definitions -> [String]
+badItems given defs = filter (\x -> not $ elem x goodItems) $ Map.keys defs
     where goodItems = nub . concat $ zipWith traverseDefs given naked
-          naked     = repeat $ Map.map getExpression env
+          naked     = repeat $ Map.map dpExpression defs
 
 purgeEnv :: [String] -> MidaM ()
-purgeEnv given = deleteItems <$> getEnv >>= setEnv
+purgeEnv given = deleteItems <$> getDefs >>= setDefs
     where deleteItems env = foldr Map.delete env $ badItems given env
 
 getExp :: String -> MidaM Expression
 getExp name =
-    do env <- getEnv
-       case Map.lookup name env of
-         Just x  -> return $ getExpression x
+    do defs <- getDefs
+       case Map.lookup name defs of
+         Just x  -> return $ dpExpression x
          Nothing -> return []
 
 getSrc :: String -> MidaM String
 getSrc name =
-    do env <- getEnv
-       case Map.lookup name env of
-         Just x  -> return $ getSource x
+    do defs <- getDefs
+       case Map.lookup name defs of
+         Just x  -> return $ dpSource x
          Nothing -> return []
 
 addDef :: String -> Expression -> String -> MidaM ()
-addDef name exp src = Map.insert name (DefRep exp src) <$> getEnv >>= setEnv
+addDef name exp src = Map.insert name (DefRep exp src) <$> getDefs >>= setDefs
 
 remDef :: String -> MidaM ()
-remDef name = Map.delete name <$> getEnv >>= setEnv
+remDef name = Map.delete name <$> getDefs >>= setDefs
 
-source :: MidaM String
-source = concat . map getSource . Map.elems . Map.filter f <$> getEnv
+getSource :: MidaM String
+getSource = concat . map dpSource . Map.elems . Map.filter f <$> getDefs
     where f (DefRep x _) = length x > 0
 
 -- Evaluation --
@@ -121,10 +149,15 @@ derand xs = concatMap r xs
           f (Vl _) = 1
           f (Rn x) = length x
 
+randoms :: PureMT -> [Int]
+randoms gen = x : randoms g
+    where (x, g) = randomInt gen
+
 resElt :: [Elt] -> MidaM [Int]
 resElt xs =
-    do std <- liftIO newStdGen
-       return $ zipWith f xs $ randoms std
+    do gen <- getRandGen
+       setRandGen $ pureMT . fromIntegral . fst $ randomInt gen
+       return $ zipWith f xs $ randoms gen
     where f (Vl x) _ = x
           f (Rn x) v = x !! mod (abs v) (length x)
 
@@ -135,4 +168,3 @@ eval expr = f <$> resolve expr >>= resElt
 
 evalItem :: String -> MidaM [Int]
 evalItem name = getExp name >>= eval
-

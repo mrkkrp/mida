@@ -28,6 +28,7 @@ import Control.Applicative ((<$>), (<*>))
 import Codec.Midi
 import Data.List
 import Data.Maybe
+import System.Random.Mersenne.Pure64
 
 -- Data Structures --
 
@@ -66,7 +67,7 @@ toTrack (dur, vel, pch) = (concat $ zipWith3 f dur vel pch) ++ [(0, TrackEnd)]
 
 saveMidi :: Int -> Int -> Int -> String -> MidaM ()
 saveMidi s q beats fileName =
-    do -- setRand $ mkStdGen s
+    do setRandGen $ pureMT (fromIntegral s)
        voices <- filter fullyDefined <$> mapM request [0..mvIndex]
        let xs = map (toTrack . slice (beats * q)) voices
        liftIO $ exportFile fileName Midi { fileType = MultiTrack,
