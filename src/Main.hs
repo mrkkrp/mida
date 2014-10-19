@@ -16,10 +16,31 @@
 
 module Main where
 
+-- Import Section --
+
 import Parser
 import Environment
 import Translator
+import Control.Monad.State
+import Control.Applicative ((<$>))
+import qualified Data.Map.Lazy as Map
+
+-- Testing --
+
+repl :: MidaM ()
+repl =
+    do str <- liftIO $ putStr "mida> " >> getLine
+       when (str == "quit") (saveMidi 0 24 16 "test.midi")
+       result <- case parseMida "interactive" (str ++ "\n") of
+                   (Right x) -> case (x !! 0) of
+                                  (Definition n e s) -> addDef n e s >> (return $ "defined " ++ n)
+                                  (Exposition e) -> show . take 10 <$> eval e
+                   (Left  x) -> return $ "parse error: " ++ x
+       liftIO $ putStrLn $ result
+--       purgeEnv ["foo"]
+--       src <- source
+--       liftIO $ putStrLn $ src
+       repl
 
 main :: IO ()
-main =
-    do putStrLn "Hello, World!"
+main = void $ runStateT repl Map.empty
