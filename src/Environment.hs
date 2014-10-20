@@ -46,16 +46,18 @@ import Data.List
 
 -- Data Structures --
 
-data Env = Env { eDefinitions  :: Definitions
-               , eRandGen      :: PureMT
-               , ePrompt       :: String
-               , ePrvLength    :: Int
-               , eFileName     :: String }
+data Env = Env
+    { eDefinitions  :: Definitions
+    , eRandGen      :: PureMT
+    , ePrompt       :: String
+    , ePrvLength    :: Int
+    , eFileName     :: String }
 
 type Definitions = Map.Map String DefRep
 
-data DefRep = DefRep { dpExpression :: Expression
-                     , dpSource     :: String }
+data DefRep = DefRep
+    { dpExpression :: Expression
+    , dpSource     :: String }
 
 type MidaM = StateT Env IO
 
