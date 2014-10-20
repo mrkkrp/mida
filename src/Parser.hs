@@ -17,9 +17,9 @@
 -- General Public License for more details.
 
 module Parser
-    ( Statement  (..)
+    ( Statement (..)
     , Expression
-    , Element    (..)
+    , Element   (..)
     , parseMida )
 where
 
@@ -33,18 +33,20 @@ import Control.Applicative ((<$>))
 
 -- Data Structures --
 
-data Statement = Definition String Expression String
-               | Exposition Expression
-                 deriving (Show)
+data Statement
+    = Definition String Expression String
+    | Exposition Expression
+      deriving (Show)
 
 type Expression = [Element]
 
-data Element = Value Int
-             | Reference String
-             | Replication Expression Int
-             | Range Int Int
-             | Random Expression
-               deriving (Show)
+data Element
+    = Value Int
+    | Reference String
+    | Replication Expression Int
+    | Range Int Int
+    | Random Expression
+      deriving (Show)
 
 -- Parsing --
 
@@ -52,16 +54,15 @@ notes :: [String]
 notes = [n ++ show i | i <- [0..8],
          n <- ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]]
 
-language =
-    emptyDef { Token.commentStart    = "/*",
-               Token.commentEnd      = "*/",
-               Token.commentLine     = "//",
-               Token.nestedComments  = True,
-               Token.identStart      = letter,
-               Token.identLetter     = alphaNum,
-               Token.reservedNames   = notes,
-               Token.reservedOpNames = ["*", "..","="],
-               Token.caseSensitive   = True }
+language = emptyDef { Token.commentStart    = "/*"
+                    , Token.commentEnd      = "*/"
+                    , Token.commentLine     = "//"
+                    , Token.nestedComments  = True
+                    , Token.identStart      = letter
+                    , Token.identLetter     = alphaNum
+                    , Token.reservedNames   = notes
+                    , Token.reservedOpNames = ["*", "..","="]
+                    , Token.caseSensitive   = True }
 
 lexer = Token.makeTokenParser language
 
@@ -95,12 +96,13 @@ pExpression :: Parser Expression
 pExpression = sepBy pElement (optional comma)
 
 pElement :: Parser Element
-pElement =  try pRange
-        <|> try pValue
-        <|> try pReference
-        <|> try pReplication
-        <|> pRandom
-        <?> "element of expression"
+pElement
+    =  try pRange
+   <|> try pValue
+   <|> try pReference
+   <|> try pReplication
+   <|> pRandom
+   <?> "element of expression"
 
 pValue :: Parser Element
 pValue = pNatural <|> pNote <?> "number or note alias"
@@ -141,11 +143,10 @@ pRandom :: Parser Element
 pRandom = braces pExpression >>= return . Random
 
 parseMida :: String -> String -> Either String [Statement]
-parseMida file str = case parse parser file str of
-                         (Right x) -> if length x == 0
-                                      then Left "invalid definition syntax"
-                                      else Right x
-                         (Left  x) -> Left $ show x
-                     where parser = if elem '=' str
-                                    then pSource
-                                    else pExposition
+parseMida file str =
+    case parse parser file str of
+      (Right x) -> if length x == 0
+                   then Left "invalid definition syntax"
+                   else Right x
+      (Left  x) -> Left $ show x
+    where parser = if elem '=' str then pSource else pExposition

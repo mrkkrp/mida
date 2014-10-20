@@ -100,7 +100,7 @@ badItems given defs = filter (\x -> not $ elem x goodItems) $ Map.keys defs
 
 purgeEnv :: [String] -> MidaM ()
 purgeEnv given = deleteItems <$> getDefs >>= setDefs
-    where deleteItems env = foldr Map.delete env $ badItems given env
+    where deleteItems defs = foldr Map.delete defs $ badItems given defs
 
 getExp :: String -> MidaM Expression
 getExp name =
@@ -124,13 +124,14 @@ remDef name = Map.delete name <$> getDefs >>= setDefs
 
 getSource :: MidaM String
 getSource = concat . map dpSource . Map.elems . Map.filter f <$> getDefs
-    where f (DefRep x _) = length x > 0
+    where f (DefRep x _) = not $ null x
 
 -- Evaluation --
 
-data Elt = Vl Int
-         | Rn [Int]
-           deriving (Show)
+data Elt
+    = Vl Int
+    | Rn [Int]
+      deriving (Show)
 
 resolve :: Expression -> MidaM [Elt]
 resolve = liftM concat . mapM f

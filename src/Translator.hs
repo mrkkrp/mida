@@ -16,7 +16,7 @@
 
 module Translator
     ( saveMidi
-    , topDefs)
+    , topDefs )
 where
 
 -- Import Section --
@@ -53,8 +53,7 @@ request n =
 
 fullyDefined :: Batch -> Bool
 fullyDefined (dur, vel, pch) = f dur && f vel && f pch
-    where f [] = False
-          f _  = True
+    where f = not . null
 
 slice :: Int -> Batch -> Batch
 slice t (dur, vel, pch) = (take n dur, take n vel, take n pch)
@@ -62,14 +61,14 @@ slice t (dur, vel, pch) = (take n dur, take n vel, take n pch)
 
 toTrack :: Batch -> Track Int
 toTrack (dur, vel, pch) = (concat $ zipWith3 f dur vel pch) ++ [(0, TrackEnd)]
-    where f d v p = [(0, NoteOn 0 p v),
-                     (d, NoteOn 0 p 0)]
+    where f d v p = [ (0, NoteOn 0 p v)
+                    , (d, NoteOn 0 p 0) ]
 
 saveMidi :: Int -> Int -> Int -> String -> MidaM ()
 saveMidi s q beats fileName =
     do setRandGen $ pureMT (fromIntegral s)
        voices <- filter fullyDefined <$> mapM request [0..mvIndex]
        let xs = map (toTrack . slice (beats * q)) voices
-       liftIO $ exportFile fileName Midi { fileType = MultiTrack,
-                                           timeDiv  = TicksPerBeat q,
-                                           tracks   = xs }
+       liftIO $ exportFile fileName Midi { fileType = MultiTrack
+                                         , timeDiv  = TicksPerBeat q
+                                         , tracks   = xs }
