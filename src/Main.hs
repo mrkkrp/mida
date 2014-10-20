@@ -1,6 +1,6 @@
 -- -*- Mode: HASKELL; -*-
 
--- Main module of MIDA interpreter / compiler.
+-- Main module of MIDA interpreter.
 
 -- Copyright (c) 2014 Mark Karpov
 
@@ -25,9 +25,101 @@ import Control.Monad.State
 import Control.Applicative ((<$>))
 import qualified Data.Map.Lazy as Map
 import System.Random.Mersenne.Pure64
+import Options.Applicative
+import System.FilePath (takeFileName, replaceExtension)
+import System.IO (readFile)
+import Text.Printf (printf)
 
--- Testing --
+-- Commnad Line Processing --
 
+data Opts = Opts
+    { getIntr :: Bool
+    , getSeed :: Int
+    , getQ    :: Int
+    , getBars :: Int
+    , getOut  :: String
+    , getFile :: String }
+
+opts :: ParserInfo Opts
+opts =  info (helper <*> bar)
+      ( fullDesc
+     <> progDesc "starts MIDA interpreter or translates source into MIDI file"
+     <> header "mida - interpreter for MIDA language" )
+    where bar =  Opts
+             <$> switch
+               ( long    "interactive"
+              <> short   'i'
+              <> help    "Enable interactive session" )
+             <*> option  auto
+               ( long    "seed"
+              <> short   's'
+              <> metavar "SEED"
+              <> value   0
+              <> help    "Set seed for MIDI generation, default is 0" )
+             <*> option  auto
+               ( long    "quarter"
+              <> short   'q'
+              <> metavar "TICKS"
+              <> value   24
+              <> help    "Set ticks per quarter note, default is 24" )
+             <*> option  auto
+               ( long    "bars"
+              <> short   'b'
+              <> metavar "BARS"
+              <> value   16
+              <> help    "Set total time in quarter notes, default is 16" )
+             <*> strOption
+               ( long    "output"
+              <> short   'o'
+              <> metavar "OUT"
+              <> value   ""
+              <> help    "Specify non-standard output filename" )
+             <*> argument str
+               ( metavar "FILE"
+              <> value   "" )
+
+-- Main --
+
+loadFile :: String -> MidaM ()
+loadFile file =
+    do contents <- liftIO $ readFile file
+       case parseMida (takeFileName file) contents of
+         (Right x) -> mapM_ f x
+         (Left  x) -> error $ "parse error in " ++ x
+       liftIO $ putStrLn $ printf "-> \"%s\" loaded successfully;" file
+       where f (Definition n e s) = addDef n e s
+             f (Exposition e)     =
+                 error "source file does not contain valid definitions"
+
+interLoop :: MidaM ()
+interLoop = liftIO $ putStrLn "<interactive loop>"
+
+output :: String -> String -> String
+output out file = if null out then f file else out
+    where f x = replaceExtension x ".mid"
+
+saveMidi' :: Int -> Int -> Int -> String -> MidaM ()
+saveMidi' s q b m =
+    do saveMidi s q b m
+       liftIO $ putStrLn $ printf "-> MIDI file saved as \"%s\"." m
+
+sm :: MidaM() -> IO ()
+sm x = void $ runStateT x Env { eDefinitions  = Map.empty
+                              , eRandGen      = pureMT 0
+                              , ePrompt       = "mida> "
+                              , ePrvLength    = 16
+                              , eFileName     = "" }
+
+main :: IO ()
+main = execParser opts >>= f
+    where f (Opts _    _ _ _ _ "") =
+              sm interLoop
+          f (Opts True  _ _ _ _ n) =
+              sm $ loadFile n >> setFileName n >> interLoop
+          f (Opts False s q b o n) =
+              sm $ loadFile n >> setFileName n >> saveMidi' s q b (output o n)
+
+{-
 repl :: MidaM ()
 repl =
     do prompt <- getPrompt
@@ -43,10 +135,4 @@ repl =
 --       src <- source
 --       liftIO $ putStrLn $ src
        repl
-
-main :: IO ()
-main = void $ runStateT repl $ Env { eDefinitions  = Map.empty
-                                   , eRandGen      = pureMT 0
-                                   , ePrompt       = "mida> "
-                                   , ePrvLength    = 16
-                                   , eFileName     = "test.da" }
+-}
