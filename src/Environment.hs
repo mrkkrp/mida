@@ -17,7 +17,6 @@
 
 module Environment
     ( Env (..)
-    , MidaM
     , getRandGen
     , setRandGen
     , getPrompt
@@ -39,9 +38,8 @@ where
 
 import Parser
 import Control.Monad.State
-import Control.Applicative ((<$>))
 import System.Random.Mersenne.Pure64
-import qualified Data.Map.Lazy as Map
+import qualified Data.Map.Lazy as M
 import Data.List
 
 -- Data Structures --
@@ -53,40 +51,47 @@ data Env = Env
     , ePrvLength    :: Int
     , eFileName     :: String }
 
-type Definitions = Map.Map String DefRep
+type Definitions = M.Map String DefRep
 
 data DefRep = DefRep
     { dpExpression :: Expression
     , dpSource     :: String }
 
-type MidaM = StateT Env IO
-
 -- Environment API --
 
-getDefs :: MidaM Definitions
-getDefs = eDefinitions <$> get
-setDefs :: Definitions -> MidaM ()
+getDefs :: Monad m => StateT Env m Definitions
+getDefs = get >>= return . eDefinitions
+
+setDefs :: Monad m => Definitions -> StateT Env m ()
 setDefs x = modify (\e -> e { eDefinitions = x })
-getRandGen :: MidaM PureMT
-getRandGen = eRandGen <$> get
-setRandGen :: PureMT -> MidaM ()
+
+getRandGen :: Monad m => StateT Env m PureMT
+getRandGen = get >>= return . eRandGen
+
+setRandGen :: Monad m => PureMT -> StateT Env m ()
 setRandGen x = modify (\e -> e { eRandGen = x })
-getPrompt :: MidaM String
-getPrompt = ePrompt <$> get
-setPrompt :: String -> MidaM ()
+
+getPrompt :: Monad m => StateT Env m String
+getPrompt = get >>= return . ePrompt
+
+setPrompt :: Monad m => String -> StateT Env m ()
 setPrompt x = modify (\e -> e { ePrompt = x })
-getPrvLength :: MidaM Int
-getPrvLength = ePrvLength <$> get
-setPrvLength :: Int -> MidaM ()
+
+getPrvLength :: Monad m => StateT Env m Int
+getPrvLength = get >>= return . ePrvLength
+
+setPrvLength :: Monad m => Int -> StateT Env m ()
 setPrvLength x = modify (\e -> e { ePrvLength = x })
-getFileName :: MidaM String
-getFileName = eFileName <$> get
-setFileName :: String -> MidaM ()
+
+getFileName :: Monad m => StateT Env m String
+getFileName = get >>= return . eFileName
+
+setFileName :: Monad m => String -> StateT Env m ()
 setFileName x = modify (\e -> e { eFileName = x })
 
-traverseDefs :: String -> Map.Map String Expression -> [String]
+traverseDefs :: String -> M.Map String Expression -> [String]
 traverseDefs name env =
-    case Map.lookup name env of
+    case M.lookup name env of
       (Just x) -> name : concatMap f x
       Nothing  -> [name]
     where f (Value x)         = []
@@ -96,36 +101,37 @@ traverseDefs name env =
           f (Random x)        = concatMap f x
 
 badItems :: [String] -> Definitions -> [String]
-badItems given defs = filter (\x -> not $ elem x goodItems) $ Map.keys defs
+badItems given defs = filter (\x -> not $ elem x goodItems) $ M.keys defs
     where goodItems = nub . concat $ zipWith traverseDefs given naked
-          naked     = repeat $ Map.map dpExpression defs
+          naked     = repeat $ M.map dpExpression defs
 
-purgeEnv :: [String] -> MidaM ()
-purgeEnv given = deleteItems <$> getDefs >>= setDefs
-    where deleteItems defs = foldr Map.delete defs $ badItems given defs
+purgeEnv :: Monad m => [String] -> StateT Env m ()
+purgeEnv given = getDefs >>= return . deleteItems >>= setDefs
+    where deleteItems defs = foldr M.delete defs $ badItems given defs
 
-getExp :: String -> MidaM Expression
+getExp :: Monad m => String -> StateT Env m Expression
 getExp name =
     do defs <- getDefs
-       case Map.lookup name defs of
+       case M.lookup name defs of
          Just x  -> return $ dpExpression x
          Nothing -> return []
 
-getSrc :: String -> MidaM String
+getSrc :: Monad m => String -> StateT Env m String
 getSrc name =
     do defs <- getDefs
-       case Map.lookup name defs of
+       case M.lookup name defs of
          Just x  -> return $ dpSource x
          Nothing -> return []
 
-addDef :: String -> Expression -> String -> MidaM ()
-addDef name exp src = Map.insert name (DefRep exp src) <$> getDefs >>= setDefs
+addDef :: Monad m => String -> Expression -> String -> StateT Env m ()
+addDef name exp src = getDefs >>=
+                      return . M.insert name (DefRep exp src) >>= setDefs
 
-remDef :: String -> MidaM ()
-remDef name = Map.delete name <$> getDefs >>= setDefs
+remDef :: Monad m => String -> StateT Env m ()
+remDef name = getDefs >>= return . M.delete name >>= setDefs
 
-getSource :: MidaM String
-getSource = concat . map dpSource . Map.elems . Map.filter f <$> getDefs
+getSource :: Monad m => StateT Env m String
+getSource = return . concat . map dpSource . M.elems . M.filter f =<< getDefs
     where f (DefRep x _) = not $ null x
 
 -- Evaluation --
@@ -135,14 +141,14 @@ data Elt
     | Rn [Int]
       deriving (Show)
 
-resolve :: Expression -> MidaM [Elt]
+resolve :: Monad m => Expression -> StateT Env m [Elt]
 resolve = liftM concat . mapM f
-    where f (Value       x)   = return $ [Vl x]
+    where f (Value       x)   = return [Vl x]
           f (Reference   x)   = getExp x >>= resolve
-          f (Replication x n) = concat . replicate n <$> resolve x
+          f (Replication x n) = resolve x >>= return . concat . replicate n
           f (Range       x y) = return $ map Vl $
                                 if x <= y then [x..y] else [x,x-1..y]
-          f (Random      x)   = (: []) . Rn . derand <$> resolve x
+          f (Random      x)   = resolve x >>= return . (: []) . Rn . derand
 
 derand :: [Elt] -> [Int]
 derand xs = concatMap r xs
@@ -156,7 +162,7 @@ randoms :: PureMT -> [Int]
 randoms gen = x : randoms g
     where (x, g) = randomInt gen
 
-resElt :: [Elt] -> MidaM [Int]
+resElt :: Monad m => [Elt] -> StateT Env m [Int]
 resElt xs =
     do gen <- getRandGen
        setRandGen $ pureMT . fromIntegral . fst $ randomInt gen
@@ -164,10 +170,10 @@ resElt xs =
     where f (Vl x) _ = x
           f (Rn x) v = x !! mod (abs v) (length x)
 
-eval :: Expression -> MidaM [Int]
-eval expr = f <$> resolve expr >>= resElt
+eval :: Monad m => Expression -> StateT Env m [Int]
+eval expr = resolve expr >>= return . f >>= resElt
     where f [] = []
           f x  = cycle x
 
-evalItem :: String -> MidaM [Int]
+evalItem :: Monad m => String -> StateT Env m [Int]
 evalItem name = getExp name >>= eval

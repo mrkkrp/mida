@@ -15,7 +15,7 @@
 -- General Public License for more details.
 
 module Translator
-    ( saveMidi
+    ( getMidi
     , topDefs )
 where
 
@@ -43,7 +43,7 @@ velName = "vel"
 pchName = "pch"
 topDefs = [x ++ show n | x <- [durName,velName,pchName], n <- [0..mvIndex]]
 
-request :: Int -> MidaM Batch
+request :: Monad m => Int -> StateT Env m Batch
 request n =
     do dur <- evalItem $ durName ++ i
        vel <- evalItem $ velName ++ i
@@ -64,11 +64,11 @@ toTrack (dur, vel, pch) = (concat $ zipWith3 f dur vel pch) ++ [(0, TrackEnd)]
     where f d v p = [ (0, NoteOn 0 p v)
                     , (d, NoteOn 0 p 0) ]
 
-saveMidi :: Int -> Int -> Int -> String -> MidaM ()
-saveMidi s q beats fileName =
+getMidi :: Monad m => Int -> Int -> Int -> StateT Env m Midi
+getMidi s q beats =
     do setRandGen $ pureMT (fromIntegral s)
-       voices <- filter fullyDefined <$> mapM request [0..mvIndex]
+       voices <- mapM request [0..mvIndex] >>= return . filter fullyDefined
        let xs = map (toTrack . slice (beats * q)) voices
-       liftIO $ exportFile fileName Midi { fileType = MultiTrack
-                                         , timeDiv  = TicksPerBeat q
-                                         , tracks   = xs }
+       return Midi { fileType = MultiTrack
+                   , timeDiv  = TicksPerBeat q
+                   , tracks   = xs }

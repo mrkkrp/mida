@@ -22,13 +22,13 @@ import Parser
 import Environment
 import Translator
 import Control.Monad.State
-import Control.Applicative ((<$>))
-import qualified Data.Map.Lazy as Map
+import qualified Data.Map.Lazy as M
 import System.Random.Mersenne.Pure64
 import Options.Applicative
 import System.FilePath (takeFileName, replaceExtension)
 import System.IO (readFile)
 import Text.Printf (printf)
+import Codec.Midi (exportFile)
 
 -- Commnad Line Processing --
 
@@ -80,7 +80,7 @@ opts =  info (helper <*> bar)
 
 -- Main --
 
-loadFile :: String -> MidaM ()
+loadFile :: String -> StateT Env IO ()
 loadFile file =
     do contents <- liftIO $ readFile file
        case parseMida (takeFileName file) contents of
@@ -91,20 +91,26 @@ loadFile file =
              f (Exposition e)     =
                  error "source file does not contain valid definitions"
 
-interLoop :: MidaM ()
-interLoop = liftIO $ putStrLn "<interactive loop>"
+interLoop :: StateT Env IO ()
+interLoop =
+    do liftIO $ putStrLn "MIDA interactive environment v0.1.0"
+       putPrompt
+       mapM_ process . takeWhile (/= "quit") . lines =<< liftIO getContents
+       where process str = liftIO (putStrLn str) >> putPrompt
+             putPrompt = getPrompt >>= \x -> liftIO $ putStr x
 
 output :: String -> String -> String
 output out file = if null out then f file else out
     where f x = replaceExtension x ".mid"
 
-saveMidi' :: Int -> Int -> Int -> String -> MidaM ()
-saveMidi' s q b m =
-    do saveMidi s q b m
-       liftIO $ putStrLn $ printf "-> MIDI file saved as \"%s\"." m
+saveMidi :: Int -> Int -> Int -> String -> StateT Env IO ()
+saveMidi s q b file =
+    do midi <- getMidi s q b
+       liftIO $ exportFile file midi
+       liftIO $ putStrLn $ printf "-> MIDI file saved as \"%s\"." file
 
-sm :: MidaM() -> IO ()
-sm x = void $ runStateT x Env { eDefinitions  = Map.empty
+sm :: StateT Env IO () -> IO ()
+sm x = void $ runStateT x Env { eDefinitions  = M.empty
                               , eRandGen      = pureMT 0
                               , ePrompt       = "mida> "
                               , ePrvLength    = 16
@@ -117,7 +123,7 @@ main = execParser opts >>= f
           f (Opts True  _ _ _ _ n) =
               sm $ loadFile n >> setFileName n >> interLoop
           f (Opts False s q b o n) =
-              sm $ loadFile n >> setFileName n >> saveMidi' s q b (output o n)
+              sm $ loadFile n >> setFileName n >> saveMidi s q b (output o n)
 
 {-
 repl :: MidaM ()
