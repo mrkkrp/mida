@@ -24,7 +24,6 @@ where
 import Parser
 import Environment
 import Control.Monad.State
-import Control.Applicative ((<$>), (<*>))
 import Codec.Midi
 import Data.List
 import Data.Maybe
