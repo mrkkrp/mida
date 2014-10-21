@@ -93,25 +93,25 @@ chop = map (++ "\n") . lines
 cmdChar = ':'
 
 aCmd :: String -> Bool
-aCmd = (== cmdChar) . head . trim
+aCmd = isPrefixOf [cmdChar] . trim
 
 isCmd :: String -> String -> Bool
-isCmd x = (== cmdChar : x) . head . words . trim
+isCmd x = (isPrefixOf $ cmdChar : x) . trim
 
-commands = [ ("help",   cmdHelp,   "display this help text")
-           , ("save",   cmdSave,   "save current enviroment in specified file")
-           , ("purge",  cmdPurge,  "remove redundant definitions")
-           , ("make",   cmdMake,   "generate MIDI file in current environment")
-           , ("def",    cmdDef,    "print definition of given symbol")
-           , ("prompt", cmdPrompt, "set MIDA prompt")
-           , ("length", cmdLength, "set length of result of evaluation") ]
+commands = [ ("help",   cmdHelp,   "Show this help text")
+           , ("save",   cmdSave,   "Save current enviroment in specified file")
+           , ("purge",  cmdPurge,  "Remove redundant definitions")
+           , ("make",   cmdMake,   "Generate MIDI file in current environment")
+           , ("def",    cmdDef,    "Print definition of given symbol")
+           , ("prompt", cmdPrompt, "Set MIDA prompt")
+           , ("length", cmdLength, "Set length of result of evaluation") ]
 
 printExc :: SomeException -> IO ()
 printExc e = hPutStr stderr $ printf "-> %s;\n" (show e)
 
 cmdHelp :: String -> StateT Env IO ()
-cmdHelp _ = liftIO (putStrLn "Available commands:") >> mapM_ f commands
-    where f (cmd, _, text) = liftIO $ printf "  %c%s\t\t%s\n" cmdChar cmd text
+cmdHelp _ = liftIO (printf "Available commands:\n") >> mapM_ f commands
+    where f (cmd, _, text) = liftIO $ printf "  %c%-24s%s\n" cmdChar cmd text
 
 cmdSave :: String -> StateT Env IO ()
 cmdSave given =
@@ -119,13 +119,13 @@ cmdSave given =
        let file = if null given then actual else given
        source <- getSource
        liftIO $ catch (writeFile file source >>
-                       putStrLn (printf "-> environment saved as \"%s\"." file))
+                       printf "-> environment saved as \"%s\".\n" file)
                       printExc
 
 cmdPurge :: String -> StateT Env IO ()
 cmdPurge _ =
     do purgeEnv topDefs
-       liftIO $ putStrLn "-> environment purged;"
+       liftIO $ printf "-> environment purged;\n"
 
 safeParseInt :: String -> Int -> Int
 safeParseInt str x
@@ -144,7 +144,7 @@ cmdMake str =
 cmdDef :: String -> StateT Env IO ()
 cmdDef name =
     do def <- getSrc name
-       liftIO $ putStr $ printf "=> %s" def
+       liftIO $ printf "=> %s" def
 
 cmdPrompt :: String -> StateT Env IO ()
 cmdPrompt x = setPrompt (x ++ "> ")
@@ -158,8 +158,7 @@ processCmd :: String -> StateT Env IO ()
 processCmd input =
     case find f commands of
       (Just (_, x, _)) -> x args
-      Nothing  -> liftIO $ putStrLn $ printf
-                  "-> unknown command, try %chelp;" cmdChar
+      Nothing  -> liftIO $ printf "-> unknown command, try %chelp;\n" cmdChar
     where f (x, _, _) = x == cmd
           (cmd' : args') = words input
           cmd = filter (/= cmdChar) cmd'
@@ -167,17 +166,17 @@ processCmd input =
 
 prettyList :: [Int] -> String
 prettyList [] = "=> none"
-prettyList xs = (printf "=> %s...") $ intercalate " " (map show xs) 
+prettyList xs = printf "=> %s..." $ intercalate " " (map show xs) 
 
 processExpr :: String -> StateT Env IO ()
 processExpr expr =
     do file    <- getFileName
        case parseMida file expr of
          (Right x) -> mapM_ f x
-         (Left  x) -> liftIO $ putStrLn ("parse error in " ++ x)
+         (Left  x) -> liftIO $ printf "parse error in %s\n" x
        where f (Definition n e s) =
                  do addDef n e s
-                    liftIO $ putStrLn (printf "-> defined '%s'" n)
+                    liftIO $ printf "-> defined '%s'\n" n
              f (Exposition e) =
                  do preview <- getPrvLength
                     result  <- eval e
@@ -185,7 +184,7 @@ processExpr expr =
 
 interLoop :: StateT Env IO ()
 interLoop =
-    do liftIO $ putStrLn "-> Loading MIDA Interactive Environment v0.1.0"
+    do liftIO $ printf "-> Loading MIDA Interactive Environment v0.1.0\n"
        putPrompt
        liftIO getContents >>= mapM_ prc . takeWhile (not . isCmd "quit") . chop
        where prc str =
@@ -206,7 +205,7 @@ loadFile file =
        case parseMida (takeFileName file) contents of
          (Right x) -> mapM_ f x
          (Left  x) -> error $ "parse error in " ++ x
-       liftIO $ putStrLn $ printf "-> \"%s\" loaded successfully;" file
+       liftIO $ printf "-> \"%s\" loaded successfully;\n" file
        where f (Definition n e s) = addDef n e s
              f (Exposition e)     =
                  error "source file does not contain valid definitions"
@@ -219,7 +218,7 @@ saveMidi :: Int -> Int -> Int -> String -> StateT Env IO ()
 saveMidi s q b file =
     do midi <- getMidi s q b
        liftIO $ exportFile file midi
-       liftIO $ putStrLn $ printf "-> MIDI file saved as \"%s\"." file
+       liftIO $ printf "-> MIDI file saved as \"%s\".\n" file
 
 sm :: StateT Env IO () -> IO ()
 sm x = void $ runStateT x Env { eDefinitions  = M.empty
