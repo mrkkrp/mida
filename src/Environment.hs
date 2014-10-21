@@ -121,7 +121,7 @@ getSrc name =
     do defs <- getDefs
        case M.lookup name defs of
          Just x  -> return $ dpSource x
-         Nothing -> return []
+         Nothing -> return "cannot find the definition\n"
 
 addDef :: Monad m => String -> Expression -> String -> StateT Env m ()
 addDef name exp src = getDefs >>=
