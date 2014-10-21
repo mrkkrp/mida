@@ -26,9 +26,12 @@ import qualified Data.Map.Lazy as M
 import System.Random.Mersenne.Pure64
 import Options.Applicative
 import System.FilePath (takeFileName, replaceExtension)
-import System.IO (readFile)
+import System.IO
 import Text.Printf (printf)
 import Codec.Midi (exportFile)
+import Data.Char (isSpace, isDigit)
+import Data.List
+import Control.Exception
 
 -- Commnad Line Processing --
 
@@ -78,7 +81,124 @@ opts =  info (helper <*> bar)
                ( metavar "FILE"
               <> value   "" )
 
--- Main --
+-- Interactive Environment --
+
+trim :: String -> String
+trim = f . f
+    where f = reverse . dropWhile isSpace
+
+chop :: String -> [String]
+chop = map (++ "\n") . lines
+
+cmdChar = ':'
+
+aCmd :: String -> Bool
+aCmd = (== cmdChar) . head . trim
+
+isCmd :: String -> String -> Bool
+isCmd x = (== cmdChar : x) . head . words . trim
+
+commands = [ ("help",   cmdHelp,   "display this help text")
+           , ("save",   cmdSave,   "save current enviroment in specified file")
+           , ("purge",  cmdPurge,  "remove redundant definitions")
+           , ("make",   cmdMake,   "generate MIDI file in current environment")
+           , ("def",    cmdDef,    "print definition of given symbol")
+           , ("prompt", cmdPrompt, "set MIDA prompt")
+           , ("length", cmdLength, "set length of result of evaluation") ]
+
+printExc :: SomeException -> IO ()
+printExc e = hPutStr stderr $ printf "-> %s;\n" (show e)
+
+cmdHelp :: String -> StateT Env IO ()
+cmdHelp _ = liftIO (putStrLn "Available commands:") >> mapM_ f commands
+    where f (cmd, _, text) = liftIO $ printf "  %c%s\t\t%s\n" cmdChar cmd text
+
+cmdSave :: String -> StateT Env IO ()
+cmdSave given =
+    do actual <- getFileName
+       let file = if null given then actual else given
+       source <- getSource
+       liftIO $ catch (writeFile file source >>
+                       putStrLn (printf "-> environment saved as \"%s\"." file))
+                      printExc
+
+cmdPurge :: String -> StateT Env IO ()
+cmdPurge _ =
+    do purgeEnv topDefs
+       liftIO $ putStrLn "-> environment purged;"
+
+safeParseInt :: String -> Int -> Int
+safeParseInt str x
+    | all isDigit str = read str :: Int
+    | otherwise       = x
+
+cmdMake :: String -> StateT Env IO ()
+cmdMake str =
+    do file <- getFileName
+       saveMidi (safeParseInt s 0)
+                (safeParseInt q 24)
+                (safeParseInt b 16)
+                (output f file)
+    where (s:q:b:f:_) = (words str) ++ repeat ""
+
+cmdDef :: String -> StateT Env IO ()
+cmdDef name =
+    do def <- getSrc name
+       liftIO $ putStr $ printf "=> %s" def
+
+cmdPrompt :: String -> StateT Env IO ()
+cmdPrompt x = setPrompt (x ++ "> ")
+
+cmdLength :: String -> StateT Env IO ()
+cmdLength x =
+    do old <- getPrvLength
+       setPrvLength $ safeParseInt x old
+
+processCmd :: String -> StateT Env IO ()
+processCmd input =
+    case find f commands of
+      (Just (_, x, _)) -> x args
+      Nothing  -> liftIO $ putStrLn $ printf
+                  "-> unknown command, try %chelp;" cmdChar
+    where f (x, _, _) = x == cmd
+          (cmd' : args') = words input
+          cmd = filter (/= cmdChar) cmd'
+          args = unwords args'
+
+prettyList :: [Int] -> String
+prettyList [] = "=> none"
+prettyList xs = (printf "=> %s...") $ intercalate " " (map show xs) 
+
+processExpr :: String -> StateT Env IO ()
+processExpr expr =
+    do file    <- getFileName
+       case parseMida file expr of
+         (Right x) -> mapM_ f x
+         (Left  x) -> liftIO $ putStrLn ("parse error in " ++ x)
+       where f (Definition n e s) =
+                 do addDef n e s
+                    liftIO $ putStrLn (printf "-> defined '%s'" n)
+             f (Exposition e) =
+                 do preview <- getPrvLength
+                    result  <- eval e
+                    liftIO $ putStrLn $ (prettyList . take preview) result
+
+interLoop :: StateT Env IO ()
+interLoop =
+    do liftIO $ putStrLn "-> Loading MIDA Interactive Environment v0.1.0"
+       putPrompt
+       liftIO getContents >>= mapM_ prc . takeWhile (not . isCmd "quit") . chop
+       where prc str =
+                 do if aCmd str
+                    then processCmd  str
+                    else processExpr str
+                    putPrompt
+             putPrompt =
+                 do prompt <- getPrompt
+                    liftIO $ putStr prompt
+                    liftIO $ hFlush stdout
+
+-- Top Level Logic --
 
 loadFile :: String -> StateT Env IO ()
 loadFile file =
@@ -90,14 +210,6 @@ loadFile file =
        where f (Definition n e s) = addDef n e s
              f (Exposition e)     =
                  error "source file does not contain valid definitions"
-
-interLoop :: StateT Env IO ()
-interLoop =
-    do liftIO $ putStrLn "MIDA interactive environment v0.1.0"
-       putPrompt
-       mapM_ process . takeWhile (/= "quit") . lines =<< liftIO getContents
-       where process str = liftIO (putStrLn str) >> putPrompt
-             putPrompt = getPrompt >>= \x -> liftIO $ putStr x
 
 output :: String -> String -> String
 output out file = if null out then f file else out
@@ -114,7 +226,7 @@ sm x = void $ runStateT x Env { eDefinitions  = M.empty
                               , eRandGen      = pureMT 0
                               , ePrompt       = "mida> "
                               , ePrvLength    = 16
-                              , eFileName     = "" }
+                              , eFileName     = "interactive" }
 
 main :: IO ()
 main = execParser opts >>= f
@@ -123,22 +235,4 @@ main = execParser opts >>= f
           f (Opts True  _ _ _ _ n) =
               sm $ loadFile n >> setFileName n >> interLoop
           f (Opts False s q b o n) =
-              sm $ loadFile n >> setFileName n >> saveMidi s q b (output o n)
-
-{-
-repl :: MidaM ()
-repl =
-    do prompt <- getPrompt
-       str <- liftIO $ putStr prompt >> getLine
-       when (str == "quit") (saveMidi 0 24 16 "test.midi")
-       result <- case parseMida "interactive" (str ++ "\n") of
-                   (Right x) -> case (x !! 0) of
-                                  (Definition n e s) -> addDef n e s >> (return $ "defined " ++ n)
-                                  (Exposition e) -> show . take 10 <$> eval e
-                   (Left  x) -> return $ "parse error: " ++ x
-       liftIO $ putStrLn $ result
---       purgeEnv ["foo"]
---       src <- source
---       liftIO $ putStrLn $ src
-       repl
--}
+              sm $ loadFile n >> saveMidi s q b (output o n)
