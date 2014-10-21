@@ -27,7 +27,7 @@ where
 
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
-import qualified Text.ParserCombinators.Parsec.Token as Token
+import qualified Text.ParserCombinators.Parsec.Token as T
 import Data.List
 import Control.Applicative ((<$>))
 
@@ -44,6 +44,11 @@ data Element
     = Value Int
     | Reference String
     | Replication Expression Int
+    | Multiplication Expression Int
+    | Addition Expression Int
+    | LeftRotation Expression Int
+    | RightRotation Expression Int
+    | Reverse Expression
     | Range Int Int
     | Random Expression
       deriving (Show)
@@ -54,27 +59,34 @@ notes :: [String]
 notes = [n ++ show i | i <- [0..8],
          n <- ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]]
 
-language = emptyDef { Token.commentStart    = "/*"
-                    , Token.commentEnd      = "*/"
-                    , Token.commentLine     = "//"
-                    , Token.nestedComments  = True
-                    , Token.identStart      = letter
-                    , Token.identLetter     = alphaNum
-                    , Token.reservedNames   = notes
-                    , Token.reservedOpNames = ["*", "..","="]
-                    , Token.caseSensitive   = True }
+language = emptyDef { T.commentStart    = "/*"
+                    , T.commentEnd      = "*/"
+                    , T.commentLine     = "//"
+                    , T.nestedComments  = True
+                    , T.identStart      = letter
+                    , T.identLetter     = alphaNum
+                    , T.reservedNames   = notes
+                    , T.reservedOpNames = [ "*"
+                                          , "+"
+                                          , "$"
+                                          , "<<"
+                                          , ">>"
+                                          , ".."
+                                          , "=" ]
+                    , T.caseSensitive   = True }
 
-lexer = Token.makeTokenParser language
+lexer = T.makeTokenParser language
 
-identifier = Token.identifier lexer
-reserved   = Token.reserved   lexer
-reservedOp = Token.reservedOp lexer
-parens     = Token.parens     lexer
-natural    = Token.natural    lexer
-whiteSpace = Token.whiteSpace lexer
-comma      = Token.comma      lexer
-braces     = Token.braces     lexer
-brackets   = Token.brackets   lexer
+identifier = T.identifier lexer
+reserved   = T.reserved   lexer
+reservedOp = T.reservedOp lexer
+parens     = T.parens     lexer
+natural    = T.natural    lexer
+whiteSpace = T.whiteSpace lexer
+comma      = T.comma      lexer
+braces     = T.braces     lexer
+brackets   = T.brackets   lexer
+angles     = T.angles     lexer
 
 pSource :: Parser [Statement]
 pSource = whiteSpace >> many pDefinition
@@ -100,9 +112,21 @@ pElement
     =  try pRange
    <|> try pValue
    <|> try pReference
+   <|> try pMultiplication
+   <|> try pAddition
    <|> try pReplication
+   <|> try pLeftRotation
+   <|> pRightRotation
+   <|> pReverse
    <|> pRandom
    <?> "element of expression"
+
+pRange :: Parser Element
+pRange =
+    do (Value x) <- pValue
+       reservedOp ".."
+       (Value y) <- pValue
+       return $ Range (fromIntegral x) (fromIntegral y)
 
 pValue :: Parser Element
 pValue = pNatural <|> pNote <?> "number or note alias"
@@ -112,9 +136,9 @@ pNatural = natural >>= return . Value . fromIntegral
 
 pNote :: Parser Element
 pNote =
-    do note <- choice $ (try . string) <$> notes
+    do note <- choice $ map (try . string) notes
        whiteSpace
-       return $ Value $ simplify . toNumber $ note
+       return . Value . simplify $ toNumber note
        where toNumber x = (+ 12) <$> elemIndex x notes
              simplify (Just x) = x
              simplify Nothing  = 0
@@ -125,19 +149,21 @@ pReference =
        notFollowedBy $ reservedOp "="
        return $ Reference name
 
-pReplication :: Parser Element
-pReplication =
+pBracketsOp :: String -> (Expression -> Int -> Element) -> Parser Element
+pBracketsOp op f =
     do expr <- brackets pExpression
-       reservedOp "*"
+       reservedOp op
        n    <- fromIntegral <$> natural
-       return $ Replication expr n
+       return $ f expr n
 
-pRange :: Parser Element
-pRange =
-    do (Value x) <- pValue
-       reservedOp ".."
-       (Value y) <- pValue
-       return $ Range (fromIntegral x) (fromIntegral y)
+pMultiplication = pBracketsOp "*"  Multiplication
+pAddition       = pBracketsOp "+"  Addition
+pReplication    = pBracketsOp "$"  Replication
+pLeftRotation   = pBracketsOp "<<" LeftRotation
+pRightRotation  = pBracketsOp ">>" RightRotation
+
+pReverse :: Parser Element
+pReverse = angles pExpression >>= return . Reverse
 
 pRandom :: Parser Element
 pRandom = braces pExpression >>= return . Random

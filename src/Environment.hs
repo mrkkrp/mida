@@ -94,11 +94,16 @@ traverseDefs name env =
     case M.lookup name env of
       (Just x) -> name : concatMap f x
       Nothing  -> [name]
-    where f (Value x)         = []
-          f (Reference x)     = traverseDefs x env
-          f (Replication x _) = concatMap f x
-          f (Range _ _)       = []
-          f (Random x)        = concatMap f x
+    where f (Value x)            = []
+          f (Reference x)        = traverseDefs x env
+          f (Replication x _)    = concatMap f x
+          f (Multiplication x _) = concatMap f x
+          f (Addition x _)       = concatMap f x
+          f (LeftRotation x _)   = concatMap f x
+          f (RightRotation x _)  = concatMap f x
+          f (Reverse x)          = concatMap f x
+          f (Range _ _)          = []
+          f (Random x)           = concatMap f x
 
 badItems :: [String] -> Definitions -> [String]
 badItems given defs = filter (\x -> not $ elem x goodItems) $ M.keys defs
@@ -143,12 +148,32 @@ data Elt
 
 resolve :: Monad m => Expression -> StateT Env m [Elt]
 resolve = liftM concat . mapM f
-    where f (Value       x)   = return [Vl x]
-          f (Reference   x)   = getExp x >>= resolve
-          f (Replication x n) = resolve x >>= return . concat . replicate n
-          f (Range       x y) = return $ map Vl $
-                                if x <= y then [x..y] else [x,x-1..y]
-          f (Random      x)   = resolve x >>= return . (: []) . Rn . derand
+    where f (Value       x)      = return [Vl x]
+          f (Reference   x)      = getExp x >>= resolve
+          f (Replication x n)    = resolve x >>= return . concat . replicate n
+          f (Multiplication x n) = resolve x >>= return . map (multiply n)
+          f (Addition x n)       = resolve x >>= return . map (add n)
+          f (LeftRotation x n)   = resolve x >>= return . rotateLeft n
+          f (RightRotation x n)  = resolve x >>= return . rotateRight n
+          f (Reverse x)          = resolve x >>= return . reverse
+          f (Range       x y)    = return $ map Vl $
+                                   if x <= y then [x..y] else [x,x-1..y]
+          f (Random      x)      = resolve x >>= return . (: []) . Rn . derand
+
+multiply :: Int -> Elt -> Elt
+multiply n (Vl x) = Vl $ x * n
+multiply n (Rn x) = Rn $ map (* n) x
+
+add :: Int -> Elt -> Elt
+add n (Vl x) = Vl $ x + n
+add n (Rn x) = Rn $ map (+ n) x
+
+rotateLeft :: Int -> [a] -> [a]
+rotateLeft n xs = zipWith const (drop n (cycle xs)) xs
+
+rotateRight :: Int -> [a] -> [a]
+rotateRight n xs = rotateLeft (l - rem n l) xs
+    where l = length xs
 
 derand :: [Elt] -> [Int]
 derand xs = concatMap r xs
