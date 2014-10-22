@@ -207,7 +207,7 @@ resElt :: Monad m => [Elt] -> StateT Env m [Int]
 resElt xs =
     do gen <- getRandGen
        setRandGen $ pureMT . fromIntegral . fst $ randomInt gen
-       let r = zipWith3 f xs (randoms gen) (0 : r)
+       let r = zipWith3 f xs (randoms gen) ((-1) : r)
        return r
     where f (Vl x) _ _ = x
           f (Rn x) v _ = choice x v
