@@ -87,9 +87,6 @@ trim :: String -> String
 trim = f . f
     where f = reverse . dropWhile isSpace
 
-chop :: String -> [String]
-chop = map (++ "\n") . lines
-
 cmdChar = ':'
 
 aCmd :: String -> Bool
@@ -144,7 +141,7 @@ cmdMake str =
 cmdDef :: String -> StateT Env IO ()
 cmdDef name =
     do def <- getSrc name
-       liftIO $ printf "=> %s" def
+       liftIO $ putStr . unlines . map ("=> " ++) . lines $ def
 
 cmdPrompt :: String -> StateT Env IO ()
 cmdPrompt x = setPrompt (x ++ "> ")
@@ -182,20 +179,37 @@ processExpr expr =
                     result  <- eval e
                     liftIO $ putStrLn $ (prettyList . take preview) result
 
+getMultiline :: StateT Env IO [String]
+getMultiline =
+    do str <- (++ "\n") <$> liftIO getLine
+       len <- length <$> getPrompt
+       if isSuffixOf "," $ trim str
+          then liftM (str :)
+                     (do liftIO $ putStr (replicate len ' ')
+                         liftIO $ hFlush stdout
+                         getMultiline)
+          else return [str]
+
+iteration :: StateT Env IO ()
+iteration =
+    do prompt <- getPrompt
+       liftIO $ putStr prompt
+       liftIO $ hFlush stdout
+       eof    <- liftIO isEOF
+       if eof
+       then liftIO (putChar '\n') >> return ()
+       else do str <- concat <$> getMultiline
+               if isCmd "quit" str
+               then return ()
+               else if aCmd str
+                    then processCmd  str >> iteration
+                    else processExpr str >> iteration
+
 interLoop :: StateT Env IO ()
 interLoop =
-    do liftIO $ printf "-> Loading MIDA Interactive Environment v0.1.0\n"
-       putPrompt
-       liftIO getContents >>= mapM_ prc . takeWhile (not . isCmd "quit") . chop
-       where prc str =
-                 do if aCmd str
-                    then processCmd  str
-                    else processExpr str
-                    putPrompt
-             putPrompt =
-                 do prompt <- getPrompt
-                    liftIO $ putStr prompt
-                    liftIO $ hFlush stdout
+    do liftIO $ hSetBuffering stdin LineBuffering
+       liftIO $ printf "-> Loading MIDA Interactive Environment v0.1.0\n"
+       iteration
 
 -- Top Level Logic --
 
