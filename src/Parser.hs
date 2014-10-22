@@ -51,6 +51,7 @@ data Element
     | Reverse Expression
     | Range Int Int
     | Random Expression
+    | CondRandom [(Int, Expression)]
       deriving (Show)
 
 -- Parsing --
@@ -118,7 +119,8 @@ pElement
    <|> try pLeftRotation
    <|> pRightRotation
    <|> pReverse
-   <|> pRandom
+   <|> try pRandom
+   <|> pCondRandom
    <?> "element of expression"
 
 pRange :: Parser Element
@@ -167,6 +169,15 @@ pReverse = angles pExpression >>= return . Reverse
 
 pRandom :: Parser Element
 pRandom = braces pExpression >>= return . Random
+
+pCondElt :: Parser (Int, Expression)
+pCondElt =
+    do (Value v) <- parens pValue
+       expr      <- pExpression
+       return (v, expr)
+
+pCondRandom :: Parser Element
+pCondRandom = braces (many pCondElt) >>= return . CondRandom
 
 parseMida :: String -> String -> Either String [Statement]
 parseMida file str =

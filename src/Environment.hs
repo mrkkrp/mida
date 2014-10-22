@@ -104,6 +104,7 @@ traverseDefs name env =
           f (Reverse x)          = concatMap f x
           f (Range _ _)          = []
           f (Random x)           = concatMap f x
+          f (CondRandom x)       = concatMap (concatMap f . snd) x
 
 badItems :: [String] -> Definitions -> [String]
 badItems given defs = filter (\x -> not $ elem x goodItems) $ M.keys defs
@@ -144,29 +145,38 @@ getSource = return . concat . map dpSource . M.elems . M.filter f =<< getDefs
 data Elt
     = Vl Int
     | Rn [Int]
+    | Cr [(Int, [Int])]
       deriving (Show)
 
 resolve :: Monad m => Expression -> StateT Env m [Elt]
 resolve = liftM concat . mapM f
-    where f (Value       x)      = return [Vl x]
-          f (Reference   x)      = getExp x >>= resolve
+    where f (Value x)            = return [Vl x]
+          f (Reference x)        = getExp x >>= resolve
           f (Replication x n)    = resolve x >>= return . concat . replicate n
           f (Multiplication x n) = resolve x >>= return . map (multiply n)
           f (Addition x n)       = resolve x >>= return . map (add n)
           f (LeftRotation x n)   = resolve x >>= return . rotateLeft n
           f (RightRotation x n)  = resolve x >>= return . rotateRight n
           f (Reverse x)          = resolve x >>= return . reverse
-          f (Range       x y)    = return $ map Vl $
+          f (Range x y)          = return $ map Vl $
                                    if x <= y then [x..y] else [x,x-1..y]
-          f (Random      x)      = resolve x >>= return . (: []) . Rn . derand
+          f (Random x)           =
+              do r <- resolve x
+                 if null r then return [] else return [Rn (derand r)]
+          f (CondRandom x)       =
+              do r <- mapM g x
+                 return [Cr $ filter (not . null . snd) r]
+          g (k, x)               = resolve x >>= \r -> return (k, derand r)
 
 multiply :: Int -> Elt -> Elt
 multiply n (Vl x) = Vl $ x * n
 multiply n (Rn x) = Rn $ map (* n) x
+multiply n (Cr x) = Cr $ map (\(k, y) -> (k * n, map (* n) y)) x
 
 add :: Int -> Elt -> Elt
 add n (Vl x) = Vl $ x + n
 add n (Rn x) = Rn $ map (+ n) x
+add n (Cr x) = Cr $ map (\(k, y) -> (k * n, map (+ n) y)) x
 
 rotateLeft :: Int -> [a] -> [a]
 rotateLeft n xs = zipWith const (drop n (cycle xs)) xs
@@ -175,25 +185,35 @@ rotateRight :: Int -> [a] -> [a]
 rotateRight n xs = rotateLeft (l - rem n l) xs
     where l = length xs
 
+norm :: [[Int]] -> [Int]
+norm xs = concatMap f xs
+    where f x = concatMap (replicate $ n `div` length x) x
+          n = foldr lcm 1 $ map length xs
+
 derand :: [Elt] -> [Int]
-derand xs = concatMap r xs
-    where r (Vl x) = replicate n x
-          r (Rn x) = concatMap (replicate $ n `div` length x) x
-          n = foldr1 lcm $ map f xs
-          f (Vl _) = 1
-          f (Rn x) = length x
+derand = norm . map f
+    where f (Vl x) = [x]
+          f (Rn x) = x
+          f (Cr x) = norm $ map snd x
 
 randoms :: PureMT -> [Int]
 randoms gen = x : randoms g
     where (x, g) = randomInt gen
 
+choice :: [Int] -> Int -> Int
+choice xs v = xs !! mod (abs v) (length xs)
+
 resElt :: Monad m => [Elt] -> StateT Env m [Int]
 resElt xs =
     do gen <- getRandGen
        setRandGen $ pureMT . fromIntegral . fst $ randomInt gen
-       return $ zipWith f xs $ randoms gen
-    where f (Vl x) _ = x
-          f (Rn x) v = x !! mod (abs v) (length x)
+       let r = zipWith3 f xs (randoms gen) (0 : r)
+       return r
+    where f (Vl x) _ _ = x
+          f (Rn x) v _ = choice x v
+          f (Cr x) v p = let g (Just y) = snd y
+                             g Nothing  = concatMap snd x
+                         in choice (g $ find ((== p) . fst) x) v
 
 eval :: Monad m => Expression -> StateT Env m [Int]
 eval expr = resolve expr >>= return . f >>= resElt
