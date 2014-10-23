@@ -21,17 +21,19 @@ module Main where
 import Parser
 import Environment
 import Translator
+import Config
 import Control.Monad.State
 import qualified Data.Map.Lazy as M
 import System.Random.Mersenne.Pure64
 import Options.Applicative
-import System.FilePath (takeFileName, replaceExtension)
+import System.FilePath (takeFileName, replaceExtension, combine)
 import System.IO
 import Text.Printf (printf)
 import Codec.Midi (exportFile)
 import Data.Char (isSpace, isDigit)
 import Data.List
 import Control.Exception
+import System.Directory (doesFileExist, getHomeDirectory)
 
 -- Commnad Line Processing --
 
@@ -101,7 +103,7 @@ commands = [ ("help",   cmdHelp,   "Show this help text")
            , ("make",   cmdMake,   "Generate MIDI file in current environment")
            , ("def",    cmdDef,    "Print definition of given symbol")
            , ("prompt", cmdPrompt, "Set MIDA prompt")
-           , ("length", cmdLength, "Set length of result of evaluation") ]
+           , ("length", cmdLength, "Set length of displayed results") ]
 
 printExc :: SomeException -> IO ()
 printExc e = hPutStr stderr $ printf "-> %s;\n" (show e)
@@ -205,9 +207,25 @@ iteration =
                     then processCmd  str >> iteration
                     else processExpr str >> iteration
 
+loadConfig :: String -> StateT Env IO ()
+loadConfig file =
+    do params <- parseConfig file <$> liftIO (readFile file)
+       case params of
+         (Right p) -> do case lookup "prompt" p of
+                           (Just x) -> setPrompt x
+                           Nothing  -> return ()
+                         case lookup "length" p of
+                           (Just x) -> setPrvLength (safeParseInt x 16)
+                           Nothing  -> return ()
+         (Left  p) -> return ()
+
 interLoop :: StateT Env IO ()
 interLoop =
     do liftIO $ hSetBuffering stdin LineBuffering
+       home <- liftIO $ getHomeDirectory
+       let file = combine home ".mida"
+       exist <- liftIO $ doesFileExist file
+       when exist (loadConfig file)
        liftIO $ printf "-> Loading MIDA Interactive Environment v0.1.0\n"
        iteration
 
