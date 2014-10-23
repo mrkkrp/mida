@@ -211,9 +211,9 @@ resElt xs =
        return r
     where f (Vl x) _ _ = x
           f (Rn x) v _ = choice x v
-          f (Cr x) v p = let g (Just y) = snd y
+          f (Cr x) v p = let g (Just y) = y
                              g Nothing  = concatMap snd x
-                         in choice (g $ find ((== p) . fst) x) v
+                         in choice (g $ lookup p x) v
 
 eval :: Monad m => Expression -> StateT Env m [Int]
 eval expr = resolve expr >>= return . f >>= resElt

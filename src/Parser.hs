@@ -182,7 +182,7 @@ pCondRandom = braces (many pCondElt) >>= return . CondRandom
 parseMida :: String -> String -> Either String [Statement]
 parseMida file str =
     case parse parser file str of
-      (Right x) -> if length x == 0
+      (Right x) -> if null x
                    then Left "invalid definition syntax"
                    else Right x
       (Left  x) -> Left $ show x
