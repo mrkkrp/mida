@@ -1,3 +1,4 @@
 # MIDA
 
-Something interesting under development.
+It is done! Writing docs and peparations for distribution will take
+some time.
