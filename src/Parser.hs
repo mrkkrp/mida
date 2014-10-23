@@ -141,7 +141,7 @@ pNote =
     do note <- choice $ map (try . string) notes
        whiteSpace
        return . Value . simplify $ toNumber note
-       where toNumber x = (+ 12) <$> elemIndex x notes
+       where toNumber x = elemIndex x notes
              simplify (Just x) = x
              simplify Nothing  = 0
 

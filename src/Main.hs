@@ -103,7 +103,8 @@ commands = [ ("help",   cmdHelp,   "Show this help text")
            , ("make",   cmdMake,   "Generate MIDI file in current environment")
            , ("def",    cmdDef,    "Print definition of given symbol")
            , ("prompt", cmdPrompt, "Set MIDA prompt")
-           , ("length", cmdLength, "Set length of displayed results") ]
+           , ("length", cmdLength, "Set length of displayed results")
+           , ("quit",   undefined, "Quit the interactive environment") ]
 
 printExc :: SomeException -> IO ()
 printExc e = hPutStr stderr $ printf "-> %s;\n" (show e)
@@ -117,8 +118,9 @@ cmdSave given =
     do actual <- getFileName
        let file = if null given then actual else given
        source <- getSource
-       liftIO $ catch (writeFile file source >>
-                       printf "-> environment saved as \"%s\".\n" file)
+       setFileName file
+       liftIO $ catch (do writeFile file source
+                          printf "-> environment saved as \"%s\".\n" file)
                       printExc
 
 cmdPurge :: String -> StateT Env IO ()
@@ -158,10 +160,10 @@ processCmd input =
     case find f commands of
       (Just (_, x, _)) -> x args
       Nothing  -> liftIO $ printf "-> unknown command, try %chelp;\n" cmdChar
-    where f (x, _, _) = x == cmd
-          (cmd' : args') = words input
-          cmd = filter (/= cmdChar) cmd'
-          args = unwords args'
+    where f (x, _, _)    = x == cmd
+          (cmd', args')  = break isSpace input
+          cmd            = filter (/= cmdChar) cmd'
+          args           = trim args'
 
 prettyList :: [Int] -> String
 prettyList [] = "=> none"
@@ -181,16 +183,20 @@ processExpr expr =
                     result  <- eval e
                     liftIO $ putStrLn $ (prettyList . take preview) result
 
-getMultiline :: StateT Env IO [String]
-getMultiline =
-    do str <- (++ "\n") <$> liftIO getLine
+unfin :: String -> Bool
+unfin str = or $ map ($ s) [isSuffixOf ",", f "[]", f "{}", f "<>", f "()"]
+    where s = trim str
+          f xs = ((&&) <$> (> 0) <*> odd) . length . filter (`elem` xs)
+
+getMultiline :: String -> StateT Env IO String
+getMultiline prv =
+    do str <- (prv ++) . (++ "\n") <$> liftIO getLine
        len <- length <$> getPrompt
-       if isSuffixOf "," $ trim str
-          then liftM (str :)
-                     (do liftIO $ putStr (replicate len ' ')
-                         liftIO $ hFlush stdout
-                         getMultiline)
-          else return [str]
+       if unfin str
+       then do liftIO $ putStr (replicate len ' ')
+               liftIO $ hFlush stdout
+               getMultiline str
+       else return str
 
 iteration :: StateT Env IO ()
 iteration =
@@ -200,7 +206,7 @@ iteration =
        eof    <- liftIO isEOF
        if eof
        then liftIO (putChar '\n') >> return ()
-       else do str <- concat <$> getMultiline
+       else do str <- getMultiline ""
                if isCmd "quit" str
                then return ()
                else if aCmd str
