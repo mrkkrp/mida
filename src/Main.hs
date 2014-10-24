@@ -184,9 +184,10 @@ processExpr expr =
                     liftIO $ putStrLn $ (prettyList . take preview) result
 
 unfin :: String -> Bool
-unfin str = or $ map ($ s) [isSuffixOf ",", f "[]", f "{}", f "<>", f "()"]
+unfin str = or [isSuffixOf "," s, f "[]", f "{}", f "<>", f "()"]
     where s = trim str
-          f xs = ((&&) <$> (> 0) <*> odd) . length . filter (`elem` xs)
+          f [x,y] = ((&&) <$> (> 0) <*> (/= g y)) (g x)
+          g x     = length $ filter (== x) s
 
 getMultiline :: String -> StateT Env IO String
 getMultiline prv =
@@ -232,7 +233,7 @@ interLoop =
        let file = combine home ".mida"
        exist <- liftIO $ doesFileExist file
        when exist (loadConfig file)
-       liftIO $ printf "-> Loading MIDA Interactive Environment v0.1.0\n"
+       liftIO $ printf "-> Loading MIDA Interactive Environment v0.1.0;\n"
        iteration
 
 -- Top Level Logic --
