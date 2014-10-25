@@ -35,6 +35,19 @@ import Data.List
 import Control.Exception
 import System.Directory (doesFileExist, getHomeDirectory)
 
+-- Default Values --
+
+version         = "0.1.0"
+cmdChar         = ':'
+dfltDefinitions = M.empty
+dfltRandGen     = pureMT 0
+dfltPrompt      = "mida> "
+dfltPrv         = 16
+dfltFileName    = "interactive"
+dfltSeed        = 0
+dfltQuarter     = 24
+dfltBars        = 16
+
 -- Commnad Line Processing --
 
 data Opts = Opts
@@ -59,19 +72,19 @@ opts =  info (helper <*> bar)
                ( long    "seed"
               <> short   's'
               <> metavar "SEED"
-              <> value   0
+              <> value   dfltSeed
               <> help    "Set seed for MIDI generation, default is 0" )
              <*> option  auto
                ( long    "quarter"
               <> short   'q'
               <> metavar "TICKS"
-              <> value   24
+              <> value   dfltQuarter
               <> help    "Set ticks per quarter note, default is 24" )
              <*> option  auto
                ( long    "bars"
               <> short   'b'
               <> metavar "BARS"
-              <> value   16
+              <> value   dfltBars
               <> help    "Set total time in quarter notes, default is 16" )
              <*> strOption
                ( long    "output"
@@ -88,8 +101,6 @@ opts =  info (helper <*> bar)
 trim :: String -> String
 trim = f . f
     where f = reverse . dropWhile isSpace
-
-cmdChar = ':'
 
 aCmd :: String -> Bool
 aCmd = isPrefixOf [cmdChar] . trim
@@ -136,9 +147,9 @@ safeParseInt str x
 cmdMake :: String -> StateT Env IO ()
 cmdMake str =
     do file <- getFileName
-       saveMidi (safeParseInt s 0)
-                (safeParseInt q 24)
-                (safeParseInt b 16)
+       saveMidi (safeParseInt s dfltSeed)
+                (safeParseInt q dfltQuarter)
+                (safeParseInt b dfltBars)
                 (output f file)
     where (s:q:b:f:_) = (words str) ++ repeat ""
 
@@ -148,7 +159,7 @@ cmdDef name =
        liftIO $ putStr . unlines . map ("=> " ++) . lines $ def
 
 cmdPrompt :: String -> StateT Env IO ()
-cmdPrompt x = setPrompt (x ++ "> ")
+cmdPrompt x = setPrompt (x ++ " ")
 
 cmdLength :: String -> StateT Env IO ()
 cmdLength x =
@@ -199,8 +210,8 @@ getMultiline prv =
                getMultiline str
        else return str
 
-iteration :: StateT Env IO ()
-iteration =
+interaction :: StateT Env IO ()
+interaction =
     do prompt <- getPrompt
        liftIO $ putStr prompt
        liftIO $ hFlush stdout
@@ -211,8 +222,8 @@ iteration =
                if isCmd "quit" str
                then return ()
                else if aCmd str
-                    then processCmd  str >> iteration
-                    else processExpr str >> iteration
+                    then processCmd  str >> interaction
+                    else processExpr str >> interaction
 
 loadConfig :: String -> StateT Env IO ()
 loadConfig file =
@@ -222,7 +233,7 @@ loadConfig file =
                            (Just x) -> setPrompt x
                            Nothing  -> return ()
                          case lookup "length" p of
-                           (Just x) -> setPrvLength (safeParseInt x 16)
+                           (Just x) -> setPrvLength (safeParseInt x dfltPrv)
                            Nothing  -> return ()
          (Left  p) -> return ()
 
@@ -233,8 +244,9 @@ interLoop =
        let file = combine home ".mida"
        exist <- liftIO $ doesFileExist file
        when exist (loadConfig file)
-       liftIO $ printf "-> Loading MIDA Interactive Environment v0.1.0;\n"
-       iteration
+       liftIO $ printf "-> Loading MIDA Interactive Environment v%s;\n" version
+       interaction
+       liftIO $ printf "-> Goodbye.\n"
 
 -- Top Level Logic --
 
@@ -260,11 +272,11 @@ saveMidi s q b file =
        liftIO $ printf "-> MIDI file saved as \"%s\".\n" file
 
 sm :: StateT Env IO () -> IO ()
-sm x = void $ runStateT x Env { eDefinitions  = M.empty
-                              , eRandGen      = pureMT 0
-                              , ePrompt       = "mida> "
-                              , ePrvLength    = 16
-                              , eFileName     = "interactive" }
+sm x = void $ runStateT x Env { eDefinitions  = dfltDefinitions
+                              , eRandGen      = dfltRandGen
+                              , ePrompt       = dfltPrompt
+                              , ePrvLength    = dfltPrv
+                              , eFileName     = dfltFileName }
 
 main :: IO ()
 main = execParser opts >>= f

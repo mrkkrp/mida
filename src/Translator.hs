@@ -68,6 +68,6 @@ getMidi s q beats =
     do setRandGen $ pureMT (fromIntegral s)
        voices <- mapM request [0..mvIndex] >>= return . filter fullyDefined
        let xs = map (toTrack . slice (beats * q)) voices
-       return Midi { fileType = MultiTrack
+       return Midi { fileType = SingleTrack
                    , timeDiv  = TicksPerBeat q
                    , tracks   = xs }
