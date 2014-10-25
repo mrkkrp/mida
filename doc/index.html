@@ -45,122 +45,50 @@
       </ul></li>
       <li><a href="#6">6 Final Notes</a></li>
     </ul>
-    <h2 id="1">1 What is MIFE?</h2>
-    <p> MIFE stands for 'Materialistic Interactive Fiction
-    Engine'. This software was developed to be a free tool for
-    everyone, who is interested in playing or / and creation of
-    materialistic interactive fiction games. The definition of
-    materialistic IF is given in <a href="#2">section 2.</a></p>
+    <h2 id="1">1 What is MIDA?</h2>
+    <p> MIDA is a minimalistic language for creating generative MIDI
+    files. MIDA is not interactive in sense that you cannot control
+    result of its activity in real time, it is indended for producers
+    and should be used with DAW. MIDA can help you create variative
+    elements in your music in very simple way. Since MIDI can control
+    a lot of different instruments, power of MIDA is truly great.</p>
     <p> Manual Copyright &copy; 2014 Mark Karpov.</p>
-    <p> MIFE Copyright &copy; 2014 Mark Karpov.</p>
+    <p> MIDA Copyright &copy; 2014 Mark Karpov.</p>
     <p> All contents here is copyright by the developer and is
     released under the <a href =
     "http://www.gnu.org/copyleft/fdl.html"> GNU Free Documentation
     License</a>.</p>
-    <p> MIFE is licensed under <a href =
+    <p> MIDA is licensed under <a href =
     "http://www.gnu.org/copyleft/gpl.html">GNU General Public
     License</a>; it's opensource, free software.</p>
     <p><a href="#top">back to the top</a></p>
-    <h2 id="2">2 Materialistic Concept of IF</h2>
-    <p> To put it simply, materialistic IF (MIF) implies higher level
-    of interactivity, freedom, and playing in open world without rigid
-    scenario.</p>
-    <p> Aim of MIF is not leading player through 'nodes' of a story,
-    but rather letting him/her do what he/she wants and
-    just <i>render</i> it in text. As a result of the design, a MIF
-    game is about items. Not just things that we can take and drop,
-    but about all sorts of things that appear in game, but they have
-    to be <i>material</i>.</p>
-    <p> Usually, not every item in IF game can be interacted
-    with. Some items exist only as a part of storytelling and you have
-    to guess which is useful and which is not. Not so in MIF: every
-    item, that you encounter in text, is a real, separate object. Try
-    everything. Everything is possible, or almost everything.</p>
-    <p> Game world in MIF game is usually quite independent of
-    player. One simple way to introduce the independency is
-    time. Everything is living. There may not exist fixed plan of
-    actions to win. There may be no way to 'win' at all.</p>
-    <p> MIF games need uber-level parser. MIFE has one. Feel naturally
-    with it. Just tell it what you want to do in imperative mood,
-    that's all. Forget about 'i' as 'inventory', 'n' as 'north',
-    etc. 'I' is a pronoun. In real life one doesn't usually know where
-    is north. Wanna say 'go there' if there is only one option? Just
-    type it. If game says 'here are ten trolls', just type 'grab
-    sword, then kill five of them with it!'. Works. MIFE parser can
-    even correct misspellings.</p>
-    <p> Since the MIF games are getting far from literature, they're
-    flexible enough to use not only parser, but also
-    text-synthesis. The same way you can upgrade textures of a visual
-    game, you can change style of text in MIF game. Think about it
-    again: contents of world and the way you perceive them are
-    different things!</p>
-    <p> Can text game be interesting nowadays? Yes. Text is unique
-    medium for this sort of games, as you start to use your
-    imagination more than you do when playing visual games. Another
-    reason to give it a try is the fact that you never know limits of
-    what you can do in such a game. Think about visual games again
-    &ndash; after a while you eventually know all possibilities, but
-    in a MIF game there is always something to explore.</p>
-    <p><a href="#top">back to the top</a></p>
-    <h2 id="3">3 Using MIFE</h2>
-    <p> One can use MIFE to play and create MIF games. It is
-    simple.</p>
-    <p><a href="#top">back to the top</a></p>
-    <h3 id="3.1">3.1 Requirements</h3>
-    <p> MIFE needs preinstalled <a href =
-    "http://www.clisp.org/">CLISP</a> implementation of ANSI Common
-    Lisp to work. This is free software that published under <a href =
-    "http://www.gnu.org/copyleft/gpl.html">GNU General Public
-    License</a>.</p>
-    <p><a href="#top">back to the top</a></p>
-    <h3 id="3.2">3.2 Installation</h3>
-    <p> Currently supported platforms
-    are <a href="http://en.wikipedia.org/wiki/Microsoft_Windows">MS
-    Windows</a>
-    and <a href="http://en.wikipedia.org/wiki/Linux">Linux</a>.</p>
-    <h4 id="3.2.1">3.2.1 Windows</h4>
-    <p> First, download and install <a href =
-    "http://www.clisp.org/">CLISP</a>. Then download <a href =
-    "https://github.com/mrkkrp/mife/releases">MIFE installer for MS
-    Windows</a>. Run it and install MIFE. That's it.</p>
-    <h4 id="3.2.2">3.2.2 Linux</h4>
-    <p> Install CLISP using your package manager. MIFE for Linux is
-    distributing as self-extracting shell script (<a href =
-    "https://github.com/mrkkrp/mife/releases">get it on GitHub</a>). I
-    have not created package for it, because I have no time to
-    maintain such a package for whole variety of linux package
-    systems.</p>
-    <p> But the situation may change. Check your repositories if they
-    contain MIFE. If there is no MIFE release for your Linux
-    distribution, you always can install MIFE via self-extracting
-    shell script.</p>
-    <p> You should run the script as root or with <code>sudo</code>,
-    then start MIFE as normal user and it will create
-    directory <code>~/mife/</code> with all necessary stuff (default
-    games, directory for saves, configuration file, and your copy of
-    dictionary).</p>
-    <h4 id="3.2.3">3.2.3 Compilation from Source</h4>
-    <p> In order to compile MIFE you'll need installed CLISP,
-    <a href="http://common-lisp.net/project/asdf/">ASDF</a> (3.1+) and
-    library <a href="http://common-lisp.net/project/cl-store/">CL-STORE</a>.
-    Probably, the best way to install all the stuff is with
-    <a href="http://www.quicklisp.org/beta/">Quicklisp</a>. Quicklisp
-    will automatically install ASDF (although it currently supplies
-    version 2.26, so you'll have to download fresh ASDF version and
-    move it into quicklisp folder) and you will need to execute only
-    one command to download CL-STORE:</p>
-    <pre>(ql:quickload "cl-store")</pre>
-    <p>Here is step-by-step instructions:</p>
-    <p>1. Install CLISP;</p>
-    <p>2. Install ASDF 3.1+;</p>
-    <p>3. Install CL-STORE;</p>
-    <p>4. Download and untar git repository of MIFE, or clone it:</p>
-    <pre>$ git clone https://github.com/mrkkrp/mife.git master</pre>
-    <p>Go to the root directory of the repository and execute:</p>
-    <pre>$ sh make.sh</pre>
-    <p>To install the program execute:</p>
-    <pre># sh install.sh</pre>
-    <p>Done.</p>
+    <h2 id="2">2 Installation</h2>
+    <p> It's absolutely possible to install MIDA on any platform for
+    which <a href="https://www.haskell.org/platform/">Haskell
+    Platform</a> is supported. However, there are some precompiled
+    options that may be more convenient and straightforward for some
+    people. In particular, I propose installer for Windows users and
+    self-extracting script for Linux users. To install MIDA on other
+    platforms see section <a href="2.3">Compilation from
+    Source</a>.</p>
+    <h3 id="2.1">2.1 Windows</h3>
+    <p> To install MIDA on
+    windows <a href="https://github.com/mrkkrp/mida/releases">download
+    MIDA installer</a>, then run it. To uninstall MIDA run
+    uninstaller.</p>
+    <h3 id="2.2">2.2 Linux</h3>
+    <p> <a href="https://github.com/mrkkrp/mida/releases">Download
+    self-extracting script</a> and run it as root. To uninstall MIDA
+    execute:</p>
+    <pre># mida-rem</pre>
+    <p> This script will remove MIDA from your system.</p>
+    <h3 id="2.3">2.3 Compilation from Source</h3>
+    <p> First,
+    install <a href="https://www.haskell.org/platform/">Haskell
+    Platform</a>. You also need to
+    install <a href="http://www.haskell.org/cabal/">Cabal</a>.</p>
+
+
     <p><a href="#top">back to the top</a></p>
     <h3 id="3.3">3.3 Invocation</h3>
     <p> At the time of the writing, only console version of the engine
