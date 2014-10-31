@@ -25,23 +25,22 @@
       <li><a href="#4">4 Configuration File</a></li>
       <li><a href="#5">5 MIDA Tutorial</a>
         <ul>
-          <li><a href="#5.1">5.1 Literals</a>
+          <li><a href="#5.1">5.1 Literal Values</a>
             <ul>
               <li><a href="#5.1.1">5.1.1 Durations</a></li>
               <li><a href="#5.1.2">5.1.2 Velocities</a></li>
               <li><a href="#5.1.3">5.1.3 Pitch</a></li>
           </ul></li>
-          <li><a href="#5.2">5.2 Elements</a></li>
-          <li><a href="#5.3">5.3 Principles and Realizations</a></li>
-          <li><a href="#5.4">5.4 Definitions</a></li>
-          <li><a href="#5.5">5.5 Special Commands and Workflow</a></li>
-          <li><a href="#5.6">5.6 Ranges</a></li>
-          <li><a href="#5.7">5.7 Addition</a></li>
-          <li><a href="#5.8">5.8 Multiplication</a></li>
-          <li><a href="#5.9">5.9 Repitition</a></li>
-          <li><a href="#5.10">5.10 Rotation</a></li>
-          <li><a href="#5.11">5.11 Multivalues</a></li>
-          <li><a href="#5.12">5.12 Conditional Multivalues</a></li>
+          <li><a href="#5.2">5.2 Elements, Principles and Realizations</a></li>
+          <li><a href="#5.3">5.3 Definitions</a></li>
+          <li><a href="#5.4">5.4 Special Commands and Workflow</a></li>
+          <li><a href="#5.5">5.5 Ranges</a></li>
+          <li><a href="#5.6">5.6 Addition</a></li>
+          <li><a href="#5.7">5.7 Multiplication</a></li>
+          <li><a href="#5.8">5.8 Repitition</a></li>
+          <li><a href="#5.9">5.9 Rotation</a></li>
+          <li><a href="#5.10">5.10 Multivalues</a></li>
+          <li><a href="#5.11">5.11 Conditional Multivalues</a></li>
       </ul></li>
       <li><a href="#6">6 Final Notes</a></li>
     </ul>
@@ -176,7 +175,7 @@ length = 20
     create super sexy pop stuff, that's what we need, man, we need to
     be primitive and successful.</p>
     <p><a href="#top">back to the top</a></p>
-    <h3 id="5.1">5.1 Literals</h3>
+    <h3 id="5.1">5.1 Literal Values</h3>
     <p> Start interactive environment. Now you should be looking at
     something like this:</p>
     <pre>mida> _</pre>
@@ -191,6 +190,177 @@ length = 20
    what you get as a result.</p>
    <p><a href="#top">back to the top</a></p>
    <h3 id="5.1.1">5.1.1 Durations</h3>
+   <p> Durations in MIDI are relative to <i>ticks per quarter note</i>
+   (TPQ). TPQ is set before translation either via command line
+   options or as parameters of command <code>:make</code>. As I said,
+   default value is <code>24</code>, so try to work with this in
+   mind.</p>
+   <p> So, if quarter note is <code>24</code> ticks, whole note will
+   be <code>96</code> ticks, while eight note will be <code>12</code>
+   ticks, etc. You can also use any number in between creating really
+   strange rhythms. Don't use <code>0</code>, because it's pretty
+   useless and if your 'score' consists of only zero durations you'll
+   be unable to get realization longer than zero bars. Remember that
+   you can use numbers greater than <code>127</code> for duration, so
+   there is no limits.</p>
+   <p> Let's enter a number:</p>
+   <pre>mida> 24
+=> 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24...
+mida> _</pre>
+   <p> So we see that we can enter literals! However, the result may
+   look a bit strange, but ignore this 'repetitiveness' for now.</p>
    <p><a href="#top">back to the top</a></p>
+   <h3 id="5.1.2">5.1.2 Velocities</h3>
+   <p> Since MIDI format is piano-oriented, velocity in our case means
+   loudness. Again, to write down velocities we use plain
+   numbers. Valid values are form <code>0</code> to <code>127</code>,
+   where <code>0</code> means silence, while <code>127</code>
+   signifies loudest note.</p>
+   <p> Although you can enter literals greater than <code>127</code>
+   they are not guaranteed to be processed correctly.</p>
+   <p><a href="#top">back to the top</a></p>
+   <h3 id="5.1.3">5.1.3 Pitches</h3>
+   <p> Sure, you can use the same plain numbers from <code>0</code>
+   to <code>127</code> for pitch, but it's a bit inconvinient. MIDA
+   knows some alias for that case. Since MIDA doesn't work with
+   negative numbers, we use alias where octaves start
+   from <code>0</code>. So <code>c0</code> corresponds
+   to <code>0</code> and so on: one semitone per number.</p>
+   <p> This table may be useful:</p>
+   <table>
+     <tr><th rowspan="2">Octaves</th><th colspan="12">Notes</th></tr>
+     <tr><td>c</td><td>c#</td><td>d</td><td>d#</td><td>e</td><td>f</td><td>f#</td><td>g</td><td>g#</td><td>a</td><td>a#</td><td>b</td></tr>
+     <tr><td>0</td><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td></tr>
+     <tr><td>1</td><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td><td>22</td><td>23</td></tr>
+     <tr><td>2</td><td>24</td><td>25</td><td>26</td><td>27</td><td>28</td><td>29</td><td>30</td><td>31</td><td>32</td><td>33</td><td>34</td><td>35</td></tr>
+     <tr><td>3</td><td>36</td><td>37</td><td>38</td><td>39</td><td>40</td><td>41</td><td>42</td><td>43</td><td>44</td><td>45</td><td>46</td><td>47</td></tr>
+     <tr><td>4</td><td>48</td><td>49</td><td>50</td><td>51</td><td>52</td><td>53</td><td>54</td><td>55</td><td>56</td><td>57</td><td>58</td><td>59</td></tr>
+     <tr><td>5</td><td><b>60</b></td><td>61</td><td>62</td><td>63</td><td>64</td><td>65</td><td>66</td><td>67</td><td>68</td><td>69</td><td>70</td><td>71</td></tr>
+     <tr><td>6</td><td>72</td><td>73</td><td>74</td><td>75</td><td>76</td><td>77</td><td>78</td><td>79</td><td>80</td><td>81</td><td>82</td><td>83</td></tr>
+     <tr><td>7</td><td>84</td><td>85</td><td>86</td><td>87</td><td>88</td><td>89</td><td>90</td><td>91</td><td>92</td><td>93</td><td>94</td><td>95</td></tr>
+     <tr><td>8</td><td>96</td><td>97</td><td>98</td><td>99</td><td>100</td><td>101</td><td>102</td><td>103</td><td>104</td><td>105</td><td>106</td><td>107</td></tr>
+     <tr><td>9</td><td>108</td><td>109</td><td>110</td><td>111</td><td>112</td><td>113</td><td>114</td><td>115</td><td>116</td><td>117</td><td>118</td><td>119</td></tr>
+     <tr><td>10</td><td>120</td><td>121</td><td>122</td><td>123</td><td>124</td><td>125</td><td>126</td><td>127</td><td colspan="4"></td></tr>
+   </table>
+   <p> Please note that there is no standard way to number octaves in
+   MIDI. MIDI standard only says that note with index <code>60</code>
+   must be <i>Middle C</i>. We've chosen zero-based system because of
+   reasons that I've described earlier, some software starts
+   numeration from <code>-2</code>.</p>
+   <p> Enter any alais into MIDA and see for yourself that it's just
+   like a corresponding MIDI code (note that all alais are
+   case-sensitive):</p>
+   <pre>mida> c5
+=> 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60...</pre>
+   <p> ...and that's it! Now you can use literal values. Oh, that's
+   incredible.</p>
+   <p><a href="#top">back to the top</a></p>
+   <h3 id="5.2">5.2 Elements, Principles and Realizations</h3>
+   <p> Smallest piece of composition in MIDA is
+   called <i>element</i>. Now we know at least one kind of element:
+   literal values. Realization of a literal value is just its
+   value. Bear with me and all the stuff will be clear to you.</p>
+   <p> Thing we enter into interactive prompt is
+   called <i>principle</i>. A principle can consist of zero or more
+   elements. These elements may be separated by
+   commas <code>,</code>. Let's try some principles:</p>
+   <pre>mida> 1, 2, 3
+=> 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...
+mida> c5 d5 e5 f5 g5 a5 b5 c6
+=> 60 62 64 65 67 69 71 72 60 62 64 65 67 69 71 72...</pre>
+   <p> So, we enter a principle and MIDA prints its
+   realization. Realization of a principle is bulit this way:</p>
+   <ul>
+     <li>&bull; MIDA cycles elements (not their values, you'll see
+   difference later), so we have now infinite collection of
+   elements;</li>
+     <li>&bull; it realizes all the elements one by one.</li>
+   </ul>
+   <p> Note that MIDA realizes just as much as you need due to lazy
+   evaluation.</p>
+   <p>  Realization can be
+   either infinite sequence of non-negative numbers
+   or <code>none</code>. <code>none</code> is a special value that
+   represent realization of empty principle:</p>
+   <pre>mida> 
+=> none</pre>
+   <p> In the next section we will see other roles
+   of <code>none</code>.</p>
+   <p><a href="#top">back to the top</a></p>
+   <h3 id="5.3">5.3 Definitions</h3>
+   <p> I said that it's quite hard to write incorrect statement in
+   MIDA. Let's prove it. This is my attempt:</p>
+   <pre>mida> foo
+=> none
+mida> asdfasdflk
+=> none
+mida> 1 2 rere 5
+=> 1 2 5 1 2 5 1 2 5 1 2 5 1 2 5 1...</pre>
+   <p> So, MIDA thinks that these things are realized
+   to <code>none</code>, they can be even put inside a principle
+   without any obvious harm.</p>
+   <p> The thing is that MIDA considers any alpha-numeric sequence of
+   characters that does not begin with a
+   number <i>definition</i>. Definition can hold a principle and
+   default value of any definition is <code>none</code>. You can
+   combine definitions to build really complex principles.</p>
+   <p> One can create definitions by putting alpha-numeric name on the
+   left side of equation sign <code>=</code> and a principle on the
+   right of the sigh. Let's give it a go:</p>
+   <pre>mida> foo = 1 2 3
+-> defined 'foo'
+mida> foo
+=> 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...
+mida> foo 5
+=> 1 2 3 5 1 2 3 5 1 2 3 5 1 2 3 5...</pre>
+   <p> It seems to work! What a magic! Remember that definitions are
+   something like recipies how to create a principle, not static
+   values. So we can change a definition and all other definitions
+   which use it will change accordingly:</p>
+   <pre>mida> foo = 5 boo = 6 baz = foo boo
+-> defined 'foo'
+-> defined 'boo'
+-> defined 'baz'
+mida> baz
+=> 5 6 5 6 5 6 5 6 5 6 5 6 5 6 5 6...
+mida> boo = 10
+-> defined 'boo'
+mida> baz
+=> 5 10 5 10 5 10 5 10 5 10 5 10 5 10 5 10...</pre>
+  <p> And since all possible definitions have the default value, we
+  can even design our principles in top-down manner, using definitions
+  that we haven't defined yet!</p>
+  <p> Now you're ready to create your first piece of music, but before
+  you do it I should explain something about <i>top-level
+  definitions</i>. There are special names that represent duration,
+  velocity, and pitch of different voices. There may be up to 8
+  different voices in a MIDA score.</p>
+  <p> The names are as following:</p>
+  <ul>
+    <li>&bull; <code>dur_</code> &ndash; durations;</li>
+    <li>&bull; <code>vel_</code> &ndash; velocities;</li>
+    <li>&bull; <code>pch_</code> &ndash; pitches.</li>
+  </ul>
+  <p> Substitute <code>_</code> with index of desired voice, valid
+  values are from <code>0</code> to <code>7</code>.</p>
+  <p> Let's create some music:</p>
+  <pre>mida> dur0 = 24
+-> defined 'dur0'
+mida> vel0 = 70
+-> defined 'vel0'
+mida> pch0 = c5 d5 e5 f5 g5 a5 b5
+-> defined 'pch0'</pre>
+  <p> It's as simple as that! Other top-level definitions hold empty
+  principles, so they will be ignored. Use <code>:make</code> command
+  to create a MIDI file:</p>
+  <pre>mida> :make 0 24 14
+-> MIDI file saved as "interactive.mid".</pre>
+  <p> Use any available software to hear this astonishing
+  masterpiece. Full description of available commands is available in
+  the next section.</p>
+  <p><a href="#top">back to the top</a></p>
+  <h3 id="5.4">5.4 Special Commands and Workflow</h3>
+  
+  <p><a href="#top">back to the top</a></p>
   </body>
 </html>

@@ -220,7 +220,7 @@ table
 th, td
 {
     border: 1pt solid #93a1a1;
-    min-width: 75px;
+    min-width: 50px;
     padding: 5px;
 }
 
