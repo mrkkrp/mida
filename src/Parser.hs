@@ -46,8 +46,7 @@ data Element
     | Replication Expression Int
     | Multiplication Expression Int
     | Addition Expression Int
-    | LeftRotation Expression Int
-    | RightRotation Expression Int
+    | Rotation Expression Int
     | Reverse Expression
     | Range Int Int
     | Random Expression
@@ -70,8 +69,7 @@ language = emptyDef { T.commentStart    = "/*"
                     , T.reservedOpNames = [ "*"
                                           , "+"
                                           , "$"
-                                          , "<<"
-                                          , ">>"
+                                          , "^"
                                           , ".."
                                           , "=" ]
                     , T.caseSensitive   = True }
@@ -116,8 +114,7 @@ pElement
    <|> try pMultiplication
    <|> try pAddition
    <|> try pReplication
-   <|> try pLeftRotation
-   <|> pRightRotation
+   <|> try pRotation
    <|> pReverse
    <|> try pRandom
    <|> pCondRandom
@@ -158,11 +155,10 @@ pBracketsOp op f =
        n    <- fromIntegral <$> natural
        return $ f expr n
 
-pMultiplication = pBracketsOp "*"  Multiplication
-pAddition       = pBracketsOp "+"  Addition
-pReplication    = pBracketsOp "$"  Replication
-pLeftRotation   = pBracketsOp "<<" LeftRotation
-pRightRotation  = pBracketsOp ">>" RightRotation
+pMultiplication = pBracketsOp "*" Multiplication
+pAddition       = pBracketsOp "+" Addition
+pReplication    = pBracketsOp "$" Replication
+pRotation       = pBracketsOp "^" Rotation
 
 pReverse :: Parser Element
 pReverse = angles pExpression >>= return . Reverse
