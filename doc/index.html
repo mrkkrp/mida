@@ -48,10 +48,10 @@
     <p>MIDA is a minimalistic language for creating generative MIDI
       files. MIDA is not interactive in sense that you cannot control
       result of its activity in real time, it is indended for
-      producers and should be used with DAW. MIDA can help you create
-      variative elements in your music in very simple way. Since MIDI
-      can control a lot of different instruments, power of MIDA is
-      truly great.</p>
+      producers and should be used with a DAW. MIDA can help you
+      create variative elements in your music in very simple
+      way. Since MIDI can control a lot of different instruments,
+      power of MIDA is truly great.</p>
     <p>Manual Copyright &copy; 2014 Mark Karpov.</p>
     <p>MIDA Copyright &copy; 2014 Mark Karpov.</p>
     <p>All contents here is copyright by the developer and is released
@@ -68,7 +68,7 @@
       options that may be more convenient and straightforward for some
       people. In particular, I propose installer for Windows users and
       self-extracting script for Linux users. To install MIDA on other
-      platforms see section <a href="2.3">Compilation from
+      platforms see section <a href="2.3">2.3 Compilation from
       Source</a>.</p>
     <h3 id="2.1">2.1 Windows</h3>
     <p>To install MIDA on
@@ -79,20 +79,22 @@
     <p><a href="https://github.com/mrkkrp/mida/releases">Download
       self-extracting script</a> and run it as root. To uninstall MIDA
       execute:</p>
-    <pre># mida-rem</pre>
+    <pre># midarm</pre>
     <p>This script will remove MIDA from your system.</p>
     <h3 id="2.3">2.3 Compilation from Source</h3>
     <p>First,
       install <a href="https://www.haskell.org/platform/">Haskell
       Platform</a>. You also need to
       install <a href="http://www.haskell.org/cabal/">Cabal</a>. After
-      that, download <a href="https://github.com/mrkkrp/mida">MIDA
-      source code</a>. Usually you need to update list of available
-      packages:</p>
+      that, download or
+      clone <a href="https://github.com/mrkkrp/mida">MIDA
+      repository</a>.</p>
+    <p>Usually you need to update list of available
+      packages before compilation, so do this:</p>
     <pre>$ cabal update
 $ cabal install cabal-install</pre>
     <p>Now <code>cd</code> into directory containing downloaded
-      repository of MIDA. Execute:</p>
+      repository of MIDA and execute:</p>
     <pre>$ cabal configure
 $ cabal build</pre>
     <p>It's very likely that Cabal will not compile MIDA from the
@@ -100,8 +102,8 @@ $ cabal build</pre>
       will list for you.</p>
     <p><a href="#top">back to the top</a></p>
     <h2 id="3">3 Invocation</h2>
-    <p>MIDA can work as translator from source code into MIDI files,
-      and also as interactive environment (interpreter). Here's
+    <p>MIDA can work as a translator from source code to MIDI files,
+      and also as an interactive environment (interpreter). Here's
       invocation scheme:</p>
     <pre>mida [-i|--interactive] [-s|--seed SEED] [-q|--quarter TICKS] [-b|--bars BARS] [-o|--output OUT] [FILE]</pre>
     <p>Let's list all available options:</p>
@@ -110,20 +112,20 @@ $ cabal build</pre>
       <tr><td><code>-h</code>,<code>--help</code></td>
         <td>Shows this information about invocation parameters and available options</td></tr>
       <tr><td><code>-i</code>,<code>--interactive</code></td>
-        <td>Enables interactive (interpreter) mode.</td></tr>
+        <td>Enables interactive (interpreter) mode</td></tr>
       <tr><td><code>-s</code>,<code>--seed</code></td>
-        <td>Sets seed for MIDI generation, default value is 0</td></tr>
+        <td>Sets seed for MIDI generation, default value is <code>0</code></td></tr>
       <tr><td><code>-q</code>,<code>--quarter</code></td>
-        <td>Sets number of ticks for quarter note, default value is 24</td></tr>
+        <td>Sets number of ticks for quarter note, default value is <code>24</code></td></tr>
       <tr><td><code>-b</code>,<code>--bars</code></td>
-        <td>Sets total time of result MIDI file as number of quarter notes (bars), default value is 16</td></tr>
+        <td>Sets total time of result MIDI file as number of quarter notes (bars), default value is <code>16</code></td></tr>
       <tr><td><code>-o</code>,<code>--output</code></td>
-        <td>Specifies output filename. Default value is evaluated as <code>FILE</code> with extension <code>.mid</code></td></tr>
+        <td>Specifies output filename; default value is evaluated as <code>FILE</code> with extension <code>.mid</code></td></tr>
    </table>
-    <p>If you don't supply any file as command line argument, MIDA
+    <p>If you don't supply any file as a command line argument, MIDA
       will run in interactive mode even without <code>-i</code>
-      option. Options <code>-s</code>, <code>-q</code>,
-      and <code>-b</code> are ignored if option <code>-i</code> is
+      option. Note that options <code>-s</code>, <code>-q</code>,
+      and <code>-b</code> will be ignored if option <code>-i</code> is
       used.</p>
     <p><a href="#top">back to the top</a></p>
     <h2 id="4">4 Configuration File</h2>
@@ -154,16 +156,16 @@ length = 20
 </pre>
     <p><a href="#top">back to the top</a></p>
     <h2 id="5">5 MIDA Tutorial</h2>
-    <p>Now that you know all basic information about interpreter we
-      can start our journey into magic world of MIDA.</p>
-    <p>MIDA is minimalistic, but not very flexible or complex. In
-      fact, it is so simple that any statement that has valid synax
-      will produce valid result. A MIDA statement only has to pass
-      parser, that's all. In fact, it's quite hard to enter invalid
-      statement in MIDA and we'll see why.</p>
+    <p>Now that you know all basic information about the interpreter,
+      we can start our journey into magic world of MIDA.</p>
+    <p>MIDA is minimalistic and not very flexible or complex. In fact,
+      it is so simple that any statement that has valid synax will
+      produce valid result. A MIDA statement only has to pass parser,
+      that's all. In fact, it's quite hard to enter invalid statement
+      in MIDA and we'll see why.</p>
     <p>If you're interested in generative music, you probably know
       that there are lots of really advanced programs for algorithmic
-      composition. But take a look at output of those programs. I
+      composition. But take a look at the output of those programs. I
       don't mean to offend someone, but it's often not that
       impressive.</p>
     <p>What is the reason of that? Well, people who work with
@@ -171,8 +173,7 @@ length = 20
       result. The more compilated tool you use the more time you spend
       on tool itself. Algorithm may be really impressive, but audience
       just don't give a fuck. We're gonna use basic tools of MIDA to
-      create super sexy pop stuff, that's what we need, man, we need
-      to be primitive and successful.</p>
+      create super sexy pop stuff, that's what we need, man.</p>
     <p><a href="#top">back to the top</a></p>
     <h3 id="5.1">5.1 Literal Values</h3>
     <p>Start interactive environment. Now you should be looking at
@@ -185,19 +186,19 @@ length = 20
       <li>&bull; velocities;</li>
       <li>&bull; pitches.</li>
     </ul>
-    <p>Let's start from how you can enter the numbers at prompt and
-      what you get as a result.</p>
+    <p>Let's start from how you can enter the numbers at the prompt
+      and what you get as a result.</p>
     <p><a href="#top">back to the top</a></p>
     <h3 id="5.1.1">5.1.1 Durations</h3>
     <p>Durations in MIDI are relative to <i>ticks per quarter note</i>
       (TPQ). TPQ is set before translation either via command line
-      options or as parameters of command <code>:make</code>. As I
+      options or as a parameter of <code>:make</code> command. As I
       said, default value is <code>24</code>, so try to work with this
       in mind.</p>
     <p>So, if quarter note is <code>24</code> ticks, whole note will
       be <code>96</code> ticks, while eight note will
       be <code>12</code> ticks, etc. You can also use any number in
-      between creating really strange rhythms. Don't
+      between, creating really strange rhythms. Don't
       use <code>0</code>, because it's pretty useless and if your
       'score' consists of only zero durations you'll be unable to get
       realization longer than zero bars. Remember that you can use
@@ -216,7 +217,7 @@ mida> _</pre>
       numbers. Valid values are form <code>0</code>
       to <code>127</code>, where <code>0</code> means silence,
       while <code>127</code> signifies loudest note.</p>
-    <p>Although you can enter literals greater than <code>127</code>
+    <p>Although you can enter literals greater than <code>127</code>,
       they are not guaranteed to be processed correctly.</p>
     <p><a href="#top">back to the top</a></p>
     <h3 id="5.1.3">5.1.3 Pitches</h3>
@@ -245,9 +246,8 @@ mida> _</pre>
     <p>Please note that there is no standard way to number octaves in
       MIDI. MIDI standard only says that note with
       index <code>60</code> must be <i>Middle C</i>. We've chosen
-      zero-based system because of reasons that I've described
-      earlier, some software starts numeration
-      from <code>-2</code>.</p>
+      zero-based system for reasons that I've described earlier, some
+      software starts numeration from <code>-2</code>.</p>
     <p>Enter any alais into MIDA and see for yourself that it's just
       like a corresponding MIDI code (note that all alais are
       case-sensitive):</p>
@@ -277,8 +277,9 @@ mida> c5 d5 e5 f5 g5 a5 b5 c6
       elements;</li>
       <li>&bull; it realizes all the elements one by one.</li>
     </ul>
-    <p>Note that MIDA realizes just as much as you need due to lazy
-      evaluation.</p>
+    <p>Note that MIDA realizes just as much as you need due
+      to <a href="http://en.wikipedia.org/wiki/Lazy_evaluation">lazy
+      evaluation</a>.</p>
     <p>Realization can be either infinite sequence of non-negative
       numbers or <code>none</code>. <code>none</code> is a special
       value that represent realization of empty principle:</p>
@@ -288,7 +289,7 @@ mida> c5 d5 e5 f5 g5 a5 b5 c6
       of <code>none</code>.</p>
     <p><a href="#top">back to the top</a></p>
     <h3 id="5.3">5.3 Definitions</h3>
-    <p>I said that it's quite hard to write incorrect statement in
+    <p>I said that it's quite hard to write an incorrect statement in
       MIDA. Let's prove it. This is my attempt:</p>
     <pre>mida> foo
 => none
@@ -303,8 +304,9 @@ mida> 1 2 rere 5
       characters that does not begin with a
       number <i>definition</i>. Definition can hold a principle and
       default value of any definition is <code>none</code>. You can
-      combine definitions to build really complex principles.</p>
-    <p>One can create definitions by putting alpha-numeric name on the
+      combine definitions to build really complex principles. Keep in
+      mind, that names of the definitions are case-sensitive.</p>
+    <p>One can create definitions by putting definition name on the
       left side of equation sign <code>=</code> and a principle on the
       right of the sigh. Let's give it a go:</p>
     <pre>mida> foo = 1 2 3
@@ -327,9 +329,9 @@ mida> boo = 10
 -> defined 'boo'
 mida> baz
 => 5 10 5 10 5 10 5 10 5 10 5 10 5 10 5 10...</pre>
-    <p>And since all possible definitions have the default value, we
-      can even design our principles in top-down manner, using
-      definitions that we haven't defined yet!</p>
+    <p>And since all possible definitions are bound to the default
+      value, we can even design our principles in top-down manner,
+      using definitions that we haven't defined yet!</p>
     <p>Now you're ready to create your first piece of music, but
       before you do it I should explain something about <i>top-level
       definitions</i>. There are special names that represent
@@ -356,13 +358,61 @@ mida> pch0 = c5 d5 e5 f5 g5 a5 b5
     <pre>mida> :make 0 24 14
 -> MIDI file saved as &quot;interactive.mid&quot;.</pre>
     <p>Use any available software to hear this astonishing
-      masterpiece. Full description of available commands is available
-      in the next section.</p>
+      masterpiece. Description of all available commands is given in
+      the next section.</p>
     <p><a href="#top">back to the top</a></p>
     <h3 id="5.4">5.4 Special Commands and Workflow</h3>
     <p>MIDA has a number of useful commands that can be fired from
-      interactive environment. Let's examine all of them.</p>
+      interactive environment. All commands start with
+      colon <code>:</code> and are case-sensitive. Let's examine all
+      of them.</p>
+    <p>Let's start with <code>:help</code>, this command prints list
+      of all available commands and their descriptions:</p>
+    <pre>mida> :help
+Available commands:
+  :help                    Show this help text
+  :save                    Save current enviroment in specified file
+  :purge                   Remove redundant definitions
+  :make                    Generate MIDI file in current environment
+  :def                     Print definition of given symbol
+  :prompt                  Set MIDA prompt
+  :length                  Set length of displayed results
+  :quit                    Quit the interactive environment</pre>
+    <p>You can temporarily change MIDA prompt
+      with <code>:prompt</code> command:</p>
+    <pre>mida> :prompt boom>
+boom> _</pre>
+    <p>You can also set how many elements of realized principle will
+      be displayed:</p>
+    <pre>mida> 1
+=> 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1...
+mida> :length 20
+mida> 1
+=> 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1...</pre>
     
+
+
+    
+    <p>Don't forget that you quit MIDA environment
+      with <code>:quit</code> command!</p>
+    <pre>mida> :quit
+-> Goodbye.</pre>
+    <p><a href="#top">back to the top</a></p>
+    <h3 id="5.5">5.5 Ranges</h3>
+    <p><a href="#top">back to the top</a></p>
+    <h3 id="5.6">5.6 Addition</h3>
+    <p><a href="#top">back to the top</a></p>
+    <h3 id="5.7">5.7 Multiplication</h3>
+    <p><a href="#top">back to the top</a></p>
+    <h3 id="5.8">5.8 Repitition</h3>
+    <p><a href="#top">back to the top</a></p>
+    <h3 id="5.9">5.9 Rotation</h3>
+    <p><a href="#top">back to the top</a></p>
+    <h3 id="5.10">5.10 Multivalues</h3>
+    <p><a href="#top">back to the top</a></p>
+    <h3 id="5.11">5.11 Conditional Multivalues</h3>
+    <p><a href="#top">back to the top</a></p>
+    <h3 id="6">6 Final Notes</h3>
     <p><a href="#top">back to the top</a></p>
   </body>
 </html>
