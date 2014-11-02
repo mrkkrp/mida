@@ -34,10 +34,10 @@ Haskell Platform is supported.
 4. Go to the root directory of the repository and execute:
 
    ```
-   cabal update
-   cabal install cabal-install
-   cabal configure
-   cabal build
+   $ cabal update
+   $ cabal install cabal-install
+   $ cabal configure
+   $ cabal build
    ```
 
    It's very likely that Cabal will not compile MIDA from the first
