@@ -46,7 +46,7 @@ dfltPrv         = 16
 dfltFileName    = "interactive"
 dfltSeed        = 0
 dfltQuarter     = 24
-dfltBars        = 16
+dfltBeats       = 16
 
 -- Commnad Line Processing --
 
@@ -81,10 +81,10 @@ opts =  info (helper <*> bar)
               <> value   dfltQuarter
               <> help    "Set ticks per quarter note, default is 24" )
              <*> option  auto
-               ( long    "bars"
+               ( long    "beats"
               <> short   'b'
-              <> metavar "BARS"
-              <> value   dfltBars
+              <> metavar "BEATS"
+              <> value   dfltBeats
               <> help    "Set total time in quarter notes, default is 16" )
              <*> strOption
                ( long    "output"
@@ -149,7 +149,7 @@ cmdMake str =
     do file <- getFileName
        saveMidi (safeParseInt s dfltSeed)
                 (safeParseInt q dfltQuarter)
-                (safeParseInt b dfltBars)
+                (safeParseInt b dfltBeats)
                 (output f file)
     where (s:q:b:f:_) = (words str) ++ repeat ""
 
