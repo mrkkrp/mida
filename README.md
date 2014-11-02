@@ -13,7 +13,7 @@ See [MIDA Manual](http://mrkkrp.github.io/mida/) for more information.
 
 For installation instructions see `INSTALL.md`.
 
-# License
+## License
 
 Copyright © 2014 Mark Karpov
 
