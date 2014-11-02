@@ -33,7 +33,7 @@
           </ul></li>
           <li><a href="#5.2">5.2 Elements, Principles and Realizations</a></li>
           <li><a href="#5.3">5.3 Definitions</a></li>
-          <li><a href="#5.4">5.4 Special Commands and Workflow</a></li>
+          <li><a href="#5.4">5.4 Special Commands</a></li>
           <li><a href="#5.5">5.5 Ranges</a></li>
           <li><a href="#5.6">5.6 Addition</a></li>
           <li><a href="#5.7">5.7 Multiplication</a></li>
@@ -105,7 +105,8 @@ $ cabal build</pre>
     <p>MIDA can work as a translator from source code to MIDI files,
       and also as an interactive environment (interpreter). Here's
       invocation scheme:</p>
-    <pre>mida [-i|--interactive] [-s|--seed SEED] [-q|--quarter TICKS] [-b|--bars BARS] [-o|--output OUT] [FILE]</pre>
+    <pre>mida [-i|--interactive] [-s|--seed SEED] [-q|--quarter TICKS]
+     [-b|--beats BEATS] [-o|--output OUT] [FILE]</pre>
     <p>Let's list all available options:</p>
    <table>
       <tr><th>Option</th><th>Description</th></tr>
@@ -117,8 +118,8 @@ $ cabal build</pre>
         <td>Sets seed for MIDI generation, default value is <code>0</code></td></tr>
       <tr><td><code>-q</code>,<code>--quarter</code></td>
         <td>Sets number of ticks for quarter note, default value is <code>24</code></td></tr>
-      <tr><td><code>-b</code>,<code>--bars</code></td>
-        <td>Sets total time of result MIDI file as number of quarter notes (bars), default value is <code>16</code></td></tr>
+      <tr><td><code>-b</code>,<code>--beats</code></td>
+        <td>Sets total time of result MIDI file as number of quarter notes (beats), default value is <code>16</code></td></tr>
       <tr><td><code>-o</code>,<code>--output</code></td>
         <td>Specifies output filename; default value is evaluated as <code>FILE</code> with extension <code>.mid</code></td></tr>
    </table>
@@ -361,11 +362,12 @@ mida> pch0 = c5 d5 e5 f5 g5 a5 b5
       masterpiece. Description of all available commands is given in
       the next section.</p>
     <p><a href="#top">back to the top</a></p>
-    <h3 id="5.4">5.4 Special Commands and Workflow</h3>
-    <p>MIDA has a number of useful commands that can be fired from
+    <h3 id="5.4">5.4 Special Commands</h3>
+    <p>MIDA has a number of useful commands that can be invoked from
       interactive environment. All commands start with
       colon <code>:</code> and are case-sensitive. Let's examine all
       of them.</p>
+    <h4>:help</h4>
     <p>Let's start with <code>:help</code>, this command prints list
       of all available commands and their descriptions:</p>
     <pre>mida> :help
@@ -378,10 +380,12 @@ Available commands:
   :prompt                  Set MIDA prompt
   :length                  Set length of displayed results
   :quit                    Quit the interactive environment</pre>
+    <h4>:prompt</h4>
     <p>You can temporarily change MIDA prompt
       with <code>:prompt</code> command:</p>
     <pre>mida> :prompt boom>
 boom> _</pre>
+    <h4>:length</h4>
     <p>You can also set how many elements of realized principle will
       be displayed:</p>
     <pre>mida> 1
@@ -389,10 +393,81 @@ boom> _</pre>
 mida> :length 20
 mida> 1
 => 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1...</pre>
-    
-
-
-    
+    <h4>:def</h4>
+    <p>It's possible to see any definition by its name
+      with <code>:def</code> command:</p>
+    <pre>mida> foo = 12
+-> defined 'foo'
+mida> :def foo
+=> foo = 12
+mida> :def bar
+=> cannot find the definition</pre>
+    <h4>:purge</h4>
+    <p>You can 'purge' all useless definitions from memory
+      using <code>:purge</code> command. A definition is considered
+      useless if it's not used as a part of a top-level
+      definition. Here's an example:</p>
+    <pre>mida> foo = bar bar = 12 baz = 13 dur0 = foo
+-> defined 'foo'
+-> defined 'bar'
+-> defined 'baz'
+-> defined 'dur0'
+mida> :def baz
+=> baz = 13 
+mida> :purge
+-> environment purged;
+mida> :def baz
+=> cannot find the definition</pre>
+    <p>What happened here? Well, we see that <code>dur0</code> is a
+      top level definition. <code>foo</code> is used
+      in <code>dur0</code>'s principle and <code>bar</code> is used
+      in <code>foo</code>'s principle. So, <code>foo</code>
+      and <code>bar</code> are necessary definitions. What's
+      about <code>baz</code>? It does not participate in principle
+      building of any top-level definition. System considers it
+      useless, so it purges it.</p>
+    <h4>:save</h4>
+    <p>As you compose music with MIDA, you will need to save all
+      existing definitions to hard disk. You can then edit them as a
+      normal file or load it into MIDA to continue your work. It's
+      quite easy to accomplish with <code>:save</code> command. This
+      command takes optional argument - filename. If you don't supply
+      the filename, system will try to guess it. It will be filename
+      of loaded source file, last used filename, or default
+      value <code>&quot;interactive&quot;</code>. I
+      recommend <code>.da</code> as filename extension for MIDA source
+      files.</p>
+    <pre>mida> :save
+-> environment saved as &quot;interactive&quot;.
+mida> :save boo.da
+-> environment saved as &quot;boo.da&quot;.
+mida> :save
+-> environment saved as &quot;boo.da&quot;.</pre>
+    <h4>:make</h4>
+    <p>One of most useful commands is <code>:make</code>. It creates
+      MIDI file based on current state of MIDA environment. This
+      command takes up to four arguments. If you don't supply any of
+      them, corresponding default value will be used.</p>
+    <p>First argument is <i>seed</i> for random generator. We work
+      with seeds because it allows to generate identical scores for
+      identical seeds (it's useful sometimes). Default value of this
+      argument is <code>0</code>.</p>
+    <p>Second argument is number of <i>ticks per quarter note</i>
+      (TPQ). This value allows to convert abstract numbers in score
+      into conventional notes. Default value is <code>24</code>, and
+      usually you don't want to change it unless you're working with
+      extremely complex rhythms.</p>
+    <p>Third argument is total length as number of quarter notes. This
+      parameter is also known as 'beats'. Default value
+      is <code>16</code>.</p>
+    <p>The last parameter is filename of MIDI file. If it's not
+      supplied system will try to guess the name. Guessing algorithm
+      is the same as for <code>:save</code> command but extension will
+      be replaced with <code>.mid</code>.</p>
+    <p>See the stuff in action:</p>
+    <pre>mida> :make 0 24 16
+-> MIDI file saved as &quot;boo.mid&quot;.</pre>
+    <h4>:quit</h4>
     <p>Don't forget that you quit MIDA environment
       with <code>:quit</code> command!</p>
     <pre>mida> :quit
