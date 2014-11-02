@@ -39,8 +39,9 @@
           <li><a href="#5.7">5.7 Multiplication</a></li>
           <li><a href="#5.8">5.8 Repitition</a></li>
           <li><a href="#5.9">5.9 Rotation</a></li>
-          <li><a href="#5.10">5.10 Multivalues</a></li>
-          <li><a href="#5.11">5.11 Conditional Multivalues</a></li>
+          <li><a href="#5.10">5.10 Reverse</a></li>
+          <li><a href="#5.11">5.11 Multivalues</a></li>
+          <li><a href="#5.12">5.12 Conditional Multivalues</a></li>
       </ul></li>
       <li><a href="#6">6 Final Notes</a></li>
     </ul>
@@ -474,20 +475,135 @@ mida> :save
 -> Goodbye.</pre>
     <p><a href="#top">back to the top</a></p>
     <h3 id="5.5">5.5 Ranges</h3>
+    <p>Now that you know all the basics, we can talk about advanced
+      methods to create elements. Simplest such a method is
+      range. Range in MIDA is written as two numbers (or note alias)
+      separated by two commas <code>..</code> (without space between
+      them). Range notation represents collection of successive
+      natural numbers from left-side number to right-side number
+      inclusively.</p>
+    <pre>mida> 1..3
+=> 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...
+mida> 5..2
+=> 5 4 3 2 5 4 3 2 5 4 3 2 5 4 3 2...
+mida> c5..e5
+=> 60 61 62 63 64 60 61 62 63 64 60 61 62 63 64 60...</pre>
+    <p>Although, you cannot specify step between resulting elements,
+      you can add a number to all elements of a principle or multiply
+      all the elements by given number. How? Read the next section!</p>
     <p><a href="#top">back to the top</a></p>
     <h3 id="5.6">5.6 Addition</h3>
+    <p>For transformation of a principle we use brackets
+      (<code>[</code> and <code>]</code>). First, we put a principle
+      into brackets, then we put an operator and its argument. It's
+      also a good idea to put a comma after the argument for
+      readability. For addition we use plur
+      operator <code>+</code>:</p>
+    <pre>mida> [1..3] + 10, 50
+=> 11 12 13 50 11 12 13 50 11 12 13 50 11 12 13 50...</pre>
+    <p>This should be pretty staightforward.</p>
     <p><a href="#top">back to the top</a></p>
     <h3 id="5.7">5.7 Multiplication</h3>
+    <p>Multiplication is done in similar fashion. Use
+      asterisk <code>*</code> to multiply a principle by a given
+      number:</p>
+    <pre>mida> [1..3] * 2
+=> 2 4 6 2 4 6 2 4 6 2 4 6 2 4 6 2...</pre>
+    <p>You can combine different operations easily:</p>
+    <pre>mida> [[1..3] * 2] + 10
+=> 12 14 16 12 14 16 12 14 16 12 14 16 12 14 16 12...</pre>
     <p><a href="#top">back to the top</a></p>
     <h3 id="5.8">5.8 Repitition</h3>
+    <p>Operator for repetition is <code>$</code>, it's really
+      useful:</p>
+    <pre>mida> [1..3] $ 3, 10
+=> 1 2 3 1 2 3 1 2 3 10 1 2 3 1 2 3...</pre>
     <p><a href="#top">back to the top</a></p>
     <h3 id="5.9">5.9 Rotation</h3>
+    <p>You also can 'rotate' a principle with caret <code>^</code>
+      operator, removing its former elements that will appear at the
+      end of the principle:</p>
+    <pre>mida> [1..3] ^ 1
+=> 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2...
+mida> [1..3] ^ 2
+=> 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3...
+mida> [1..3] ^ 3
+=> 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...</pre>
+    <p>This is so-called left rotation, but you can emulate
+      right-rotation too knowing length of given princple.</p>
     <p><a href="#top">back to the top</a></p>
-    <h3 id="5.10">5.10 Multivalues</h3>
+    <h3 id="5.10">5.10 Reverse</h3>
+    <p>One can reverse order of elements in a principle by putting it
+      into angle brackets (<code>&lt;</code>
+      and <code>&gt;</code>):</p>
+    <pre>mida> <1 2 3>
+=> 3 2 1 3 2 1 3 2 1 3 2 1 3 2 1 3...</pre>
     <p><a href="#top">back to the top</a></p>
-    <h3 id="5.11">5.11 Conditional Multivalues</h3>
+    <h3 id="5.11">5.11 Multivalues</h3>
+    <p>So far, we worked only with literal values. But MIDA knows one
+      more kind of element: <i>multivalue</i>. Multivalue is such an
+      element that has many values at the same time. You know, just
+      like electron exists in different positions around atomic
+      nucleus. Realization of multivalue is a random value chosen from
+      all possible variants.</p>
+    <p>Multivale is written as collection of possible values inside of
+      braces:</p>
+    <pre>mida> {1 2 3}
+=> 3 1 3 2 1 2 2 1 1 1 3 2 2 1 1 2...</pre>
+    <p>As you can see, the same element is replicated, but its
+      realized value is different for elevery instance. Here we have
+      uniform probability, but you can change it with help of
+      repetition:</p>
+    <pre>mida> {1 1 2 3} // 1 - 50%, 2 - 25%, 3 - 25%
+=> 1 1 1 3 1 3 1 3 2 1 3 1 3 1 1 1...
+mida> {[1] $ 8, 2 3} // 1 - 80%, 2 - 10%, 3 - 10%
+=> 1 1 1 1 1 2 1 1 1 1 2 1 3 1 1 1...</pre>
+    <p>Basic operations work together! You can put a multivalue into
+      anoter multivalue too:</p>
+    <pre>mida> {1 {2 3}} // 1 - 50%, 2 - 25%, 3 - 25%
+=> 1 1 1 2 2 1 1 1 2 1 1 1 3 1 1 2...</pre>
+    <p><code>1</code> has probability 50%, and <code>{2 3}</code> has
+      probability 50%. Inside <code>{2 3}</code> every element has
+      equal probablity 50%, so result probabilities look
+      like: <code>1</code> - 50%, <code>2</code> - 25%, <code>3</code>
+      - 25%.</p>
+    <p><a href="#top">back to the top</a></p>
+    <h3 id="5.12">5.12 Conditional Multivalues</h3>
+    <p>One step forward is <i>conditional multivalues</i>. These are
+      just like multivalues, but they depend on realized value of
+      previous element. For every value of previous element it
+      provides collection of possible results. If there is no such a
+      collection for some values, random collection will be selected
+      from all existing collections. If first element of a sequence is
+      conditional multivale, actual multivalue (collection) will be
+      chosen randomly.</p>
+    <p>This example demonstrates syntax of conditional multivalue and its
+      logic:</p>
+    <pre>mida> {(1) 2 3 (2) 3 (3) 1}
+=> 3 1 3 1 2 3 1 2 3 1 2 3 1 3 1 3...</pre>
+    <p>If the last element has value <code>1</code>, conditional
+      multivalue will have value <code>2</code> or <code>3</code>. If
+      the last element has value <code>2</code>, conditional
+      multivalue will have value <code>3</code> for sure, and so
+      on.</p>
+    <p>You can also put conditional multivalues inside multivalues or
+      other conditional multivalues. For example, inside a multivalue
+      <code>{(1) 2 3 (2) 3 (3) 1}</code> will behave just
+        like <code>{{2 3} {3} {1}}</code>.</p>
     <p><a href="#top">back to the top</a></p>
     <h3 id="6">6 Final Notes</h3>
+    <p>One can put comments in MIDA source files or in interactive
+      environment. MIDA uses C-like comments. Line comments starts
+      with <code>//</code>, block comment starts with <code>/*</code>
+      and ends with <code>*/</code>.</p>
+    <p>Interpreter supports multiline input. It automatically detects
+      unbalanced parenthesis, braces, brackets. If you want to
+      continue writing a principle on the next line, end current line
+      with a comma <code>,</code>. Since comma is allowed only between
+      elements of a principle MIDA will know that current principle is
+      not completed.</p>
+    <p>I sincerely hope that MIDA will be useful to you. Good
+    luck! </p>
     <p><a href="#top">back to the top</a></p>
   </body>
 </html>
