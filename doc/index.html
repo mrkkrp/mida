@@ -31,7 +31,7 @@
               <li><a href="#5.1.2">5.1.2 Velocities</a></li>
               <li><a href="#5.1.3">5.1.3 Pitch</a></li>
           </ul></li>
-          <li><a href="#5.2">5.2 Elements, Principles and Realizations</a></li>
+          <li><a href="#5.2">5.2 Elements, Principles, and Realizations</a></li>
           <li><a href="#5.3">5.3 Definitions</a></li>
           <li><a href="#5.4">5.4 Special Commands</a></li>
           <li><a href="#5.5">5.5 Ranges</a></li>
@@ -63,7 +63,7 @@
       Public License</a>; it's opensource, free software.</p>
     <p><a href="#top">back to the top</a></p>
     <h2 id="2">2 Installation</h2>
-    <p>It's absolutely possible to install MIDA on any platform for
+    <p>It's absolutely possible to install MIDA on any platform on
       which <a href="https://www.haskell.org/platform/">Haskell
       Platform</a> is supported. However, there are some precompiled
       options that may be more convenient and straightforward for some
@@ -74,14 +74,14 @@
     <h3 id="2.1">2.1 Windows</h3>
     <p>To install MIDA on
       windows <a href="https://github.com/mrkkrp/mida/releases">download
-      MIDA installer</a>, then run it. To uninstall MIDA run
+      MIDA installer</a>, then run it. To uninstall MIDA, run
       uninstaller.</p>
     <h3 id="2.2">2.2 Linux</h3>
     <p><a href="https://github.com/mrkkrp/mida/releases">Download
       self-extracting script</a> and run it as root. To uninstall MIDA
       execute:</p>
     <pre># midarm</pre>
-    <p>This script will remove MIDA from your system.</p>
+    <p>The script will remove MIDA from your system.</p>
     <h3 id="2.3">2.3 Compilation from Source</h3>
     <p>First,
       install <a href="https://www.haskell.org/platform/">Haskell
@@ -101,6 +101,12 @@ $ cabal build</pre>
     <p>It's very likely that Cabal will not compile MIDA from the
       first time so you'll need to install all dependencies that Cabal
       will list for you.</p>
+    <p>After compilation you should manually copy executable
+      file <code>dist/bulid/mida/mida</code> into some directory where
+      your system will see the executable. Linux users can run the
+      following script (it also copies documentation
+      and <code>midarm</code> for uninstallation.):</p>
+    <pre># sh install.sh</pre>
     <p><a href="#top">back to the top</a></p>
     <h2 id="3">3 Invocation</h2>
     <p>MIDA can work as a translator from source code to MIDI files,
@@ -145,7 +151,7 @@ $ cabal build</pre>
         (as <code>length</code>).</li>
       </ul>
     <p>Syntax of <code>.mida</code> file is one of Unix configuration
-      file. That is, you can use <code>#</code> to start comments,
+      file. That is, you can use <code>#</code> for line comments,
       and <code>=</code> to assign new values (spaces before and
       after <code>=</code> are allowed).</p>
     <p>Here is complete example of <code>.mida</code> file:</p>
@@ -159,7 +165,7 @@ length = 20
     <p><a href="#top">back to the top</a></p>
     <h2 id="5">5 MIDA Tutorial</h2>
     <p>Now that you know all basic information about the interpreter,
-      we can start our journey into magic world of MIDA.</p>
+      we can start our journey into the magic world of MIDA.</p>
     <p>MIDA is minimalistic and not very flexible or complex. In fact,
       it is so simple that any statement that has valid synax will
       produce valid result. A MIDA statement only has to pass parser,
@@ -180,7 +186,9 @@ length = 20
     <h3 id="5.1">5.1 Literal Values</h3>
     <p>Start interactive environment. Now you should be looking at
       something like this:</p>
-    <pre>mida> _</pre>
+    <pre>[mark@arch ~]$ mida
+-> Loading MIDA Interactive Environment v0.1.0;
+mida> _</pre>
     <p>You can try your powers right away. Remeber, MIDA is all about
       sequences of numbers. Numbers can repesent different things:</p>
     <ul>
@@ -210,8 +218,9 @@ length = 20
     <pre>mida> 24
 => 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24...
 mida> _</pre>
-    <p>So, we see that we can enter literals! However, the result may
-    look a bit strange, but ignore this 'repetitiveness' for now.</p>
+    <p>So, we see that we can enter literal values! However, the
+    result may look a bit strange, but ignore this repetitiveness for
+    now.</p>
     <p><a href="#top">back to the top</a></p>
     <h3 id="5.1.2">5.1.2 Velocities</h3>
     <p>Since MIDI format is piano-oriented, velocity in our case means
@@ -228,22 +237,23 @@ mida> _</pre>
       knows some alias for that case. Since MIDA doesn't work with
       negative numbers, we use alias where octaves start
       from <code>0</code>. So <code>c0</code> corresponds
-      to <code>0</code> and so on: one semitone per number.</p>
+      to <code>0</code>, <code>c#1</code> to <code>1</code>, and so
+      on: one semitone per number.</p>
     <p> This table may be useful:</p>
     <table>
       <tr><th rowspan="2">Octaves</th><th colspan="12">Notes</th></tr>
-      <tr><td>c</td><td>c#</td><td>d</td><td>d#</td><td>e</td><td>f</td><td>f#</td><td>g</td><td>g#</td><td>a</td><td>a#</td><td>b</td></tr>
-      <tr><td>0</td><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td></tr>
-      <tr><td>1</td><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td><td>22</td><td>23</td></tr>
-      <tr><td>2</td><td>24</td><td>25</td><td>26</td><td>27</td><td>28</td><td>29</td><td>30</td><td>31</td><td>32</td><td>33</td><td>34</td><td>35</td></tr>
-      <tr><td>3</td><td>36</td><td>37</td><td>38</td><td>39</td><td>40</td><td>41</td><td>42</td><td>43</td><td>44</td><td>45</td><td>46</td><td>47</td></tr>
-      <tr><td>4</td><td>48</td><td>49</td><td>50</td><td>51</td><td>52</td><td>53</td><td>54</td><td>55</td><td>56</td><td>57</td><td>58</td><td>59</td></tr>
-      <tr><td>5</td><td><b>60</b></td><td>61</td><td>62</td><td>63</td><td>64</td><td>65</td><td>66</td><td>67</td><td>68</td><td>69</td><td>70</td><td>71</td></tr>
-      <tr><td>6</td><td>72</td><td>73</td><td>74</td><td>75</td><td>76</td><td>77</td><td>78</td><td>79</td><td>80</td><td>81</td><td>82</td><td>83</td></tr>
-      <tr><td>7</td><td>84</td><td>85</td><td>86</td><td>87</td><td>88</td><td>89</td><td>90</td><td>91</td><td>92</td><td>93</td><td>94</td><td>95</td></tr>
-      <tr><td>8</td><td>96</td><td>97</td><td>98</td><td>99</td><td>100</td><td>101</td><td>102</td><td>103</td><td>104</td><td>105</td><td>106</td><td>107</td></tr>
-      <tr><td>9</td><td>108</td><td>109</td><td>110</td><td>111</td><td>112</td><td>113</td><td>114</td><td>115</td><td>116</td><td>117</td><td>118</td><td>119</td></tr>
-      <tr><td>10</td><td>120</td><td>121</td><td>122</td><td>123</td><td>124</td><td>125</td><td>126</td><td>127</td><td colspan="4"></td></tr>
+      <tr><th>c</th><th>c#</th><th>d</th><th>d#</th><th>e</th><th>f</th><th>f#</th><th>g</th><th>g#</th><th>a</th><th>a#</th><th>b</th></tr>
+      <tr><th>0</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td></tr>
+      <tr><th>1</th><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td><td>22</td><td>23</td></tr>
+      <tr><th>2</th><td>24</td><td>25</td><td>26</td><td>27</td><td>28</td><td>29</td><td>30</td><td>31</td><td>32</td><td>33</td><td>34</td><td>35</td></tr>
+      <tr><th>3</th><td>36</td><td>37</td><td>38</td><td>39</td><td>40</td><td>41</td><td>42</td><td>43</td><td>44</td><td>45</td><td>46</td><td>47</td></tr>
+      <tr><th>4</th><td>48</td><td>49</td><td>50</td><td>51</td><td>52</td><td>53</td><td>54</td><td>55</td><td>56</td><td>57</td><td>58</td><td>59</td></tr>
+      <tr><th>5</th><td><b>60</b></td><td>61</td><td>62</td><td>63</td><td>64</td><td>65</td><td>66</td><td>67</td><td>68</td><td>69</td><td>70</td><td>71</td></tr>
+      <tr><th>6</th><td>72</td><td>73</td><td>74</td><td>75</td><td>76</td><td>77</td><td>78</td><td>79</td><td>80</td><td>81</td><td>82</td><td>83</td></tr>
+      <tr><th>7</th><td>84</td><td>85</td><td>86</td><td>87</td><td>88</td><td>89</td><td>90</td><td>91</td><td>92</td><td>93</td><td>94</td><td>95</td></tr>
+      <tr><th>8</th><td>96</td><td>97</td><td>98</td><td>99</td><td>100</td><td>101</td><td>102</td><td>103</td><td>104</td><td>105</td><td>106</td><td>107</td></tr>
+      <tr><th>9</th><td>108</td><td>109</td><td>110</td><td>111</td><td>112</td><td>113</td><td>114</td><td>115</td><td>116</td><td>117</td><td>118</td><td>119</td></tr>
+      <tr><th>10</th><td>120</td><td>121</td><td>122</td><td>123</td><td>124</td><td>125</td><td>126</td><td>127</td><td colspan="4"></td></tr>
     </table>
     <p>Please note that there is no standard way to number octaves in
       MIDI. MIDI standard only says that note with
@@ -251,14 +261,14 @@ mida> _</pre>
       zero-based system for reasons that I've described earlier, some
       software starts numeration from <code>-2</code>.</p>
     <p>Enter any alais into MIDA and see for yourself that it's just
-      like a corresponding MIDI code (note that all alais are
+      like entering corresponding MIDI code (note that all alais are
       case-sensitive):</p>
     <pre>mida> c5
 => 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60...</pre>
     <p>...and that's it! Now you can use literal values. Oh, that's
       incredible.</p>
     <p><a href="#top">back to the top</a></p>
-    <h3 id="5.2">5.2 Elements, Principles and Realizations</h3>
+    <h3 id="5.2">5.2 Elements, Principles, and Realizations</h3>
     <p>Smallest piece of composition in MIDA is
       called <i>element</i>. Now we know at least one kind of element:
       literal values. Realization of a literal value is just its
@@ -307,7 +317,7 @@ mida> 1 2 rere 5
       number <i>definition</i>. Definition can hold a principle and
       default value of any definition is <code>none</code>. You can
       combine definitions to build really complex principles. Keep in
-      mind, that names of the definitions are case-sensitive.</p>
+      mind that names of the definitions are case-sensitive.</p>
     <p>One can create definitions by putting definition name on the
       left side of equation sign <code>=</code> and a principle on the
       right of the sigh. Let's give it a go:</p>
@@ -331,9 +341,10 @@ mida> boo = 10
 -> defined 'boo'
 mida> baz
 => 5 10 5 10 5 10 5 10 5 10 5 10 5 10 5 10...</pre>
-    <p>And since all possible definitions are bound to the default
-      value, we can even design our principles in top-down manner,
-      using definitions that we haven't defined yet!</p>
+    <p>And since all possible definitions are bound
+      to <code>none</code>, we can even design our principles in
+      top-down manner, using definitions that we haven't defined
+      yet!</p>
     <p>Now you're ready to create your first piece of music, but
       before you do it I should explain something about <i>top-level
       definitions</i>. There are special names that represent
@@ -365,7 +376,7 @@ mida> pch0 = c5 d5 e5 f5 g5 a5 b5
     <p><a href="#top">back to the top</a></p>
     <h3 id="5.4">5.4 Special Commands</h3>
     <p>MIDA has a number of useful commands that can be invoked from
-      interactive environment. All commands start with
+      interactive environment. All the commands begin with
       colon <code>:</code> and are case-sensitive. Let's examine all
       of them.</p>
     <h4>:help</h4>
@@ -425,19 +436,18 @@ mida> :def baz
       in <code>foo</code>'s principle. So, <code>foo</code>
       and <code>bar</code> are necessary definitions. What's
       about <code>baz</code>? It does not participate in principle
-      building of any top-level definition. System considers it
+      building for any top-level definition. System considers it
       useless, so it purges it.</p>
     <h4>:save</h4>
     <p>As you compose music with MIDA, you will need to save all
       existing definitions to hard disk. You can then edit them as a
       normal file or load it into MIDA to continue your work. It's
       quite easy to accomplish with <code>:save</code> command. This
-      command takes optional argument - filename. If you don't supply
-      the filename, system will try to guess it. It will be filename
-      of loaded source file, last used filename, or default
-      value <code>&quot;interactive&quot;</code>. I
-      recommend <code>.da</code> as filename extension for MIDA source
-      files.</p>
+      command takes an optional argument - filename. If you don't
+      supply the filename, system will try to guess it. It will be
+      filename of loaded source file, last used filename, or default
+      value <code>interactive</code>. I recommend <code>.da</code> as
+      filename extension for MIDA source files.</p>
     <pre>mida> :save
 -> environment saved as &quot;interactive&quot;.
 mida> :save boo.da
@@ -450,17 +460,17 @@ mida> :save
       command takes up to four arguments. If you don't supply any of
       them, corresponding default value will be used.</p>
     <p>First argument is <i>seed</i> for random generator. We work
-      with seeds because it allows to generate identical scores for
+      with seeds because they allow to generate identical scores for
       identical seeds (it's useful sometimes). Default value of this
       argument is <code>0</code>.</p>
-    <p>Second argument is number of <i>ticks per quarter note</i>
-      (TPQ). This value allows to convert abstract numbers in score
+    <p>Second argument is number of <i>ticks per quarter
+      note</i>. This value allows to convert abstract numbers in score
       into conventional notes. Default value is <code>24</code>, and
       usually you don't want to change it unless you're working with
       extremely complex rhythms.</p>
-    <p>Third argument is total length as number of quarter notes. This
-      parameter is also known as 'beats'. Default value
-      is <code>16</code>.</p>
+    <p>Third argument is total length of composition as number of
+      quarter notes. This parameter is also known as 'beats'. Default
+      value is <code>16</code>.</p>
     <p>The last parameter is filename of MIDI file. If it's not
       supplied system will try to guess the name. Guessing algorithm
       is the same as for <code>:save</code> command but extension will
@@ -476,7 +486,7 @@ mida> :save
     <p><a href="#top">back to the top</a></p>
     <h3 id="5.5">5.5 Ranges</h3>
     <p>Now that you know all the basics, we can talk about advanced
-      methods to create elements. Simplest such a method is
+      methods of element manipulation. Simplest such method is
       range. Range in MIDA is written as two numbers (or note alias)
       separated by two commas <code>..</code> (without space between
       them). Range notation represents collection of successive
@@ -488,16 +498,16 @@ mida> 5..2
 => 5 4 3 2 5 4 3 2 5 4 3 2 5 4 3 2...
 mida> c5..e5
 => 60 61 62 63 64 60 61 62 63 64 60 61 62 63 64 60...</pre>
-    <p>Although, you cannot specify step between resulting elements,
+    <p>Although you cannot specify step between resulting elements,
       you can add a number to all elements of a principle or multiply
-      all the elements by given number. How? Read the next section!</p>
+      all the elements by given number. How? Keep reading!</p>
     <p><a href="#top">back to the top</a></p>
     <h3 id="5.6">5.6 Addition</h3>
-    <p>For transformation of a principle we use brackets
+    <p>For transformation of a principle we use square brackets
       (<code>[</code> and <code>]</code>). First, we put a principle
       into brackets, then we put an operator and its argument. It's
       also a good idea to put a comma after the argument for
-      readability. For addition we use plur
+      readability. For addition we use plus
       operator <code>+</code>:</p>
     <pre>mida> [1..3] + 10, 50
 => 11 12 13 50 11 12 13 50 11 12 13 50 11 12 13 50...</pre>
@@ -536,7 +546,7 @@ mida> [1..3] ^ 3
     <p>One can reverse order of elements in a principle by putting it
       into angle brackets (<code>&lt;</code>
       and <code>&gt;</code>):</p>
-    <pre>mida> <1 2 3>
+    <pre>mida> &lt;1 2 3&gt;
 => 3 2 1 3 2 1 3 2 1 3 2 1 3 2 1 3...</pre>
     <p><a href="#top">back to the top</a></p>
     <h3 id="5.11">5.11 Multivalues</h3>
@@ -551,7 +561,7 @@ mida> [1..3] ^ 3
     <pre>mida> {1 2 3}
 => 3 1 3 2 1 2 2 1 1 1 3 2 2 1 1 2...</pre>
     <p>As you can see, the same element is replicated, but its
-      realized value is different for elevery instance. Here we have
+      realized value is different for every instance. Here we have
       uniform probability, but you can change it with help of
       repetition:</p>
     <pre>mida> {1 1 2 3} // 1 - 50%, 2 - 25%, 3 - 25%
@@ -573,10 +583,10 @@ mida> {[1] $ 8, 2 3} // 1 - 80%, 2 - 10%, 3 - 10%
       just like multivalues, but they depend on realized value of
       previous element. For every value of previous element it
       provides collection of possible results. If there is no such a
-      collection for some values, random collection will be selected
-      from all existing collections. If first element of a sequence is
-      conditional multivale, actual multivalue (collection) will be
-      chosen randomly.</p>
+      collection, random collection will be selected from all existing
+      collections. If first element of a sequence is conditional
+      multivale, actual multivalue (collection) will be chosen
+      randomly.</p>
     <p>This example demonstrates syntax of conditional multivalue and its
       logic:</p>
     <pre>mida> {(1) 2 3 (2) 3 (3) 1}
@@ -587,9 +597,9 @@ mida> {[1] $ 8, 2 3} // 1 - 80%, 2 - 10%, 3 - 10%
       multivalue will have value <code>3</code> for sure, and so
       on.</p>
     <p>You can also put conditional multivalues inside multivalues or
-      other conditional multivalues. For example, inside a multivalue
-      <code>{(1) 2 3 (2) 3 (3) 1}</code> will behave just
-        like <code>{{2 3} {3} {1}}</code>.</p>
+      other conditional multivalues. For example, <code>{(1) 2 3 (2) 3
+      (3) 1}</code> will behave just like <code>{{2 3} {3}
+      {1}}</code>.</p>
     <p><a href="#top">back to the top</a></p>
     <h3 id="6">6 Final Notes</h3>
     <p>One can put comments in MIDA source files or in interactive
