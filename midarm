@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+# MIDA Uninstallation script
+#
+
+### constants
+
+I_ITEMS="/usr/{bin/{mida,midarm},share/{licenses,doc,haskell/source}/mida/}"
+
+### functions
+
+bad_exit() # prints error message and exits the program
+{
+    echo "FAILED" 1>&2
+    exit 1
+}
+
+### main
+
+# 1. check if actual user is root (must be root to uninstall the software)
+
+echo -n 'Actual user must be root.......'
+test $(id -u) -gt 0 && bad_exit
+echo 'OK'
+
+# 2. removing files
+
+echo -n 'Removing MIDA..................'
+eval rm -rv $I_ITEMS > /dev/null 2>&1
+if test $? -eq 0
+then echo 'OK'
+else bad_exit
+fi
+
+# 3. done
+
+echo 'Done.'
