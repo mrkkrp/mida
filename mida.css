@@ -31,15 +31,15 @@ summary
 html
 {
     font-family: 'PT Sans', sans-serif;
-    background-color: #073642;
-    color: #839496;
+    background-color: #eee8d5;
+    color: #657b83;
     margin: 1em;
 }
 
 body
 {
     margin: 0;
-    background-color: #002b36;
+    background-color: #fdf6e3;
     margin: 0 auto;
     max-width: 23cm;
     border: 1pt solid #93a1a1;
@@ -126,7 +126,7 @@ code, kbd, pre, samp
 {
     font-family: monospace, serif;
     font-size: 1em;
-    background-color: #073642;
+    background-color: #eee8d5;
     padding: 2px;
 }
 
@@ -139,11 +139,11 @@ pre
 {
     white-space: pre-wrap;
     word-wrap: break-word;
-    background-color: #073642;
+    background-color: #eee8d5;
     color: #657b83;
     border: 1pt solid #93a1a1;
     padding: 1em;
-    box-shadow: 5pt 5pt 8pt #073642;
+    box-shadow: 5pt 5pt 8pt #eee8d5;
 }
 
 q
@@ -210,9 +210,9 @@ textarea
 
 table
 {
-    background-color: #002b36;
+    background-color: #fdf6e3;
     color: #657b83;
-    box-shadow: 5pt 5pt 8pt #073642;
+    box-shadow: 5pt 5pt 8pt #eee8d5;
     border-collapse: collapse;
     border-spacing: 0;
 }
