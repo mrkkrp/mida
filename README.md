@@ -15,6 +15,6 @@ For installation instructions see `INSTALL.md`.
 
 ## License
 
-Copyright © 2014 Mark Karpov
+Copyright (c) 2014 Mark Karpov
 
 Distributed under GNU GPL.
