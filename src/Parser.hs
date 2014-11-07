@@ -18,7 +18,7 @@
 
 module Parser
     ( Statement (..)
-    , Expression
+    , Principle
     , Element   (..)
     , parseMida )
 where
@@ -29,28 +29,29 @@ import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as T
 import Data.List
+import Data.Maybe (fromJust)
 import Control.Applicative ((<$>))
 
 -- Data Structures --
 
 data Statement
-    = Definition String Expression String
-    | Exposition Expression
+    = Definition String Principle String
+    | Exposition Principle
       deriving (Show)
 
-type Expression = [Element]
+type Principle = [Element]
 
 data Element
-    = Value Int
-    | Reference String
-    | Replication Expression Int
-    | Multiplication Expression Int
-    | Addition Expression Int
-    | Rotation Expression Int
-    | Reverse Expression
-    | Range Int Int
-    | Random Expression
-    | CondRandom [(Int, Expression)]
+    = Value          Int
+    | Reference      String
+    | Replication    Principle Int
+    | Multiplication Principle Int
+    | Addition       Principle Int
+    | Rotation       Principle Int
+    | Reverse        Principle
+    | Range          Int Int
+    | Random         Principle
+    | CondRandom     [(Int, Principle)]
       deriving (Show)
 
 -- Parsing --
@@ -95,16 +96,16 @@ pDefinition =
     do x    <- getInput
        name <- identifier
        reservedOp "="
-       expr <- pExpression
+       prin <- pPrinciple
        y    <- getInput
-       return $ Definition name expr $ consumed x y
-    where consumed x y = take (length x - length y) x
+       return $ Definition name prin $ f x y
+    where f x y = take (length x - length y) x
 
 pExposition :: Parser [Statement]
-pExposition = whiteSpace >> pExpression >>= return . (: []) . Exposition
+pExposition = whiteSpace >> pPrinciple >>= return . (: []) . Exposition
 
-pExpression :: Parser Expression
-pExpression = sepBy pElement (optional comma)
+pPrinciple :: Parser Principle
+pPrinciple = sepBy pElement (optional comma)
 
 pElement :: Parser Element
 pElement
@@ -137,10 +138,7 @@ pNote :: Parser Element
 pNote =
     do note <- choice $ map (try . string) notes
        whiteSpace
-       return . Value . simplify $ toNumber note
-       where toNumber x = elemIndex x notes
-             simplify (Just x) = x
-             simplify Nothing  = 0
+       return . Value . fromJust $ elemIndex note notes
 
 pReference :: Parser Element
 pReference =
@@ -148,12 +146,12 @@ pReference =
        notFollowedBy $ reservedOp "="
        return $ Reference name
 
-pBracketsOp :: String -> (Expression -> Int -> Element) -> Parser Element
+pBracketsOp :: String -> (Principle -> Int -> Element) -> Parser Element
 pBracketsOp op f =
-    do expr <- brackets pExpression
+    do prin <- brackets pPrinciple
        reservedOp op
        n    <- fromIntegral <$> natural
-       return $ f expr n
+       return $ f prin n
 
 pMultiplication = pBracketsOp "*" Multiplication
 pAddition       = pBracketsOp "+" Addition
@@ -161,15 +159,15 @@ pReplication    = pBracketsOp "$" Replication
 pRotation       = pBracketsOp "^" Rotation
 
 pReverse :: Parser Element
-pReverse = angles pExpression >>= return . Reverse
+pReverse = angles pPrinciple >>= return . Reverse
 
 pRandom :: Parser Element
-pRandom = braces pExpression >>= return . Random
+pRandom = braces pPrinciple >>= return . Random
 
-pCondElt :: Parser (Int, Expression)
+pCondElt :: Parser (Int, Principle)
 pCondElt =
     do (Value v) <- parens pValue
-       expr      <- pExpression
+       expr      <- pPrinciple
        return (v, expr)
 
 pCondRandom :: Parser Element

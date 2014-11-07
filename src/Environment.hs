@@ -54,8 +54,8 @@ data Env = Env
 type Definitions = M.Map String DefRep
 
 data DefRep = DefRep
-    { dpExpression :: Expression
-    , dpSource     :: String }
+    { drPrinciple :: Principle
+    , drSource    :: String }
 
 -- Environment API --
 
@@ -89,7 +89,7 @@ getFileName = get >>= return . eFileName
 setFileName :: Monad m => String -> StateT Env m ()
 setFileName x = modify (\e -> e { eFileName = x })
 
-traverseDefs :: String -> M.Map String Expression -> [String]
+traverseDefs :: String -> M.Map String Principle -> [String]
 traverseDefs name env =
     case M.lookup name env of
       (Just x) -> name : concatMap f x
@@ -108,27 +108,27 @@ traverseDefs name env =
 badItems :: [String] -> Definitions -> [String]
 badItems given defs = filter (\x -> not $ elem x goodItems) $ M.keys defs
     where goodItems = nub . concat $ zipWith traverseDefs given naked
-          naked     = repeat $ M.map dpExpression defs
+          naked     = repeat $ M.map drPrinciple defs
 
 purgeEnv :: Monad m => [String] -> StateT Env m ()
 purgeEnv given = getDefs >>= return . deleteItems >>= setDefs
     where deleteItems defs = foldr M.delete defs $ badItems given defs
 
-getExp :: Monad m => String -> StateT Env m Expression
-getExp name =
+getPrinciple :: Monad m => String -> StateT Env m Principle
+getPrinciple name =
     do defs <- getDefs
        case M.lookup name defs of
-         Just x  -> return $ dpExpression x
+         Just x  -> return $ drPrinciple x
          Nothing -> return []
 
 getSrc :: Monad m => String -> StateT Env m String
 getSrc name =
     do defs <- getDefs
        case M.lookup name defs of
-         Just x  -> return $ dpSource x
+         Just x  -> return $ drSource x
          Nothing -> return "cannot find the definition\n"
 
-addDef :: Monad m => String -> Expression -> String -> StateT Env m ()
+addDef :: Monad m => String -> Principle -> String -> StateT Env m ()
 addDef name exp src = getDefs >>=
                       return . M.insert name (DefRep exp src) >>= setDefs
 
@@ -136,7 +136,7 @@ remDef :: Monad m => String -> StateT Env m ()
 remDef name = getDefs >>= return . M.delete name >>= setDefs
 
 getSource :: Monad m => StateT Env m String
-getSource = return . concat . map dpSource . M.elems . M.filter f =<< getDefs
+getSource = return . concat . map drSource . M.elems . M.filter f =<< getDefs
     where f (DefRep x _) = not $ null x
 
 -- Evaluation --
@@ -147,10 +147,10 @@ data Elt
     | Cr [(Int, [Int])]
       deriving (Show)
 
-resolve :: Monad m => Expression -> StateT Env m [Elt]
+resolve :: Monad m => Principle -> StateT Env m [Elt]
 resolve = liftM concat . mapM f
     where f (Value          x  ) = return [Vl x]
-          f (Reference      x  ) = getExp x >>= resolve
+          f (Reference      x  ) = getPrinciple x >>= resolve
           f (Replication    x n) = resolve x >>= return . concat . replicate n
           f (Multiplication x n) = resolve x >>= return . map (multiply n)
           f (Addition       x n) = resolve x >>= return . map (add n)
@@ -209,10 +209,10 @@ resElt xs =
                              g Nothing  = concatMap snd x
                          in choice (g $ lookup p x) v
 
-eval :: Monad m => Expression -> StateT Env m [Int]
+eval :: Monad m => Principle -> StateT Env m [Int]
 eval expr = resolve expr >>= return . f >>= resElt
     where f [] = []
           f x  = cycle x
 
 evalItem :: Monad m => String -> StateT Env m [Int]
-evalItem name = getExp name >>= eval
+evalItem name = getPrinciple name >>= eval
