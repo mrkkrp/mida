@@ -27,6 +27,7 @@ executable mida
                        containers             >= 0.5.5.1,
                        optparse-applicative   >= 0.11.0.1,
                        filepath               >= 1.3.0.2,
-                       directory              >= 1.2.1.0
+                       directory              >= 1.2.1.0,
+                       haskeline              >= 0.7.1.3
   hs-source-dirs:      src
   default-language:    Haskell2010
