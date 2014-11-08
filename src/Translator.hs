@@ -23,7 +23,7 @@ where
 
 import Parser
 import Environment
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Codec.Midi
 import Data.List
 import Data.Maybe

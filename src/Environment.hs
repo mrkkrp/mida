@@ -30,6 +30,7 @@ module Environment
     , addDef
     , remDef
     , getSource
+    , getNames
     , eval
     , evalItem )
 where
@@ -37,7 +38,7 @@ where
 -- Import Section --
 
 import Parser
-import Control.Monad.State
+import Control.Monad.State.Strict
 import System.Random.Mersenne.Pure64
 import qualified Data.Map.Lazy as M
 import Data.List
@@ -138,6 +139,9 @@ remDef name = getDefs >>= return . M.delete name >>= setDefs
 getSource :: Monad m => StateT Env m String
 getSource = return . concat . map drSource . M.elems . M.filter f =<< getDefs
     where f (DefRep x _) = not $ null x
+
+getNames :: Monad m => StateT Env m [String]
+getNames = getDefs >>= return . M.keys
 
 -- Evaluation --
 

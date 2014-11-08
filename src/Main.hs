@@ -22,7 +22,7 @@ import Parser
 import Environment
 import Translator
 import Config
-import Control.Monad.State
+import Control.Monad.State.Strict
 import qualified Data.Map.Lazy as M
 import System.Random.Mersenne.Pure64
 import Options.Applicative
@@ -34,10 +34,11 @@ import Data.Char (isSpace, isDigit)
 import Data.List
 import Control.Exception
 import System.Directory (doesFileExist, getHomeDirectory)
+import qualified System.Console.Haskeline as L
 
 -- Default Values --
 
-version         = "0.1.0"
+version         = "0.2.0"
 cmdChar         = ':'
 dfltDefinitions = M.empty
 dfltRandGen     = pureMT 0
@@ -200,30 +201,29 @@ unfin str = or [isSuffixOf "," s, f "[]", f "{}", f "<>", f "()"]
           f [x,y] = ((&&) <$> (> 0) <*> (/= g y)) (g x)
           g x     = length $ filter (== x) s
 
-getMultiline :: String -> StateT Env IO String
+getMultiline :: String -> L.InputT (StateT Env IO) (Maybe String)
 getMultiline prv =
-    do str <- (prv ++) . (++ "\n") <$> liftIO getLine
-       len <- length <$> getPrompt
-       if unfin str
-       then do liftIO $ putStr (replicate len ' ')
-               liftIO $ hFlush stdout
-               getMultiline str
-       else return str
+    do prompt <- lift getPrompt
+       input  <- L.getInputLine $ if null prv
+                                  then prompt
+                                  else replicate (length prompt) ' '
+       case (prv ++) . (++ "\n") <$> input of
+         (Just str) -> if unfin str
+                       then getMultiline str
+                       else return (Just str)
+         Nothing    -> return Nothing
 
-interaction :: StateT Env IO ()
+interaction :: L.InputT (StateT Env IO) ()
 interaction =
-    do prompt <- getPrompt
-       liftIO $ putStr prompt
-       liftIO $ hFlush stdout
-       eof    <- liftIO isEOF
-       if eof
-       then liftIO (putChar '\n') >> return ()
-       else do str <- getMultiline ""
-               if isCmd "quit" str
-               then return ()
-               else if aCmd str
-                    then processCmd  str >> interaction
-                    else processExpr str >> interaction
+    do input <- getMultiline ""
+       case input of
+         (Just str) -> if isCmd "quit" str
+                       then return ()
+                       else do if aCmd str
+                               then lift $ processCmd  str
+                               else lift $ processExpr str
+                               interaction
+         Nothing    -> return ()
 
 loadConfig :: String -> StateT Env IO ()
 loadConfig file =
@@ -237,6 +237,14 @@ loadConfig file =
                            Nothing  -> return ()
          (Left  p) -> return ()
 
+getCompletions :: Monad m => String -> StateT Env m [L.Completion]
+getCompletions str =
+    do names <- getNames
+       return $ map L.simpleCompletion $ filter (str `isPrefixOf`) names
+
+completionFunc :: Monad m => L.CompletionFunc (StateT Env m)
+completionFunc = L.completeWord Nothing " \t" getCompletions
+
 interLoop :: StateT Env IO ()
 interLoop =
     do liftIO $ hSetBuffering stdin LineBuffering
@@ -245,7 +253,7 @@ interLoop =
        exist <- liftIO $ doesFileExist file
        when exist (loadConfig file)
        liftIO $ printf "-> Loading MIDA Interactive Environment v%s;\n" version
-       interaction
+       L.runInputT (L.setComplete completionFunc L.defaultSettings) interaction
        liftIO $ printf "-> Goodbye.\n"
 
 -- Top Level Logic --
