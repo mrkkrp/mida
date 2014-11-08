@@ -27,8 +27,8 @@
         <ul>
           <li><a href="#5.1">5.1 Literal Values</a>
             <ul>
-              <li><a href="#5.1.1">5.1.1 Durations</a></li>
-              <li><a href="#5.1.2">5.1.2 Velocities</a></li>
+              <li><a href="#5.1.1">5.1.1 Duration</a></li>
+              <li><a href="#5.1.2">5.1.2 Velocity</a></li>
               <li><a href="#5.1.3">5.1.3 Pitch</a></li>
           </ul></li>
           <li><a href="#5.2">5.2 Elements, Principles, and Realizations</a></li>
@@ -37,7 +37,7 @@
           <li><a href="#5.5">5.5 Ranges</a></li>
           <li><a href="#5.6">5.6 Addition</a></li>
           <li><a href="#5.7">5.7 Multiplication</a></li>
-          <li><a href="#5.8">5.8 Repitition</a></li>
+          <li><a href="#5.8">5.8 Repetition</a></li>
           <li><a href="#5.9">5.9 Rotation</a></li>
           <li><a href="#5.10">5.10 Reverse</a></li>
           <li><a href="#5.11">5.11 Multivalues</a></li>
@@ -48,7 +48,7 @@
     <h2 id="1">1 What is MIDA?</h2>
     <p>MIDA is a minimalistic language for creating generative MIDI
       files. MIDA is not interactive in sense that you cannot control
-      result of its activity in real time, it is indended for
+      result of its activity in real time, it is intended for
       producers and should be used with a DAW. MIDA can help you
       create variative elements in your music in a very simple
       way. Since MIDI can control a lot of different instruments,
@@ -128,7 +128,7 @@ $ cabal build</pre>
       <tr><td><code>-b</code>,<code>--beats</code></td>
         <td>Sets total time of result MIDI file as number of quarter notes (beats), default value is <code>16</code></td></tr>
       <tr><td><code>-o</code>,<code>--output</code></td>
-        <td>Specifies output filename; default value is evaluated as <code>FILE</code> with extension <code>.mid</code></td></tr>
+        <td>Specifies output file name; default value is evaluated as <code>FILE</code> with extension <code>.mid</code></td></tr>
    </table>
     <p>If you don't supply any file as a command line argument, MIDA
       will run in interactive mode even without <code>-i</code>
@@ -167,7 +167,7 @@ length = 20
     <p>Now that you know all basic information about the interpreter,
       we can start our journey into the magic world of MIDA.</p>
     <p>MIDA is minimalistic and not very flexible or complex. In fact,
-      it is so simple that any statement that has valid synax will
+      it is so simple that any statement that has valid syntax will
       produce a valid result. A MIDA statement only has to pass
       parser, that's all. In fact, it's quite hard to enter invalid
       statement in MIDA and we'll see why.</p>
@@ -178,7 +178,7 @@ length = 20
       impressive.</p>
     <p>What is the reason of that? Well, people who work with
       complicated tools tend to pay more attention to process than
-      result. The more compilated tool you use the more time you spend
+      result. The more complicated tool you use the more time you spend
       on tool itself. Algorithm may be really impressive, but audience
       just don't give a fuck. We're gonna use basic tools of MIDA to
       create super sexy pop stuff, that's what we need, man.</p>
@@ -189,17 +189,17 @@ length = 20
     <pre>[mark@arch ~]$ mida
 -> Loading MIDA Interactive Environment v0.1.0;
 mida> _</pre>
-    <p>You can try your powers right away. Remeber, MIDA is all about
-      sequences of numbers. Numbers can repesent different things:</p>
+    <p>You can try your powers right away. Remember, MIDA is all about
+      sequences of numbers. Numbers can represent different things:</p>
     <ul>
-      <li>&bull; durations;</li>
-      <li>&bull; velocities;</li>
-      <li>&bull; pitches.</li>
+      <li>&bull; duration;</li>
+      <li>&bull; velocity;</li>
+      <li>&bull; pitch.</li>
     </ul>
     <p>Let's start from how you can enter the numbers at the prompt
       and what you get as a result.</p>
     <p><a href="#top">back to the top</a></p>
-    <h3 id="5.1.1">5.1.1 Durations</h3>
+    <h3 id="5.1.1">5.1.1 Duration</h3>
     <p>Durations in MIDI are relative to <i>ticks per quarter note</i>
       (TPQ). TPQ is set before translation either via command line
       options or as a parameter of <code>:make</code> command. As I
@@ -222,7 +222,7 @@ mida> _</pre>
     result may look a bit strange, but ignore this repetitiveness for
     now.</p>
     <p><a href="#top">back to the top</a></p>
-    <h3 id="5.1.2">5.1.2 Velocities</h3>
+    <h3 id="5.1.2">5.1.2 Velocity</h3>
     <p>Since MIDI format is piano-oriented, velocity in our case means
       loudness. Again, to write down velocities we use plain
       numbers. Valid values are form <code>0</code>
@@ -231,9 +231,9 @@ mida> _</pre>
     <p>Although you can enter literals greater than <code>127</code>,
       they are not guaranteed to be processed correctly.</p>
     <p><a href="#top">back to the top</a></p>
-    <h3 id="5.1.3">5.1.3 Pitches</h3>
+    <h3 id="5.1.3">5.1.3 Pitch</h3>
     <p>Sure, you can use the same plain numbers from <code>0</code>
-      to <code>127</code> for pitch, but it's a bit inconvinient. MIDA
+      to <code>127</code> for pitch, but it's a bit inconvenient. MIDA
       knows some alias for that case. Since MIDA doesn't work with
       negative numbers, we use alias where octaves start
       from <code>0</code>. So <code>c0</code> corresponds
@@ -260,8 +260,8 @@ mida> _</pre>
       index <code>60</code> must be <i>Middle C</i>. We've chosen
       zero-based system for reasons that I've described earlier, some
       software starts numeration from <code>-2</code>.</p>
-    <p>Enter any alais into MIDA and see for yourself that it's just
-      like entering corresponding MIDI code (note that all alais are
+    <p>Enter any alias into MIDA and see for yourself that it's just
+      like entering corresponding MIDI code (note that all alias are
       case-sensitive):</p>
     <pre>mida> c5
 => 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60...</pre>
@@ -282,7 +282,7 @@ mida> _</pre>
 mida> c5 d5 e5 f5 g5 a5 b5 c6
 => 60 62 64 65 67 69 71 72 60 62 64 65 67 69 71 72...</pre>
     <p>So, we enter a principle and MIDA prints its
-      realization. Realization of a principle is bulit this way:</p>
+      realization. Realization of a principle is built this way:</p>
     <ul>
       <li>&bull; MIDA cycles elements (not their values, you'll see
       difference later), so we have now infinite collection of
@@ -328,7 +328,7 @@ mida> foo
 mida> foo 5
 => 1 2 3 5 1 2 3 5 1 2 3 5 1 2 3 5...</pre>
     <p>It seems to work! What a magic! Remember that definitions are
-      something like recipies how to create a principle, not static
+      something like recipes how to create a principle, not static
       values. So we can change a definition and all other definitions
       which use it will change accordingly:</p>
     <pre>mida> foo = 5 boo = 6 baz = foo boo
@@ -385,7 +385,7 @@ mida> pch0 = c5 d5 e5 f5 g5 a5 b5
     <pre>mida> :help
 Available commands:
   :help                    Show this help text
-  :save                    Save current enviroment in specified file
+  :save                    Save current environment in specified file
   :purge                   Remove redundant definitions
   :make                    Generate MIDI file in current environment
   :def                     Print definition of given symbol
@@ -443,11 +443,11 @@ mida> :def baz
       existing definitions to hard disk. You can then edit them as a
       normal file or load it into MIDA to continue your work. It's
       quite easy to accomplish with <code>:save</code> command. This
-      command takes an optional argument - filename. If you don't
-      supply the filename, system will try to guess it. It will be
-      filename of loaded source file, last used filename, or default
+      command takes an optional argument - file name. If you don't
+      supply the file name, system will try to guess it. It will be
+      file name of loaded source file, last used file name, or default
       value <code>interactive</code>. I recommend <code>.da</code> as
-      filename extension for MIDA source files.</p>
+      file name extension for MIDA source files.</p>
     <pre>mida> :save
 -> environment saved as &quot;interactive&quot;.
 mida> :save boo.da
@@ -471,7 +471,7 @@ mida> :save
     <p>Third argument is total length of composition as number of
       quarter notes. This parameter is also known as 'beats'. Default
       value is <code>16</code>.</p>
-    <p>The last parameter is filename of MIDI file. If it's not
+    <p>The last parameter is file name of MIDI file. If it's not
       supplied system will try to guess the name. Guessing algorithm
       is the same as for <code>:save</code> command but extension will
       be replaced with <code>.mid</code>.</p>
@@ -511,7 +511,7 @@ mida> c5..e5
       operator <code>+</code>:</p>
     <pre>mida> [1..3] + 10, 50
 => 11 12 13 50 11 12 13 50 11 12 13 50 11 12 13 50...</pre>
-    <p>This should be pretty staightforward.</p>
+    <p>This should be pretty straightforward.</p>
     <p><a href="#top">back to the top</a></p>
     <h3 id="5.7">5.7 Multiplication</h3>
     <p>Multiplication is done in similar fashion. Use
@@ -523,7 +523,7 @@ mida> c5..e5
     <pre>mida> [[1..3] * 2] + 10
 => 12 14 16 12 14 16 12 14 16 12 14 16 12 14 16 12...</pre>
     <p><a href="#top">back to the top</a></p>
-    <h3 id="5.8">5.8 Repitition</h3>
+    <h3 id="5.8">5.8 Repetition</h3>
     <p>Operator for repetition is <code>$</code>, it's really
       useful:</p>
     <pre>mida> [1..3] $ 3, 10
@@ -540,7 +540,7 @@ mida> [1..3] ^ 2
 mida> [1..3] ^ 3
 => 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...</pre>
     <p>This is so-called left rotation, but you can emulate
-      right-rotation too knowing length of given princple.</p>
+      right-rotation too knowing length of given principle.</p>
     <p><a href="#top">back to the top</a></p>
     <h3 id="5.10">5.10 Reverse</h3>
     <p>One can reverse order of elements in a principle by putting it
@@ -556,8 +556,8 @@ mida> [1..3] ^ 3
       like electron exists in different positions around atomic
       nucleus. Realization of multivalue is a random value chosen from
       all possible variants.</p>
-    <p>Multivale is written as collection of possible values inside of
-      braces:</p>
+    <p>Multivalue is written as collection of possible values inside
+      of braces:</p>
     <pre>mida> {1 2 3}
 => 3 1 3 2 1 2 2 1 1 1 3 2 2 1 1 2...</pre>
     <p>As you can see, the same element is replicated, but its
@@ -569,12 +569,12 @@ mida> [1..3] ^ 3
 mida> {[1] $ 8, 2 3} // 1 - 80%, 2 - 10%, 3 - 10%
 => 1 1 1 1 1 2 1 1 1 1 2 1 3 1 1 1...</pre>
     <p>Basic operations work together! You can put a multivalue into
-      anoter multivalue too:</p>
+      another multivalue too:</p>
     <pre>mida> {1 {2 3}} // 1 - 50%, 2 - 25%, 3 - 25%
 => 1 1 1 2 2 1 1 1 2 1 1 1 3 1 1 2...</pre>
     <p><code>1</code> has probability 50%, and <code>{2 3}</code> has
       probability 50%. Inside <code>{2 3}</code> every element has
-      equal probablity 50%, so result probabilities look
+      equal probability 50%, so result probabilities look
       like: <code>1</code> - 50%, <code>2</code> - 25%, <code>3</code>
       - 25%.</p>
     <p><a href="#top">back to the top</a></p>
@@ -585,7 +585,7 @@ mida> {[1] $ 8, 2 3} // 1 - 80%, 2 - 10%, 3 - 10%
       provides collection of possible results. If there is no such a
       collection, random collection will be selected from all existing
       collections. If first element of a sequence is conditional
-      multivale, actual multivalue (collection) will be chosen
+      multivalue, actual multivalue (collection) will be chosen
       randomly.</p>
     <p>This example demonstrates syntax of conditional multivalue and its
       logic:</p>

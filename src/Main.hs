@@ -49,7 +49,7 @@ dfltSeed        = 0
 dfltQuarter     = 24
 dfltBeats       = 16
 
--- Commnad Line Processing --
+-- Command Line Processing --
 
 data Opts = Opts
     { getIntr :: Bool
@@ -92,7 +92,7 @@ opts =  info (helper <*> bar)
               <> short   'o'
               <> metavar "OUT"
               <> value   ""
-              <> help    "Specify non-standard output filename" )
+              <> help    "Specify non-standard output file name" )
              <*> argument str
                ( metavar "FILE"
               <> value   "" )
@@ -110,7 +110,7 @@ isCmd :: String -> String -> Bool
 isCmd x = (isPrefixOf $ cmdChar : x) . trim
 
 commands = [ ("help",   cmdHelp,   "Show this help text")
-           , ("save",   cmdSave,   "Save current enviroment in specified file")
+           , ("save",   cmdSave,   "Save current environment in specified file")
            , ("purge",  cmdPurge,  "Remove redundant definitions")
            , ("make",   cmdMake,   "Generate MIDI file in current environment")
            , ("def",    cmdDef,    "Print definition of given symbol")
