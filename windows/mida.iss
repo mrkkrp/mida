@@ -1,6 +1,6 @@
 ;;;;
 ;;;; Inno Setup Script
-;;;; Product Name: MIDA 0.1.0
+;;;; Product Name: MIDA 0.2.0
 ;;;;
 
 ;; Please note that in order to use this file with Inno Setup you will
@@ -27,7 +27,7 @@
 [Setup]
 AppId = {{4BB579A5-13F5-4DE4-B5F4-68937769D84B}
 AppName = "MIDA"
-AppVersion = "0.1.0"
+AppVersion = "0.2.0"
 AppPublisher = "Mark Karpov"
 AppPublisherURL = "https://github.com/mrkkrp/mida/"
 AppSupportURL = "https://github.com/mrkkrp/mida/"
@@ -37,7 +37,7 @@ DefaultGroupName = "MIDA"
 LicenseFile = "LICENSE.md"
 InfoBeforeFile = "README.md"
 OutputDir = "."
-OutputBaseFilename = "mida-0.1.0"
+OutputBaseFilename = "mida-0.2.0"
 SetupIconFile = ""
 Compression = "lzma"
 SolidCompression = yes
@@ -58,3 +58,22 @@ Name: "{group}\Uninstall MIDA";  Filename: "{uninstallexe}"
 
 [Run]
 Filename: "{app}\mida.exe"; Description: "{cm:LaunchProgram,MIDA}"; Flags: nowait postinstall skipifsilent
+
+[Registry]
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}"; Check: NeedsAddPath('{app}')
+
+[Code]
+
+function NeedsAddPath(Param: string): boolean;
+var
+  OrigPath: string;
+begin
+  if not RegQueryStringValue(HKEY_LOCAL_MACHINE,
+    'SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
+    'Path', OrigPath)
+  then begin
+    Result := True;
+    exit;
+  end;
+  Result := Pos(';' + ExpandConstant(Param) + ';', ';' + OrigPath + ';') = 0;
+end;
