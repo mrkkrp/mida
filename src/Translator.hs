@@ -4,15 +4,15 @@
 
 -- Copyright (c) 2014 Mark Karpov
 
--- This program is free software: you can redistribute it and/or
--- modify it under the terms of the GNU General Public License as
--- published by the Free Software Foundation, either version 3 of the
--- License, or (at your option) any later version.
+-- This program is free software: you can redistribute it and/or modify it
+-- under the terms of the GNU General Public License as published by the
+-- Free Software Foundation, either version 3 of the License, or (at your
+-- option) any later version.
 
 -- This program is distributed in the hope that it will be useful, but
 -- WITHOUT ANY WARRANTY; without even the implied warranty of
--- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
--- General Public License for more details.
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+-- Public License for more details.
 
 module Translator
     ( getMidi
@@ -44,9 +44,9 @@ topDefs = [x ++ show n | x <- [durName,velName,pchName], n <- [0..mvIndex]]
 
 request :: Monad m => Int -> StateT Env m Batch
 request n =
-    do dur <- evalItem $ durName ++ i
-       vel <- evalItem $ velName ++ i
-       pch <- evalItem $ pchName ++ i
+    do dur <- evalDef $ durName ++ i
+       vel <- evalDef $ velName ++ i
+       pch <- evalDef $ pchName ++ i
        return (dur, vel, pch)
     where i = show n
 
@@ -71,3 +71,7 @@ getMidi s q beats =
        return Midi { fileType = SingleTrack
                    , timeDiv  = TicksPerBeat q
                    , tracks   = xs }
+
+-- we need also protection from 'endless' scores... if there are lots of
+-- elements, but overall duration is too short, we can conclude that given
+-- score is endless. develop the idea
