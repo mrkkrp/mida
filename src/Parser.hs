@@ -1,20 +1,19 @@
 -- -*- Mode: HASKELL; -*-
 
--- Parser module provides means of translation input in form of
--- strings into predefined data structures that represent statements
--- in MIDA.
+-- Parser module provides means of translation input in form of raw textual
+-- data into predefined data structures that represent statements in MIDA.
 
 -- Copyright (c) 2014 Mark Karpov
 
--- This program is free software: you can redistribute it and/or
--- modify it under the terms of the GNU General Public License as
--- published by the Free Software Foundation, either version 3 of the
--- License, or (at your option) any later version.
+-- This program is free software: you can redistribute it and/or modify it
+-- under the terms of the GNU General Public License as published by the
+-- Free Software Foundation, either version 3 of the License, or (at your
+-- option) any later version.
 
 -- This program is distributed in the hope that it will be useful, but
 -- WITHOUT ANY WARRANTY; without even the implied warranty of
--- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
--- General Public License for more details.
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+-- Public License for more details.
 
 module Parser
     ( Statement (..)
@@ -27,6 +26,7 @@ where
 
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
+import Text.ParserCombinators.Parsec.Expr
 import qualified Text.ParserCombinators.Parsec.Token as T
 import Data.List
 import Data.Maybe (fromJust)
@@ -44,14 +44,16 @@ type Principle = [Element]
 data Element
     = Value          Int
     | Reference      String
-    | Replication    Principle Int
-    | Multiplication Principle Int
-    | Addition       Principle Int
-    | Rotation       Principle Int
+    | Section        Principle
+--    | Repetition     Element
+--    | Replication    Element Int
+    | Multiplication Element Element
+    | Addition       Element Element
+--    | Rotation       Element Int
     | Reverse        Principle
-    | Range          Int Int
-    | Random         Principle
-    | CondRandom     [(Int, Principle)]
+--    | Range          Int Int
+    | Multivalue     Principle
+    | CondMultivalue [(Principle, Element)]
       deriving (Show)
 
 -- Parsing --
@@ -67,11 +69,12 @@ language = emptyDef { T.commentStart    = "/*"
                     , T.identStart      = letter
                     , T.identLetter     = alphaNum
                     , T.reservedNames   = notes
-                    , T.reservedOpNames = [ "*"
+                    , T.reservedOpNames = [ "*" --"!"
+--                                          , "*"
                                           , "+"
-                                          , "$"
-                                          , "^"
-                                          , ".."
+--                                          , "$"
+--                                          , "^"
+--                                          , ".."
                                           , "=" ]
                     , T.caseSensitive   = True }
 
@@ -93,43 +96,46 @@ pSource = whiteSpace >> many pDefinition
 
 pDefinition :: Parser Statement
 pDefinition =
-    do x    <- getInput
-       name <- identifier
+    do x <- getInput
+       n <- identifier
        reservedOp "="
-       prin <- pPrinciple
-       y    <- getInput
-       return $ Definition name prin $ f x y
+       p <- pPrinciple
+       y <- getInput
+       return $ Definition n p $ f x y
     where f x y = take (length x - length y) x
 
 pExposition :: Parser [Statement]
 pExposition = whiteSpace >> pPrinciple >>= return . (: []) . Exposition
 
 pPrinciple :: Parser Principle
-pPrinciple = sepBy pElement (optional comma)
+pPrinciple = sepBy (try pExpression <|> pElement) (optional comma)
+          <?> "principle"
 
 pElement :: Parser Element
 pElement
-    =  try pRange
-   <|> try pValue
+    =  try pValue -- try pRange
+--   <|> try pValue
    <|> try pReference
-   <|> try pMultiplication
-   <|> try pAddition
-   <|> try pReplication
-   <|> try pRotation
+--   <|> try pMultiplication *
+--   <|> try pAddition       *
+--   <|> try pRepetition
+--   <|> try pReplication
+--   <|> try pRotation
+   <|> pSection
    <|> pReverse
-   <|> try pRandom
-   <|> pCondRandom
-   <?> "element of expression"
+   <|> try pMultivalue
+   <|> pCondMultivalue
+   <?> "element"
 
-pRange :: Parser Element
-pRange =
-    do (Value x) <- pValue
-       reservedOp ".."
-       (Value y) <- pValue
-       return $ Range (fromIntegral x) (fromIntegral y)
+-- pRange :: Parser Element
+-- pRange =
+--     do (Value x) <- pValue
+--        reservedOp ".."
+--        (Value y) <- pValue
+--        return $ Range (fromIntegral x) (fromIntegral y)
 
 pValue :: Parser Element
-pValue = pNatural <|> pNote <?> "number or note alias"
+pValue = pNatural <|> pNote <?> "literal value"
 
 pNatural :: Parser Element
 pNatural = natural >>= return . Value . fromIntegral
@@ -142,36 +148,42 @@ pNote =
 
 pReference :: Parser Element
 pReference =
-    do name <- identifier
+    do n <- identifier
        notFollowedBy $ reservedOp "="
-       return $ Reference name
+       return $ Reference n
 
-pBracketsOp :: String -> (Principle -> Int -> Element) -> Parser Element
-pBracketsOp op f =
-    do prin <- brackets pPrinciple
-       reservedOp op
-       n    <- fromIntegral <$> natural
-       return $ f prin n
+pSection :: Parser Element
+pSection = brackets pPrinciple >>= return . Section
 
-pMultiplication = pBracketsOp "*" Multiplication
-pAddition       = pBracketsOp "+" Addition
-pReplication    = pBracketsOp "$" Replication
-pRotation       = pBracketsOp "^" Rotation
+-- pRepetition :: Parser Element
+-- pRepetition =
+--     do e <- pBlock -- ???
+--        reservedOp "!"
+--        return $ Repetition e
 
 pReverse :: Parser Element
 pReverse = angles pPrinciple >>= return . Reverse
 
-pRandom :: Parser Element
-pRandom = braces pPrinciple >>= return . Random
+pMultivalue :: Parser Element
+pMultivalue = braces pPrinciple >>= return . Multivalue
 
-pCondElt :: Parser (Int, Principle)
-pCondElt =
-    do (Value v) <- parens pValue
-       expr      <- pPrinciple
-       return (v, expr)
+pCondMultivalue :: Parser Element
+pCondMultivalue = braces (many f) >>= return . CondMultivalue
+    where f = do c <- parens pPrinciple
+                 r <- pPrinciple
+                 return (c, Multivalue r)
 
-pCondRandom :: Parser Element
-pCondRandom = braces (many pCondElt) >>= return . CondRandom
+pExpression :: Parser Element
+pExpression = buildExpressionParser pOperators pElement
+
+pOperators =
+    [[ Infix (reservedOp "*" >> return Multiplication) AssocLeft
+     , Infix (reservedOp "+" >> return Addition      ) AssocLeft ]]
+
+-- pMultiplication = pExpOp "*" Multiplication
+-- pAddition       = pExpOp "+" Addition
+-- pReplication    = pExpOp "$" Replication
+-- pRotation       = pExpOp "^" Rotation
 
 parseMida :: String -> String -> Either String [Statement]
 parseMida file str =

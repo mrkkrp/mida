@@ -1,28 +1,30 @@
 -- -*- Mode: HASKELL; -*-
 
--- Environment is formed via evaluation of definitions. Envionment can
--- be changed with a number of different methods.
+-- Environment is formed via evaluation of definitions. Envionment can be
+-- changed with a number of different methods.
 
 -- Copyright (c) 2014 Mark Karpov
 
--- This program is free software: you can redistribute it and/or
--- modify it under the terms of the GNU General Public License as
--- published by the Free Software Foundation, either version 3 of the
--- License, or (at your option) any later version.
+-- This program is free software: you can redistribute it and/or modify it
+-- under the terms of the GNU General Public License as published by the
+-- Free Software Foundation, either version 3 of the License, or (at your
+-- option) any later version.
 
 -- This program is distributed in the hope that it will be useful, but
 -- WITHOUT ANY WARRANTY; without even the implied warranty of
--- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
--- General Public License for more details.
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+-- Public License for more details.
 
 module Environment
     ( Env (..)
-    , getRandGen
+--    , getRandGen
     , setRandGen
     , getPrompt
     , setPrompt
     , getPrvLength
     , setPrvLength
+    , getPrdLength
+    , setPrdLength
     , getFileName
     , setFileName
     , purgeEnv
@@ -32,7 +34,7 @@ module Environment
     , getSource
     , getNames
     , eval
-    , evalItem )
+    , evalDef )
 where
 
 -- Import Section --
@@ -42,21 +44,24 @@ import Control.Monad.State.Strict
 import System.Random.Mersenne.Pure64
 import qualified Data.Map.Lazy as M
 import Data.List
+import Control.Applicative ((<$>), (<*>))
 
 -- Data Structures --
 
 data Env = Env
-    { eDefinitions  :: Definitions
-    , eRandGen      :: PureMT
-    , ePrompt       :: String
-    , ePrvLength    :: Int
-    , eFileName     :: String }
+    { eDefinitions :: Definitions
+    , eRandGen     :: PureMT
+    , ePrompt      :: String
+    , ePrvLength   :: Int
+    , ePrdLength   :: Int
+    , eFileName    :: String
+    , eHistory     :: [Int] }
 
 type Definitions = M.Map String DefRep
 
 data DefRep = DefRep
-    { drPrinciple :: Principle
-    , drSource    :: String }
+    { drPrin :: Principle
+    , drSrc  :: String }
 
 -- Environment API --
 
@@ -84,60 +89,72 @@ getPrvLength = get >>= return . ePrvLength
 setPrvLength :: Monad m => Int -> StateT Env m ()
 setPrvLength x = modify (\e -> e { ePrvLength = x })
 
+getPrdLength :: Monad m => StateT Env m Int
+getPrdLength = get >>= return . ePrdLength
+
+setPrdLength :: Monad m => Int -> StateT Env m ()
+setPrdLength x = modify (\e -> e { ePrdLength = x })
+
 getFileName :: Monad m => StateT Env m String
 getFileName = get >>= return . eFileName
 
 setFileName :: Monad m => String -> StateT Env m ()
 setFileName x = modify (\e -> e { eFileName = x })
 
-traverseDefs :: String -> M.Map String Principle -> [String]
-traverseDefs name env =
-    case M.lookup name env of
-      (Just x) -> name : concatMap f x
-      Nothing  -> [name]
-    where f (Value          x  ) = []
-          f (Reference      x  ) = traverseDefs x env
-          f (Replication    x _) = concatMap f x
-          f (Multiplication x _) = concatMap f x
-          f (Addition       x _) = concatMap f x
-          f (Rotation       x _) = concatMap f x
-          f (Reverse        x  ) = concatMap f x
-          f (Range          _ _) = []
-          f (Random         x  ) = concatMap f x
-          f (CondRandom     x  ) = concatMap (concatMap f . snd) x
+resetHistory :: Monad m => StateT Env m ()
+resetHistory = modify (\e -> e { eHistory = repeat (-1) })
 
-badItems :: [String] -> Definitions -> [String]
-badItems given defs = filter (\x -> not $ elem x goodItems) $ M.keys defs
-    where goodItems = nub . concat $ zipWith traverseDefs given naked
-          naked     = repeat $ M.map drPrinciple defs
+--checkHistory :: Monad m => StateT Env m Bool
+
+--addToHistory
+
+tDefs :: String -> M.Map String Principle -> [String]
+tDefs name env =
+    case M.lookup name env of
+      (Just x) -> name : cm x
+      Nothing  -> [name]
+    where cm                     = concatMap f
+          f (Value          x  ) = []
+          f (Reference      x  ) = tDefs x env
+          f (Section        xs ) = cm xs
+--          f (Replication    x _) = concatMap f x
+          f (Multiplication x y) = f x ++ f y
+          f (Addition       x y) = f x ++ f y
+--          f (Rotation       x _) = concatMap f x
+          f (Reverse        xs ) = cm xs
+--          f (Range          _ _) = []
+          f (Multivalue     xs ) = cm xs
+          f (CondMultivalue xs ) = concatMap ((++) <$> cm . fst <*> f . snd) xs
+
 
 purgeEnv :: Monad m => [String] -> StateT Env m ()
-purgeEnv given = getDefs >>= return . deleteItems >>= setDefs
-    where deleteItems defs = foldr M.delete defs $ badItems given defs
+purgeEnv tops = getDefs >>= return . f >>= setDefs
+    where f defs = foldr M.delete defs $ M.keys defs \\ musts defs
+          musts  = nub . concat . zipWith tDefs tops . repeat . M.map drPrin
 
 getPrinciple :: Monad m => String -> StateT Env m Principle
 getPrinciple name =
     do defs <- getDefs
        case M.lookup name defs of
-         Just x  -> return $ drPrinciple x
+         Just x  -> return $ drPrin x
          Nothing -> return []
 
 getSrc :: Monad m => String -> StateT Env m String
 getSrc name =
     do defs <- getDefs
        case M.lookup name defs of
-         Just x  -> return $ drSource x
+         Just x  -> return $ drSrc x
          Nothing -> return "cannot find the definition\n"
 
 addDef :: Monad m => String -> Principle -> String -> StateT Env m ()
-addDef name exp src = getDefs >>=
-                      return . M.insert name (DefRep exp src) >>= setDefs
+addDef name prin src = getDefs >>=
+                       return . M.insert name (DefRep prin src) >>= setDefs
 
 remDef :: Monad m => String -> StateT Env m ()
 remDef name = getDefs >>= return . M.delete name >>= setDefs
 
 getSource :: Monad m => StateT Env m String
-getSource = return . concat . map drSource . M.elems . M.filter f =<< getDefs
+getSource = getDefs >>= return . concat . map drSrc . M.elems . M.filter f
     where f (DefRep x _) = not $ null x
 
 getNames :: Monad m => StateT Env m [String]
@@ -145,78 +162,57 @@ getNames = getDefs >>= return . M.keys
 
 -- Evaluation --
 
-data Elt
-    = Vl Int
-    | Rn [Int]
-    | Cr [(Int, [Int])]
-      deriving (Show)
+bop :: (Int -> Int -> Int) -> Element -> Element -> Element
+bop f (Value x)      (Value y)      = Value      $ f x y
+bop f (Section x)    (Section y)    = Section    $ zipWith (bop f) a (cycle b)
+    where (a, b) = if length x >= length y then (x, y) else (y, x)
+bop f (Multivalue x) y              = Multivalue $ map (bop f y) x
+bop f x              (Multivalue y) = Multivalue $ map (bop f x) y
+bop f (Section x)    y              = Section    $ map (bop f y) x
+bop f x              (Section y)    = Section    $ map (bop f x) y
 
-resolve :: Monad m => Principle -> StateT Env m [Elt]
+osc :: (Element -> Element -> Element) -> Principle -> Principle -> Principle
+osc f xs ys = init xs ++ [f (last xs) (head ys)] ++ tail ys
+
+simplify :: Monad m => Principle -> StateT Env m Principle
+simplify = liftM concat . mapM f
+    where f x@(Value          _) = r x
+          f (Reference        x) = getPrinciple x >>= simplify
+          f (Section         xs) = simplify xs >>= r . Section
+          f (Reverse         xs) = simplify xs >>= r . Section . reverse
+          f (Multivalue      xs) = simplify xs >>= r . Multivalue
+--          f (CondMultivalue )
+          f (Multiplication x y) =
+              do rx <- f x
+                 ry <- f y
+                 return $ osc (bop (*)) rx ry
+          f (Addition       x y) =
+              do rx <- f x
+                 ry <- f y
+                 return $ osc (bop (+)) rx ry
+          r x                    = return [x]
+
+choice :: Monad m => Principle -> StateT Env m Element
+choice xs =
+    do old <- getRandGen
+       let (i, new) = randomInt old
+       setRandGen new
+       return $ xs !! mod (abs i) (length xs)
+
+resolve :: Monad m => Principle -> StateT Env m [Int]
 resolve = liftM concat . mapM f
-    where f (Value          x  ) = return [Vl x]
-          f (Reference      x  ) = getPrinciple x >>= resolve
-          f (Replication    x n) = resolve x >>= return . concat . replicate n
-          f (Multiplication x n) = resolve x >>= return . map (multiply n)
-          f (Addition       x n) = resolve x >>= return . map (add n)
-          f (Rotation       x n) = resolve x >>= return . rotate n
-          f (Reverse        x  ) = resolve x >>= return . reverse
-          f (Range          x y) = return $ map Vl $
-                                   if x <= y then [x..y] else [x,x-1..y]
-          f (Random x)           =
-              do r <- resolve x
-                 if null r then return [] else return [Rn (derand r)]
-          f (CondRandom x)       =
-              do r <- mapM g x
-                 return [Cr $ filter (not . null . snd) r]
-          g (k, x)               = resolve x >>= \r -> return (k, derand r)
+    where f (Value      x) = return [x]
+          f (Section    x) = resolve x
+          f (Multivalue x) = choice x >>= f
+          f x              = error $ "cannot resolve: " ++ show x
 
-multiply :: Int -> Elt -> Elt
-multiply n (Vl x) = Vl $ x * n
-multiply n (Rn x) = Rn $ map (* n) x
-multiply n (Cr x) = Cr $ map (\(k, y) -> (k * n, map (* n) y)) x
-
-add :: Int -> Elt -> Elt
-add n (Vl x) = Vl $ x + n
-add n (Rn x) = Rn $ map (+ n) x
-add n (Cr x) = Cr $ map (\(k, y) -> (k * n, map (+ n) y)) x
-
-rotate :: Int -> [a] -> [a]
-rotate n xs = zipWith const (drop n (cycle xs)) xs
-
-norm :: [[Int]] -> [Int]
-norm xs = concatMap f xs
-    where f x = concatMap (replicate $ n `div` length x) x
-          n = foldr lcm 1 $ map length xs
-
-derand :: [Elt] -> [Int]
-derand = norm . map f
-    where f (Vl x) = [x]
-          f (Rn x) = x
-          f (Cr x) = norm $ map snd x
-
-randoms :: PureMT -> [Int]
-randoms gen = x : randoms g
-    where (x, g) = randomInt gen
-
-choice :: [Int] -> Int -> Int
-choice xs v = xs !! mod (abs v) (length xs)
-
-resElt :: Monad m => [Elt] -> StateT Env m [Int]
-resElt xs =
-    do gen <- getRandGen
-       setRandGen $ pureMT . fromIntegral . fst $ randomInt gen
-       let r = zipWith3 f xs (randoms gen) ((-1) : r)
-       return r
-    where f (Vl x) _ _ = x
-          f (Rn x) v _ = choice x v
-          f (Cr x) v p = let g (Just y) = y
-                             g Nothing  = concatMap snd x
-                         in choice (g $ lookup p x) v
-
-eval :: Monad m => Principle -> StateT Env m [Int]
-eval expr = resolve expr >>= return . f >>= resElt
+eval :: Monad m => Principle -> Int -> StateT Env m [Int]
+eval prin n = simplify prin >>= return . take n . f >>= resolve
     where f [] = []
           f x  = cycle x
 
-evalItem :: Monad m => String -> StateT Env m [Int]
-evalItem name = getPrinciple name >>= eval
+evalDef :: Monad m => String -> StateT Env m [Int]
+evalDef name =
+    do prin <- getPrinciple name
+       n    <- getPrdLength
+       eval prin n
