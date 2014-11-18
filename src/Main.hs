@@ -1,6 +1,7 @@
 -- -*- Mode: HASKELL; -*-
 
--- Main module of MIDA interpreter.
+-- Main module of MIDA interpreter provides functions for interaction with
+-- user.
 
 -- Copyright (c) 2014 Mark Karpov
 
@@ -43,7 +44,8 @@ cmdChar         = ':'
 dfltDefinitions = M.empty
 dfltRandGen     = pureMT 0
 dfltPrompt      = "mida> "
-dfltPrv         = 16
+dfltPrvLen      = 16
+dfltPrdLen      = 8192
 dfltFileName    = "interactive"
 dfltSeed        = 0
 dfltQuarter     = 24
@@ -191,9 +193,9 @@ processExpr expr =
                  do addDef n e s
                     liftIO $ printf "-> defined '%s'\n" n
              f (Exposition e) =
-                 do preview <- getPrvLength
-                    result  <- eval e
-                    liftIO $ putStrLn $ (prettyList . take preview) result
+                 do l <- getPrvLength
+                    r <- eval e l
+                    liftIO . putStrLn . prettyList $ take l r
 
 unfin :: String -> Bool
 unfin str = or [isSuffixOf "," s, f "[]", f "{}", f "<>", f "()"]
@@ -232,8 +234,11 @@ loadConfig file =
          (Right p) -> do case lookup "prompt" p of
                            (Just x) -> setPrompt x
                            Nothing  -> return ()
-                         case lookup "length" p of
-                           (Just x) -> setPrvLength (safeParseInt x dfltPrv)
+                         case lookup "prvlength" p of
+                           (Just x) -> setPrvLength (safeParseInt x dfltPrvLen)
+                           Nothing  -> return ()
+                         case lookup "prdlength" p of
+                           (Just x) -> setPrdLength (safeParseInt x dfltPrdLen)
                            Nothing  -> return ()
          (Left  p) -> return ()
 
@@ -283,8 +288,10 @@ sm :: StateT Env IO () -> IO ()
 sm x = void $ runStateT x Env { eDefinitions  = dfltDefinitions
                               , eRandGen      = dfltRandGen
                               , ePrompt       = dfltPrompt
-                              , ePrvLength    = dfltPrv
-                              , eFileName     = dfltFileName }
+                              , ePrvLength    = dfltPrvLen
+                              , ePrdLength    = dfltPrdLen
+                              , eFileName     = dfltFileName
+                              , eHistory      = [] }
 
 main :: IO ()
 main = execParser opts >>= f
