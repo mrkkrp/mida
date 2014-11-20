@@ -39,21 +39,20 @@ data Statement
     | Exposition Principle
       deriving (Show)
 
-type Principle = [Element]
+type Principle  = [Element]
 
 data Element
-    = Value          Int
-    | Reference      String
-    | Section        Principle
---    | Repetition     Element
---    | Replication    Element Int
-    | Multiplication Element Element
-    | Addition       Element Element
+    = Value     Int
+    | Reference String
+    | Section   Principle
+    | Loop      Element Element
+    | Product   Element Element
+    | Sum       Element Element
 --    | Rotation       Element Int
-    | Reverse        Principle
---    | Range          Int Int
-    | Multivalue     Principle
-    | CondMultivalue [(Principle, Element)]
+    | Reverse   Principle
+    | Range     Int Int
+    | Multi     Principle
+    | CMulti    [(Principle, Element)]
       deriving (Show)
 
 -- Parsing --
@@ -72,9 +71,9 @@ language = emptyDef { T.commentStart    = "/*"
                     , T.reservedOpNames = [ "*" --"!"
 --                                          , "*"
                                           , "+"
---                                          , "$"
+                                          , "$"
 --                                          , "^"
---                                          , ".."
+                                          , ".."
                                           , "=" ]
                     , T.caseSensitive   = True }
 
@@ -113,26 +112,21 @@ pPrinciple = sepBy (try pExpression <|> pElement) (optional comma)
 
 pElement :: Parser Element
 pElement
-    =  try pValue -- try pRange
---   <|> try pValue
+    =  try pRange
+   <|> try pValue
    <|> try pReference
---   <|> try pMultiplication *
---   <|> try pAddition       *
---   <|> try pRepetition
---   <|> try pReplication
---   <|> try pRotation
    <|> pSection
    <|> pReverse
-   <|> try pMultivalue
-   <|> pCondMultivalue
+   <|> try pMulti
+   <|> pCMulti
    <?> "element"
 
--- pRange :: Parser Element
--- pRange =
---     do (Value x) <- pValue
---        reservedOp ".."
---        (Value y) <- pValue
---        return $ Range (fromIntegral x) (fromIntegral y)
+pRange :: Parser Element
+pRange =
+    do (Value x) <- pValue
+       reservedOp ".."
+       (Value y) <- pValue
+       return $ Range (fromIntegral x) (fromIntegral y)
 
 pValue :: Parser Element
 pValue = pNatural <|> pNote <?> "literal value"
@@ -155,35 +149,25 @@ pReference =
 pSection :: Parser Element
 pSection = brackets pPrinciple >>= return . Section
 
--- pRepetition :: Parser Element
--- pRepetition =
---     do e <- pBlock -- ???
---        reservedOp "!"
---        return $ Repetition e
-
 pReverse :: Parser Element
 pReverse = angles pPrinciple >>= return . Reverse
 
-pMultivalue :: Parser Element
-pMultivalue = braces pPrinciple >>= return . Multivalue
+pMulti :: Parser Element
+pMulti = braces pPrinciple >>= return . Multi
 
-pCondMultivalue :: Parser Element
-pCondMultivalue = braces (many f) >>= return . CondMultivalue
+pCMulti :: Parser Element
+pCMulti = braces (many f) >>= return . CMulti
     where f = do c <- parens pPrinciple
                  r <- pPrinciple
-                 return (c, Multivalue r)
+                 return (c, Multi r)
 
 pExpression :: Parser Element
 pExpression = buildExpressionParser pOperators pElement
 
 pOperators =
-    [[ Infix (reservedOp "*" >> return Multiplication) AssocLeft
-     , Infix (reservedOp "+" >> return Addition      ) AssocLeft ]]
-
--- pMultiplication = pExpOp "*" Multiplication
--- pAddition       = pExpOp "+" Addition
--- pReplication    = pExpOp "$" Replication
--- pRotation       = pExpOp "^" Rotation
+    [[ Infix (reservedOp "*" >> return Product) AssocLeft
+     , Infix (reservedOp "+" >> return Sum    ) AssocLeft
+     , Infix (reservedOp "$" >> return Loop   ) AssocLeft ]]
 
 parseMida :: String -> String -> Either String [Statement]
 parseMida file str =

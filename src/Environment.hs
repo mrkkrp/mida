@@ -104,9 +104,11 @@ setFileName x = modify (\e -> e { eFileName = x })
 resetHistory :: Monad m => StateT Env m ()
 resetHistory = modify (\e -> e { eHistory = repeat (-1) })
 
---checkHistory :: Monad m => StateT Env m Bool
+getHistory :: Monad m => StateT Env m [Int]
+getHistory = get >>= return . eHistory
 
---addToHistory
+addToHistory :: Monad m => Int -> StateT Env m ()
+addToHistory x = modify (\e -> e { eHistory = x : eHistory e })
 
 tDefs :: String -> M.Map String Principle -> [String]
 tDefs name env =
@@ -118,13 +120,13 @@ tDefs name env =
           f (Reference      x  ) = tDefs x env
           f (Section        xs ) = cm xs
 --          f (Replication    x _) = concatMap f x
-          f (Multiplication x y) = f x ++ f y
-          f (Addition       x y) = f x ++ f y
+          f (Product x y) = f x ++ f y
+          f (Sum       x y) = f x ++ f y
 --          f (Rotation       x _) = concatMap f x
           f (Reverse        xs ) = cm xs
 --          f (Range          _ _) = []
-          f (Multivalue     xs ) = cm xs
-          f (CondMultivalue xs ) = concatMap ((++) <$> cm . fst <*> f . snd) xs
+          f (Multi     xs ) = cm xs
+          f (CMulti xs ) = concatMap ((++) <$> cm . fst <*> f . snd) xs
 
 
 purgeEnv :: Monad m => [String] -> StateT Env m ()
@@ -166,8 +168,8 @@ bop :: (Int -> Int -> Int) -> Element -> Element -> Element
 bop f (Value x)      (Value y)      = Value      $ f x y
 bop f (Section x)    (Section y)    = Section    $ zipWith (bop f) a (cycle b)
     where (a, b) = if length x >= length y then (x, y) else (y, x)
-bop f (Multivalue x) y              = Multivalue $ map (bop f y) x
-bop f x              (Multivalue y) = Multivalue $ map (bop f x) y
+bop f (Multi x) y              = Multi $ map (bop f y) x
+bop f x              (Multi y) = Multi $ map (bop f x) y
 bop f (Section x)    y              = Section    $ map (bop f y) x
 bop f x              (Section y)    = Section    $ map (bop f x) y
 
@@ -180,31 +182,58 @@ simplify = liftM concat . mapM f
           f (Reference        x) = getPrinciple x >>= simplify
           f (Section         xs) = simplify xs >>= r . Section
           f (Reverse         xs) = simplify xs >>= r . Section . reverse
-          f (Multivalue      xs) = simplify xs >>= r . Multivalue
---          f (CondMultivalue )
-          f (Multiplication x y) =
+          f (Range          x y) = return . map Value $
+                                   if x > y then [x,x-1..y] else [x..y]
+          f (Multi      xs) = simplify xs >>= r . Multi
+          f (CMulti  xs) =
+              let g (c, x) =
+                      do rc <- simplify c
+                         rx <- f x
+                         return (rc, head rx)
+              in mapM g xs >>= r . CMulti
+          -- f (Loop    x y) =
+          --     do rx <- f x
+          --        ry <- f y
+          --        return $ osc (bop (flip replicate)) rx ry
+          f (Product x y) =
               do rx <- f x
                  ry <- f y
                  return $ osc (bop (*)) rx ry
-          f (Addition       x y) =
+          f (Sum       x y) =
               do rx <- f x
                  ry <- f y
                  return $ osc (bop (+)) rx ry
           r x                    = return [x]
 
-choice :: Monad m => Principle -> StateT Env m Element
+choice :: Monad m => [a] -> StateT Env m (Maybe a)
+choice [] = return Nothing
 choice xs =
     do old <- getRandGen
        let (i, new) = randomInt old
        setRandGen new
-       return $ xs !! mod (abs i) (length xs)
+       return $ Just $ xs !! mod (abs i) (length xs)
+
+condTest :: [Int] -> Element -> Bool
+condTest (h:_) (Value   x) = h == x
+condTest hs    (Section x) = and $ zipWith condTest (tails  hs) (reverse x)
+condTest hs    (Multi   x) = or  $ zipWith condTest (repeat hs) x
+condTest hs    (CMulti  x) = condTest hs . Multi . map snd $ x
 
 resolve :: Monad m => Principle -> StateT Env m [Int]
-resolve = liftM concat . mapM f
-    where f (Value      x) = return [x]
-          f (Section    x) = resolve x
-          f (Multivalue x) = choice x >>= f
-          f x              = error $ "cannot resolve: " ++ show x
+resolve xs = resetHistory >> mapM f xs >>= return . concat
+    where f (Value   x) = addToHistory x >> return [x]
+          f (Section x) = resolve x
+          f (Multi   x) =
+              do p <- choice x
+                 case p of
+                   (Just r) -> f r
+                   Nothing  -> return []
+          f (CMulti  x) =
+              do hs <- getHistory
+                 case find (any (condTest hs) . fst) x of
+                   (Just (_, r)) -> f r
+                   Nothing       -> f . Multi . map snd $ x
+          f x           = error $ "cannot resolve: " ++ show x
 
 eval :: Monad m => Principle -> Int -> StateT Env m [Int]
 eval prin n = simplify prin >>= return . take n . f >>= resolve
