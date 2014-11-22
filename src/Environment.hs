@@ -17,7 +17,6 @@
 
 module Environment
     ( Env (..)
---    , getRandGen
     , setRandGen
     , getPrompt
     , setPrompt
@@ -115,19 +114,18 @@ tDefs name env =
     case M.lookup name env of
       (Just x) -> name : cm x
       Nothing  -> [name]
-    where cm                     = concatMap f
-          f (Value          x  ) = []
-          f (Reference      x  ) = tDefs x env
-          f (Section        xs ) = cm xs
---          f (Replication    x _) = concatMap f x
-          f (Product x y) = f x ++ f y
+    where cm                = concatMap f
+          f (Value     x  ) = []
+          f (Reference x  ) = tDefs x env
+          f (Section   xs ) = cm xs
+          f (Product   x y) = f x ++ f y
           f (Sum       x y) = f x ++ f y
---          f (Rotation       x _) = concatMap f x
-          f (Reverse        xs ) = cm xs
---          f (Range          _ _) = []
+          f (Loop      x y) = f x ++ f y
+          f (Rotation  x y) = f x ++ f y
+          f (Reverse   x  ) = f x
+          f (Range     _ _) = []
           f (Multi     xs ) = cm xs
-          f (CMulti xs ) = concatMap ((++) <$> cm . fst <*> f . snd) xs
-
+          f (CMulti    xs ) = concatMap ((++) <$> cm . fst <*> f . snd) xs
 
 purgeEnv :: Monad m => [String] -> StateT Env m ()
 purgeEnv tops = getDefs >>= return . f >>= setDefs
@@ -149,8 +147,7 @@ getSrc name =
          Nothing -> return "cannot find the definition\n"
 
 addDef :: Monad m => String -> Principle -> String -> StateT Env m ()
-addDef name prin src = getDefs >>=
-                       return . M.insert name (DefRep prin src) >>= setDefs
+addDef name p s = getDefs >>= return . M.insert name (DefRep p s) >>= setDefs
 
 remDef :: Monad m => String -> StateT Env m ()
 remDef name = getDefs >>= return . M.delete name >>= setDefs
@@ -164,46 +161,80 @@ getNames = getDefs >>= return . M.keys
 
 -- Evaluation --
 
-bop :: (Int -> Int -> Int) -> Element -> Element -> Element
-bop f (Value x)      (Value y)      = Value      $ f x y
-bop f (Section x)    (Section y)    = Section    $ zipWith (bop f) a (cycle b)
-    where (a, b) = if length x >= length y then (x, y) else (y, x)
-bop f (Multi x) y              = Multi $ map (bop f y) x
-bop f x              (Multi y) = Multi $ map (bop f x) y
-bop f (Section x)    y              = Section    $ map (bop f y) x
-bop f x              (Section y)    = Section    $ map (bop f x) y
+mapCond :: (Element -> Element) -> Element -> Element
+mapCond f (CMulti xs) = CMulti $ map ((,) <$> (map f . fst) <*> (f . snd)) xs
 
-osc :: (Element -> Element -> Element) -> Principle -> Principle -> Principle
-osc f xs ys = init xs ++ [f (last xs) (head ys)] ++ tail ys
+uop' :: (Int -> Int -> Int) -> Element -> Element -> Element
+uop' f = flip (uop f)
+
+uop :: (Int -> Int -> Int) -> Element -> Element -> Element
+uop f (Value x) (Value y) = Value $ f x y
+uop f (Multi x) y = Multi $ map (uop' f y) x
+uop f x (Multi y) = Multi $ map (uop f x) y
+uop f x@(CMulti _) y = mapCond (uop' f y) x
+uop f x y@(CMulti _) = mapCond (uop f x) y
+uop f (Section x) (Section y) = Section $ zipWith (uop f) x (cycle y)
+uop f (Section x) y = Section $ map (uop' f y) x
+uop f x (Section y) = Section $ map (uop f x) y
+
+loop :: Element -> Element -> [Element]
+loop x (Value y) = replicate y x
+loop x (Multi y) = [Multi $ map (Section . loop x) y]
+loop (Section x) (Section y) = [Section $ concat $ zipWith loop x (cycle y)]
+loop x (Section y) = [Section $ concat $ map (loop x) y]
+loop x y@(CMulti _) = [mapCond (Section . loop x) y]
+
+rotate :: Element -> Element -> Element
+rotate (Section x) (Value y) = Section $ zipWith const (drop y (cycle x)) x
+rotate x@(Section _) (Multi y) = Multi $ map (rotate x) y
+rotate (Section x) (Section y) = Section $ zipWith rotate x (cycle y)
+rotate x@(Section _) y@(CMulti _) = mapCond (rotate x) y
+rotate x _ = x
+
+mreverse :: Element -> Element
+mreverse x@(Value _) = x
+mreverse (Multi x) = Multi $ map mreverse x
+mreverse (Section x) = Section $ reverse $ map mreverse x
+mreverse x@(CMulti _) = mapCond mreverse x
+
+osc :: (Element -> Element -> [Element]) -> Principle -> Principle -> Principle
+osc f xs ys = init xs ++ (f (last xs) (head ys)) ++ tail ys
+
+osd :: (Element -> Element) -> Principle -> Principle
+osd f xs = f (head xs) : tail xs
 
 simplify :: Monad m => Principle -> StateT Env m Principle
 simplify = liftM concat . mapM f
-    where f x@(Value          _) = r x
-          f (Reference        x) = getPrinciple x >>= simplify
-          f (Section         xs) = simplify xs >>= r . Section
-          f (Reverse         xs) = simplify xs >>= r . Section . reverse
-          f (Range          x y) = return . map Value $
-                                   if x > y then [x,x-1..y] else [x..y]
-          f (Multi      xs) = simplify xs >>= r . Multi
-          f (CMulti  xs) =
+    where r x              = return [x]
+          f x@(Value    _) = r x
+          f (Reference  x) = getPrinciple x >>= simplify
+          f (Section   xs) = simplify xs >>= r . Section
+          f (Range    x y) = return . map Value $
+                            if x > y then [x,x-1..y] else [x..y]
+          f (Multi     xs) = simplify xs >>= r . Multi
+          f (CMulti    xs) =
               let g (c, x) =
                       do rc <- simplify c
                          rx <- f x
                          return (rc, head rx)
               in mapM g xs >>= r . CMulti
-          -- f (Loop    x y) =
-          --     do rx <- f x
-          --        ry <- f y
-          --        return $ osc (bop (flip replicate)) rx ry
-          f (Product x y) =
+          f (Product  x y) =
               do rx <- f x
                  ry <- f y
-                 return $ osc (bop (*)) rx ry
-          f (Sum       x y) =
+                 return $ osc (\a b -> [uop (*) a b]) rx ry
+          f (Sum      x y) =
               do rx <- f x
                  ry <- f y
-                 return $ osc (bop (+)) rx ry
-          r x                    = return [x]
+                 return $ osc (\a b -> [uop (+) a b]) rx ry
+          f (Loop     x y) =
+              do rx <- f x
+                 ry <- f y
+                 return $ osc loop rx ry
+          f (Rotation x y) =
+              do rx <- f x
+                 ry <- f y
+                 return $ osc (\a b -> [rotate a b]) rx ry
+          f (Reverse    x) = f x >>= return . osd mreverse
 
 choice :: Monad m => [a] -> StateT Env m (Maybe a)
 choice [] = return Nothing

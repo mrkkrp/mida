@@ -45,11 +45,11 @@ data Element
     = Value     Int
     | Reference String
     | Section   Principle
-    | Loop      Element Element
     | Product   Element Element
     | Sum       Element Element
---    | Rotation       Element Int
-    | Reverse   Principle
+    | Loop      Element Element
+    | Rotation  Element Element
+    | Reverse   Element
     | Range     Int Int
     | Multi     Principle
     | CMulti    [(Principle, Element)]
@@ -68,11 +68,11 @@ language = emptyDef { T.commentStart    = "/*"
                     , T.identStart      = letter
                     , T.identLetter     = alphaNum
                     , T.reservedNames   = notes
-                    , T.reservedOpNames = [ "*" --"!"
---                                          , "*"
+                    , T.reservedOpNames = [ "*"
                                           , "+"
                                           , "$"
---                                          , "^"
+                                          , "^"
+                                          , "@"
                                           , ".."
                                           , "=" ]
                     , T.caseSensitive   = True }
@@ -88,7 +88,7 @@ whiteSpace = T.whiteSpace lexer
 comma      = T.comma      lexer
 braces     = T.braces     lexer
 brackets   = T.brackets   lexer
-angles     = T.angles     lexer
+--angles     = T.angles     lexer
 
 pSource :: Parser [Statement]
 pSource = whiteSpace >> many pDefinition
@@ -116,7 +116,6 @@ pElement
    <|> try pValue
    <|> try pReference
    <|> pSection
-   <|> pReverse
    <|> try pMulti
    <|> pCMulti
    <?> "element"
@@ -149,9 +148,6 @@ pReference =
 pSection :: Parser Element
 pSection = brackets pPrinciple >>= return . Section
 
-pReverse :: Parser Element
-pReverse = angles pPrinciple >>= return . Reverse
-
 pMulti :: Parser Element
 pMulti = braces pPrinciple >>= return . Multi
 
@@ -165,9 +161,11 @@ pExpression :: Parser Element
 pExpression = buildExpressionParser pOperators pElement
 
 pOperators =
-    [[ Infix (reservedOp "*" >> return Product) AssocLeft
-     , Infix (reservedOp "+" >> return Sum    ) AssocLeft
-     , Infix (reservedOp "$" >> return Loop   ) AssocLeft ]]
+    [[ Prefix (reservedOp "@" >> return Reverse )           ]
+     , [ Infix  (reservedOp "*" >> return Product ) AssocLeft
+       , Infix  (reservedOp "+" >> return Sum     ) AssocLeft
+       , Infix  (reservedOp "$" >> return Loop    ) AssocLeft
+       , Infix  (reservedOp "^" >> return Rotation) AssocLeft ]]
 
 parseMida :: String -> String -> Either String [Statement]
 parseMida file str =
