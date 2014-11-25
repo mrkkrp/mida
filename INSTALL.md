@@ -13,7 +13,7 @@
 2. Go to the directory where the archive is located and execute:
 
    ```
-   # sh mida-0.1.0.sh
+   # sh mida-0.2.0.sh
    ```
 
 3. Done.
