@@ -15,18 +15,12 @@ For installation instructions see `INSTALL.md`.
 
 ## Information
 
-Major improvements of MIDA will be undertaken in the near future. So,
-consider version 0.1.0 as some kind of beta. Although it has proved to be
-practically useful in music production, I want you to remember that it is
-subject of improvements that can change the program in such a way that some
-scripts that work with MIDA 0.1.0 will not work with improved versions. I
-will try to keep the differences as minimal as possible.
-
 My final goal is to create software tools that can be used to bring
 generative music to producers in such a way that does not change the
-established workflow.
+established workflow, so people could use familiar plugins and software
+instruments.
 
-Before starting work on MIDA I looked at some well-known tools to program
+Before starting work on MIDA, I looked at some well-known tools to program
 music. In particular, Sound Collider and its bindings for Clojure (Overtone)
 were looking promising, but I decided that all that stuff will be difficult
 to learn for non-programmers and without a good API for automated
@@ -44,14 +38,6 @@ So, my principal decision was to create a set of tools:
 - tool that can change tuning, temperament, and other parameters of already
   created MIDI file;
 - tool to program automation for different DAWs.
-
-Having all these tools is enough to create something fresh in context of
-contemporary popular music. One can use familiar plugins, synths, etc. but
-get totally different effects.
-
-It's important that these tools must be free software, so people can modify
-them to suit their needs. Proprietary programs should not be used as they
-constrain your freedom from practical and ethical point of view.
 
 ## License
 
