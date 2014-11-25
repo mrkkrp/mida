@@ -22,8 +22,8 @@ module Environment
     , setPrompt
     , getPrvLength
     , setPrvLength
-    , getPrdLength
-    , setPrdLength
+    , getBlockSize
+    , setBlockSize
     , getFileName
     , setFileName
     , purgeEnv
@@ -52,7 +52,7 @@ data Env = Env
     , eRandGen     :: PureMT
     , ePrompt      :: String
     , ePrvLength   :: Int
-    , ePrdLength   :: Int
+    , eBlockSize   :: Int
     , eFileName    :: String
     , eHistory     :: [Int] }
 
@@ -88,11 +88,11 @@ getPrvLength = get >>= return . ePrvLength
 setPrvLength :: Monad m => Int -> StateT Env m ()
 setPrvLength x = modify (\e -> e { ePrvLength = x })
 
-getPrdLength :: Monad m => StateT Env m Int
-getPrdLength = get >>= return . ePrdLength
+getBlockSize :: Monad m => StateT Env m Int
+getBlockSize = get >>= return . eBlockSize
 
-setPrdLength :: Monad m => Int -> StateT Env m ()
-setPrdLength x = modify (\e -> e { ePrdLength = x })
+setBlockSize :: Monad m => Int -> StateT Env m ()
+setBlockSize x = modify (\e -> e { eBlockSize = x })
 
 getFileName :: Monad m => StateT Env m String
 getFileName = get >>= return . eFileName
@@ -250,10 +250,17 @@ condTest hs    (Section x) = and $ zipWith condTest (tails  hs) (reverse x)
 condTest hs    (Multi   x) = or  $ zipWith condTest (repeat hs) x
 condTest hs    (CMulti  x) = condTest hs . Multi . map snd $ x
 
-resolve :: Monad m => Principle -> StateT Env m [Int]
-resolve xs = resetHistory >> mapM f xs >>= return . concat
+resolve :: Monad m => Int -> Int -> Int -> Principle -> StateT Env m [Int]
+resolve _ _ _ [] = return []
+resolve i e n (x:xs) =
+    do c  <- f x
+       bs <- getBlockSize
+       let j = length c + i
+       if j < n && e < bs
+       then resolve j (succ e) n xs
+       else getHistory >>= return . reverse . take j
     where f (Value   x) = addToHistory x >> return [x]
-          f (Section x) = resolve x
+          f (Section x) = mapM f x >>= return . concat
           f (Multi   x) =
               do p <- choice x
                  case p of
@@ -264,15 +271,15 @@ resolve xs = resetHistory >> mapM f xs >>= return . concat
                  case find (any (condTest hs) . fst) x of
                    (Just (_, r)) -> f r
                    Nothing       -> f . Multi . map snd $ x
-          f x           = error $ "cannot resolve: " ++ show x
+          f x           = error $ "fatal: cannot resolve " ++ show x
 
 eval :: Monad m => Principle -> Int -> StateT Env m [Int]
-eval prin n = simplify prin >>= return . take n . f >>= resolve
+eval prin n    = resetHistory >> simplify prin >>= resolve 0 1 n . f
     where f [] = []
           f x  = cycle x
 
 evalDef :: Monad m => String -> StateT Env m [Int]
 evalDef name =
     do prin <- getPrinciple name
-       n    <- getPrdLength
+       n    <- getBlockSize
        eval prin n

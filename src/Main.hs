@@ -45,7 +45,7 @@ dfltDefinitions = M.empty
 dfltRandGen     = pureMT 0
 dfltPrompt      = "mida> "
 dfltPrvLen      = 16
-dfltPrdLen      = 8192
+dfltBlSize      = 4096
 dfltFileName    = "interactive"
 dfltSeed        = 0
 dfltQuarter     = 24
@@ -118,6 +118,7 @@ commands = [ ("help",   cmdHelp,   "Show this help text")
            , ("def",    cmdDef,    "Print definition of given symbol")
            , ("prompt", cmdPrompt, "Set MIDA prompt")
            , ("length", cmdLength, "Set length of displayed results")
+           , ("block",  cmdBlSize,  "Set size of block")
            , ("quit",   undefined, "Quit the interactive environment") ]
 
 printExc :: SomeException -> IO ()
@@ -168,6 +169,11 @@ cmdLength :: String -> StateT Env IO ()
 cmdLength x =
     do old <- getPrvLength
        setPrvLength $ safeParseInt x old
+
+cmdBlSize :: String -> StateT Env IO ()
+cmdBlSize x =
+    do old <- getBlockSize
+       setBlockSize $ safeParseInt x old
 
 processCmd :: String -> StateT Env IO ()
 processCmd input =
@@ -234,11 +240,11 @@ loadConfig file =
          (Right p) -> do case lookup "prompt" p of
                            (Just x) -> setPrompt x
                            Nothing  -> return ()
-                         case lookup "prvlength" p of
+                         case lookup "length" p of
                            (Just x) -> setPrvLength (safeParseInt x dfltPrvLen)
                            Nothing  -> return ()
-                         case lookup "prdlength" p of
-                           (Just x) -> setPrdLength (safeParseInt x dfltPrdLen)
+                         case lookup "block" p of
+                           (Just x) -> setBlockSize (safeParseInt x dfltBlSize)
                            Nothing  -> return ()
          (Left  p) -> return ()
 
@@ -289,7 +295,7 @@ sm x = void $ runStateT x Env { eDefinitions  = dfltDefinitions
                               , eRandGen      = dfltRandGen
                               , ePrompt       = dfltPrompt
                               , ePrvLength    = dfltPrvLen
-                              , ePrdLength    = dfltPrdLen
+                              , eBlockSize    = dfltBlSize
                               , eFileName     = dfltFileName
                               , eHistory      = [] }
 
