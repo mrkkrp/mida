@@ -111,15 +111,16 @@ aCmd = isPrefixOf [cmdChar] . trim
 isCmd :: String -> String -> Bool
 isCmd x = (isPrefixOf $ cmdChar : x) . trim
 
-commands = [ ("help",   cmdHelp,   "Show this help text")
-           , ("save",   cmdSave,   "Save current environment in specified file")
-           , ("purge",  cmdPurge,  "Remove redundant definitions")
-           , ("make",   cmdMake,   "Generate MIDI file in current environment")
-           , ("def",    cmdDef,    "Print definition of given symbol")
-           , ("prompt", cmdPrompt, "Set MIDA prompt")
-           , ("length", cmdLength, "Set length of displayed results")
-           , ("block",  cmdBlSize,  "Set size of block")
-           , ("quit",   undefined, "Quit the interactive environment") ]
+commands = [ ("help",    cmdHelp,    "Show this help text")
+           , ("license", cmdLicense, "Show license")
+           , ("save",    cmdSave,    "Save current environment in file")
+           , ("purge",   cmdPurge,   "Remove redundant definitions")
+           , ("make",    cmdMake,    "Generate and save MIDI file")
+           , ("def",     cmdDef,     "Print definition of given symbol")
+           , ("prompt",  cmdPrompt,  "Set MIDA prompt")
+           , ("length",  cmdLength,  "Set length of displayed results")
+           , ("block",   cmdBlSize,  "Set size of block")
+           , ("quit",    undefined,  "Quit the interactive environment") ]
 
 printExc :: SomeException -> IO ()
 printExc e = hPutStr stderr $ printf "-> %s;\n" (show e)
@@ -127,6 +128,24 @@ printExc e = hPutStr stderr $ printf "-> %s;\n" (show e)
 cmdHelp :: String -> StateT Env IO ()
 cmdHelp _ = liftIO (printf "Available commands:\n") >> mapM_ f commands
     where f (cmd, _, text) = liftIO $ printf "  %c%-24s%s\n" cmdChar cmd text
+
+cmdLicense :: String -> StateT Env IO ()
+cmdLicense _ = liftIO $ printf
+    "MIDA - realization of MIDA language for generation of MIDI files.\n\
+    \Copyright (c) 2014 Mark Karpov\n\
+    \\n\
+    \This program is free software: you can redistribute it and/or modify\n\
+    \it under the terms of the GNU General Public License as published by\n\
+    \the Free Software Foundation, either version 3 of the License, or\n\
+    \(at your option) any later version.\n\
+    \\n\
+    \This program is distributed in the hope that it will be useful,\n\
+    \but WITHOUT ANY WARRANTY; without even the implied warranty of\n\
+    \MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n\
+    \GNU General Public License for more details.\n\
+    \\n\
+    \You should have received a copy of the GNU General Public License\n\
+    \along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
 
 cmdSave :: String -> StateT Env IO ()
 cmdSave given =
@@ -250,8 +269,9 @@ loadConfig file =
 
 getCompletions :: Monad m => String -> StateT Env m [L.Completion]
 getCompletions str =
-    do names <- getNames
-       return $ map L.simpleCompletion $ filter (str `isPrefixOf`) names
+    do ns <- getNames
+       return $ map L.simpleCompletion $ filter (str `isPrefixOf`) (ns ++ cs)
+       where cs = map (\(x, _, _) -> cmdChar : x) commands
 
 completionFunc :: Monad m => L.CompletionFunc (StateT Env m)
 completionFunc = L.completeWord Nothing " \t" getCompletions
