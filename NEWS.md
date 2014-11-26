@@ -5,9 +5,9 @@
 * better command line experience: history, auto-completion and more;
 
 * fixed bug with infinite translation of scores that consist of elements
-  which have no duration;
+  which have zero duration;
 
-* introduced conception of blocks;
+* introduced conception of sections;
 
 * all operations have become fully polymorphic.
 
