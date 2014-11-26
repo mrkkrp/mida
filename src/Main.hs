@@ -131,7 +131,7 @@ cmdHelp _ = liftIO (printf "Available commands:\n") >> mapM_ f commands
 
 cmdLicense :: String -> StateT Env IO ()
 cmdLicense _ = liftIO $ printf
-    "MIDA - realization of MIDA language for generation of MIDI files.\n\
+    "MIDA - realization of MIDA, language for generation of MIDI files.\n\
     \Copyright (c) 2014 Mark Karpov\n\
     \\n\
     \This program is free software: you can redistribute it and/or modify\n\
@@ -274,7 +274,7 @@ getCompletions str =
        where cs = map (\(x, _, _) -> cmdChar : x) commands
 
 completionFunc :: Monad m => L.CompletionFunc (StateT Env m)
-completionFunc = L.completeWord Nothing " \t" getCompletions
+completionFunc = L.completeWord Nothing " " getCompletions
 
 interLoop :: StateT Env IO ()
 interLoop =
