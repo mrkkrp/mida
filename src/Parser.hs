@@ -58,7 +58,7 @@ data Element
 -- Parsing --
 
 notes :: [String]
-notes = [n ++ show i | i <- [0..8],
+notes = [n ++ show i | i <- [0..9],
          n <- ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]]
 
 language = emptyDef { T.commentStart    = "/*"
