@@ -5,7 +5,7 @@
 
 ### constants
 
-I_ITEMS="/usr/{bin/{mida,midarm},share/{licenses,doc,haskell/source}/mida/}"
+I_ITEMS="/usr/{bin/{mida,midarm},share/{licenses,doc}/mida/}"
 
 ### functions
 
