@@ -21,7 +21,6 @@ where
 
 -- Import Section --
 
-import Parser
 import Environment
 import Control.Monad.State.Strict
 import Codec.Midi
@@ -31,7 +30,6 @@ import System.Random.Mersenne.Pure64
 -- Data Structures --
 
 type Batch = ([Int], [Int], [Int])
-type Event = (Ticks, Message)
 
 -- Translation --
 
@@ -72,7 +70,3 @@ getMidi s q beats =
        return Midi { fileType = SingleTrack
                    , timeDiv  = TicksPerBeat q
                    , tracks   = xs }
-
--- we need also protection from 'endless' scores... if there are lots of
--- elements, but overall duration is too short, we can conclude that given
--- score is endless. develop the idea

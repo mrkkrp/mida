@@ -30,7 +30,6 @@ import Text.ParserCombinators.Parsec.Expr
 import qualified Text.ParserCombinators.Parsec.Token as T
 import Data.List
 import Data.Maybe (fromJust)
-import Control.Applicative ((<$>))
 
 -- Data Structures --
 
@@ -58,7 +57,7 @@ data Element
 -- Parsing --
 
 notes :: [String]
-notes = [n ++ show i | i <- [0..9],
+notes = [n ++ show i | i <- [0..9] :: [Int],
          n <- ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]]
 
 language = emptyDef { T.commentStart    = "/*"
@@ -160,6 +159,7 @@ pCMulti = braces (many f) >>= return . CMulti
 pExpression :: Parser Element
 pExpression = buildExpressionParser pOperators pElement
 
+pOperators :: [[Operator Char st Element]]
 pOperators =
     [[ Prefix (reservedOp "@" >> return Reverse )           ]
      , [ Infix  (reservedOp "*" >> return Product ) AssocLeft

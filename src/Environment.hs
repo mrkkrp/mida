@@ -115,7 +115,7 @@ tDefs name env =
       (Just x) -> name : cm x
       Nothing  -> [name]
     where cm                = concatMap f
-          f (Value     x  ) = []
+          f (Value     _  ) = []
           f (Reference x  ) = tDefs x env
           f (Section   xs ) = cm xs
           f (Product   x y) = f x ++ f y
@@ -252,12 +252,12 @@ condTest hs    (CMulti  x) = condTest hs . Multi . map snd $ x
 
 resolve :: Monad m => Int -> Int -> Int -> Principle -> StateT Env m [Int]
 resolve _ _ _ [] = return []
-resolve i e n (x:xs) =
-    do c  <- f x
+resolve i e n (y:ys) =
+    do c  <- f y
        bs <- getBlockSize
        let j = length c + i
        if j < n && e < bs
-       then resolve j (succ e) n xs
+       then resolve j (succ e) n ys
        else getHistory >>= return . reverse . take j
     where f (Value   x) = addToHistory x >> return [x]
           f (Section x) = mapM f x >>= return . concat

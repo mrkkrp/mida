@@ -20,14 +20,9 @@ module Config
 
 -- Import Section --
 
-import Environment
-import System.IO
-import Control.Monad.State
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as T
-import qualified Data.Map.Lazy as M
-import Control.Applicative ((<$>))
 
 -- Parsing --
 

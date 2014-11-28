@@ -1,7 +1,6 @@
 -- -*- Mode: HASKELL; -*-
 
--- Main module of MIDA interpreter provides functions for interaction with
--- user.
+-- Main module of MIDA provides functions for interaction with user.
 
 -- Copyright (c) 2014 Mark Karpov
 
@@ -163,18 +162,18 @@ cmdPurge _ =
        liftIO $ printf "-> environment purged;\n"
 
 safeParseInt :: String -> Int -> Int
-safeParseInt str x
-    | all isDigit str = read str :: Int
-    | otherwise       = x
+safeParseInt s x
+    | all isDigit s = read s :: Int
+    | otherwise     = x
 
 cmdMake :: String -> StateT Env IO ()
-cmdMake str =
+cmdMake arg =
     do file <- getFileName
        saveMidi (safeParseInt s dfltSeed)
                 (safeParseInt q dfltQuarter)
                 (safeParseInt b dfltBeats)
                 (output f file)
-    where (s:q:b:f:_) = (words str) ++ repeat ""
+    where (s:q:b:f:_) = (words arg) ++ repeat ""
 
 cmdDef :: String -> StateT Env IO ()
 cmdDef name =
@@ -223,8 +222,8 @@ processExpr expr =
                     liftIO . putStrLn . prettyList $ take l r
 
 unfin :: String -> Bool
-unfin str = or [isSuffixOf "," s, f "[]", f "{}", f "<>", f "()"]
-    where s = trim str
+unfin arg = or [isSuffixOf "," s, f "[]", f "{}", f "<>", f "()"]
+    where s = trim arg
           f [x,y] = ((&&) <$> (> 0) <*> (/= g y)) (g x)
           g x     = length $ filter (== x) s
 
@@ -235,21 +234,21 @@ getMultiline prv =
                                   then prompt
                                   else replicate (length prompt) ' '
        case (prv ++) . (++ "\n") <$> input of
-         (Just str) -> if unfin str
-                       then getMultiline str
-                       else return (Just str)
-         Nothing    -> return Nothing
+         (Just x) -> if unfin x
+                     then getMultiline x
+                     else return (Just x)
+         Nothing  -> return Nothing
 
 interaction :: L.InputT (StateT Env IO) ()
 interaction =
     do input <- getMultiline ""
        case input of
-         (Just str) -> if isCmd "quit" str
-                       then return ()
-                       else do if aCmd str
-                               then lift $ processCmd  str
-                               else lift $ processExpr str
-                               interaction
+         (Just x) -> if isCmd "quit" x
+                     then return ()
+                     else do if aCmd x
+                             then lift $ processCmd x
+                             else lift $ processExpr x
+                             interaction
          Nothing    -> return ()
 
 loadConfig :: String -> StateT Env IO ()
@@ -265,12 +264,12 @@ loadConfig file =
                          case lookup "block" p of
                            (Just x) -> setBlockSize (safeParseInt x dfltBlSize)
                            Nothing  -> return ()
-         (Left  p) -> return ()
+         (Left  _) -> return ()
 
 getCompletions :: Monad m => String -> StateT Env m [L.Completion]
-getCompletions str =
+getCompletions arg =
     do ns <- getNames
-       return $ map L.simpleCompletion $ filter (str `isPrefixOf`) (ns ++ cs)
+       return $ map L.simpleCompletion $ filter (arg `isPrefixOf`) (ns ++ cs)
        where cs = map (\(x, _, _) -> cmdChar : x) commands
 
 completionFunc :: Monad m => L.CompletionFunc (StateT Env m)
@@ -297,7 +296,7 @@ loadFile file =
          (Left  x) -> error $ "parse error in " ++ x
        liftIO $ printf "-> \"%s\" loaded successfully;\n" file
        where f (Definition n e s) = addDef n e s
-             f (Exposition e)     =
+             f (Exposition _)     =
                  error "source file does not contain valid definitions"
 
 output :: String -> String -> String
