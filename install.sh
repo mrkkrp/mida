@@ -1,13 +1,28 @@
-#!/bin/sh
+#!/bin/bash
 #
 # MIDA Installation script
 #
+# Copyright (c) 2014 Mark Karpov
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ### constants
 
 SCRIPT_DIR="$( cd "$( dirname "{BASH_SOURCE[0]}" )" && pwd )"
-I_DIRS="/usr/share{,/licenses,/doc,/haskell/source}/mida/"
-I_ITEMS="/usr/{bin/{mida,midarm},share/{licenses,doc,haskell/source}/mida/}"
+I_DIRS="/usr/share{,/licenses,/doc}/mida/"
+I_ITEMS="/usr/{bin/mida{,rm},share/man/man1/mida{,rm}.1.gz,\
+share/{licenses,doc}/mida}"
 
 ### functions
 
@@ -49,8 +64,7 @@ cp -u $SCRIPT_DIR/dist/build/mida/mida /usr/bin/
 cp -u $SCRIPT_DIR/midarm               /usr/bin/
 cp -u $SCRIPT_DIR/LICENSE.md           /usr/share/licenses/mida/
 cp -u $SCRIPT_DIR/doc/*.{html,css}     /usr/share/doc/mida/
-cp -u $SCRIPT_DIR/Mida.cabal           /usr/share/haskell/source/mida/
-cp -u $SCRIPT_DIR/src/*.hs             /usr/share/haskell/source/mida/
+cp -u $SCRIPT_DIR/doc/mida{,rm}.1.gz   /usr/share/man/man1/
 echo 'OK,'
 
 # 5. settting permissions
@@ -64,4 +78,4 @@ fi
 
 # 6. done
 
-echo '-> done.'
+echo '=> done.'
