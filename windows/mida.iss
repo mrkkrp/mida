@@ -15,14 +15,7 @@
 ;; |-- LICENSE.md
 ;; |-- mida.exe
 ;; |-- NEWS.md
-;; |-- README.md
-;; `-- src
-;;     |-- Config.hs
-;;     |-- Environment.hs
-;;     |-- Main.hs
-;;     |-- Mida.cabal
-;;     |-- Parser.hs
-;;     `-- Translator.hs
+;; `-- README.md
 
 [Setup]
 AppId = {{4BB579A5-13F5-4DE4-B5F4-68937769D84B}
