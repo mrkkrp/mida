@@ -22,23 +22,21 @@ module Parser
     , parseMida )
 where
 
--- Import Section --
-
+import Data.List
+import Data.Maybe (fromJust)
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
 import Text.ParserCombinators.Parsec.Expr
-import qualified Text.ParserCombinators.Parsec.Token as T
-import Data.List
-import Data.Maybe (fromJust)
+import qualified Text.ParserCombinators.Parsec.Token as Token
 
--- Data Structures --
+-- data types --
 
 data Statement
     = Definition String Principle String
     | Exposition Principle
       deriving (Show)
 
-type Principle  = [Element]
+type Principle = [Element]
 
 data Element
     = Value     Int
@@ -54,40 +52,38 @@ data Element
     | CMulti    [(Principle, Element)]
       deriving (Show)
 
--- Parsing --
+-- constants --
 
 notes :: [String]
 notes = [n ++ show i | i <- [0..9] :: [Int],
          n <- ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]]
 
-language = emptyDef { T.commentStart    = "/*"
-                    , T.commentEnd      = "*/"
-                    , T.commentLine     = "//"
-                    , T.nestedComments  = True
-                    , T.identStart      = letter
-                    , T.identLetter     = alphaNum
-                    , T.reservedNames   = notes
-                    , T.reservedOpNames = [ "*"
-                                          , "+"
-                                          , "$"
-                                          , "^"
-                                          , "@"
-                                          , ".."
-                                          , "=" ]
-                    , T.caseSensitive   = True }
+-- language and lexemes --
 
-lexer = T.makeTokenParser language
+lang = emptyDef { Token.commentStart    = "/*"
+                , Token.commentEnd      = "*/"
+                , Token.commentLine     = "//"
+                , Token.nestedComments  = True
+                , Token.identStart      = letter
+                , Token.identLetter     = alphaNum
+                , Token.reservedNames   = notes
+                , Token.reservedOpNames =
+                    ["*","+","$","^","@","..","="]
+                , Token.caseSensitive   = True }
 
-identifier = T.identifier lexer
-reserved   = T.reserved   lexer
-reservedOp = T.reservedOp lexer
-parens     = T.parens     lexer
-natural    = T.natural    lexer
-whiteSpace = T.whiteSpace lexer
-comma      = T.comma      lexer
-braces     = T.braces     lexer
-brackets   = T.brackets   lexer
---angles     = T.angles     lexer
+lexer = Token.makeTokenParser lang
+
+braces     = Token.braces     lexer
+brackets   = Token.brackets   lexer
+comma      = Token.comma      lexer
+identifier = Token.identifier lexer
+natural    = Token.natural    lexer
+parens     = Token.parens     lexer
+reserved   = Token.reserved   lexer
+reservedOp = Token.reservedOp lexer
+whiteSpace = Token.whiteSpace lexer
+
+-- parsing --
 
 pSource :: Parser [Statement]
 pSource = whiteSpace >> many pDefinition
@@ -99,21 +95,19 @@ pDefinition =
        reservedOp "="
        p <- pPrinciple
        y <- getInput
-       return $ Definition n p $ f x y
-    where f x y = take (length x - length y) x
+       return $ Definition n p $ take (length x - length y) x
 
 pExposition :: Parser [Statement]
-pExposition = whiteSpace >> pPrinciple >>= return . (: []) . Exposition
+pExposition = whiteSpace >> pPrinciple >>= return . return . Exposition
 
 pPrinciple :: Parser Principle
 pPrinciple = sepBy (try pExpression <|> pElement) (optional comma)
-          <?> "principle"
 
 pElement :: Parser Element
 pElement
     =  try pRange
-   <|> try pValue
-   <|> try pReference
+   <|> pValue
+   <|> pReference
    <|> pSection
    <|> try pMulti
    <|> pCMulti
@@ -161,7 +155,7 @@ pExpression = buildExpressionParser pOperators pElement
 
 pOperators :: [[Operator Char st Element]]
 pOperators =
-    [[ Prefix (reservedOp "@" >> return Reverse )           ]
+    [[ Prefix (reservedOp "@" >> return Reverse ) ]
      , [ Infix  (reservedOp "*" >> return Product ) AssocLeft
        , Infix  (reservedOp "+" >> return Sum     ) AssocLeft
        , Infix  (reservedOp "$" >> return Loop    ) AssocLeft

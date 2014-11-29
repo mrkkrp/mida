@@ -15,29 +15,30 @@
 -- Public License for more details.
 
 module Translator
-    ( getMidi
+    ( genMidi
     , topDefs )
 where
 
--- Import Section --
-
-import Environment
+import Data.List
 import Control.Monad.State.Strict
 import Codec.Midi
-import Data.List
 import System.Random.Mersenne.Pure64
+import Environment
+import Eval
 
--- Data Structures --
+-- data types --
 
 type Batch = ([Int], [Int], [Int])
 
--- Translation --
+-- constants --
 
 mvIndex = 7
 durName = "dur"
 velName = "vel"
 pchName = "pch"
 topDefs = [x ++ show n | x <- [durName,velName,pchName], n <- [0..mvIndex]]
+
+-- translation --
 
 request :: Monad m => Int -> StateT Env m Batch
 request n =
@@ -62,8 +63,8 @@ toTrack (dur, vel, pch) = (concat $ zipWith3 f dur vel pch) ++ [(0, TrackEnd)]
     where f d v p = [ (0, NoteOn 0 p v)
                     , (d, NoteOn 0 p 0) ]
 
-getMidi :: Monad m => Int -> Int -> Int -> StateT Env m Midi
-getMidi s q beats =
+genMidi :: Monad m => Int -> Int -> Int -> StateT Env m Midi
+genMidi s q beats =
     do setRandGen $ pureMT (fromIntegral s)
        voices <- mapM request [0..mvIndex] >>= return . filter fullyDefined
        let xs = map (toTrack . slice (beats * q)) voices

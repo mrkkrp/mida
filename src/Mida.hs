@@ -14,43 +14,42 @@
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 -- General Public License for more details.
 
-module Main where
+module Main (main) where
 
--- Import Section --
-
-import Parser
-import Environment
-import Translator
-import Config
 import Control.Monad.State.Strict
-import qualified Data.Map.Lazy as M
+import qualified Data.Map as M
 import System.Random.Mersenne.Pure64
 import Options.Applicative
 import System.FilePath (takeFileName, replaceExtension, combine)
 import System.IO
 import Text.Printf (printf)
 import Codec.Midi (exportFile)
-import Data.Char (isSpace, isDigit)
+import Data.Char (isSpace)
 import Data.List
 import Control.Exception
 import System.Directory (doesFileExist, getHomeDirectory)
 import qualified System.Console.Haskeline as L
+import Parser
+import Environment
+import Eval
+import Translator
+import Config
 
--- Default Values --
+-- constants --
 
-version         = "0.2.0"
-cmdChar         = ':'
-dfltDefinitions = M.empty
-dfltRandGen     = pureMT 0
-dfltPrompt      = "mida> "
-dfltPrvLen      = 16
-dfltBlSize      = 4096
-dfltFileName    = "interactive"
-dfltSeed        = 0
-dfltQuarter     = 24
-dfltBeats       = 16
+version      = "0.3.0"
+cmdChar      = ':'
+dfltDefs     = M.empty
+dfltRandGen  = pureMT 0
+dfltPrompt   = "mida> "
+dfltPrvLen   = 16
+dfltBlSize   = 4096
+dfltFileName = "interactive"
+dfltSeed     = 0
+dfltQuarter  = 24
+dfltBeats    = 16
 
--- Command Line Processing --
+-- command line processing --
 
 data Opts = Opts
     { getIntr :: Bool
@@ -98,7 +97,7 @@ opts =  info (helper <*> bar)
                ( metavar "FILE"
               <> value   "" )
 
--- Interactive Environment --
+-- interactive environment --
 
 trim :: String -> String
 trim = f . f
@@ -150,7 +149,7 @@ cmdSave :: String -> StateT Env IO ()
 cmdSave given =
     do actual <- getFileName
        let file = if null given then actual else given
-       source <- getSource
+       source <- fullSrc
        setFileName file
        liftIO $ catch (do writeFile file source
                           printf "-> environment saved as \"%s\".\n" file)
@@ -161,17 +160,12 @@ cmdPurge _ =
     do purgeEnv topDefs
        liftIO $ printf "-> environment purged;\n"
 
-safeParseInt :: String -> Int -> Int
-safeParseInt s x
-    | all isDigit s = read s :: Int
-    | otherwise     = x
-
 cmdMake :: String -> StateT Env IO ()
 cmdMake arg =
     do file <- getFileName
-       saveMidi (safeParseInt s dfltSeed)
-                (safeParseInt q dfltQuarter)
-                (safeParseInt b dfltBeats)
+       saveMidi (parseInt s dfltSeed)
+                (parseInt q dfltQuarter)
+                (parseInt b dfltBeats)
                 (output f file)
     where (s:q:b:f:_) = (words arg) ++ repeat ""
 
@@ -186,12 +180,12 @@ cmdPrompt x = setPrompt (x ++ " ")
 cmdLength :: String -> StateT Env IO ()
 cmdLength x =
     do old <- getPrvLength
-       setPrvLength $ safeParseInt x old
+       setPrvLength $ parseInt x old
 
 cmdBlSize :: String -> StateT Env IO ()
 cmdBlSize x =
     do old <- getBlockSize
-       setBlockSize $ safeParseInt x old
+       setBlockSize $ parseInt x old
 
 processCmd :: String -> StateT Env IO ()
 processCmd input =
@@ -205,7 +199,7 @@ processCmd input =
 
 prettyList :: [Int] -> String
 prettyList [] = "=> none"
-prettyList xs = printf "=> %s..." $ intercalate " " (map show xs) 
+prettyList xs = printf "=> %s..." $ intercalate " " (map show xs)
 
 processExpr :: String -> StateT Env IO ()
 processExpr expr =
@@ -255,16 +249,13 @@ loadConfig :: String -> StateT Env IO ()
 loadConfig file =
     do params <- parseConfig file <$> liftIO (readFile file)
        case params of
-         (Right p) -> do case lookup "prompt" p of
-                           (Just x) -> setPrompt x
-                           Nothing  -> return ()
-                         case lookup "length" p of
-                           (Just x) -> setPrvLength (safeParseInt x dfltPrvLen)
-                           Nothing  -> return ()
-                         case lookup "block" p of
-                           (Just x) -> setBlockSize (safeParseInt x dfltBlSize)
-                           Nothing  -> return ()
-         (Left  _) -> return ()
+         (Right x) -> do prompt <- getPrompt
+                         setPrompt    $ lookupStr x "prompt" prompt
+                         length <- getPrvLength
+                         setPrvLength $ lookupInt x "length" length
+                         block  <- getBlockSize
+                         setBlockSize $ lookupInt x "block"  block
+         (Left  x) -> return ()
 
 getCompletions :: Monad m => String -> StateT Env m [L.Completion]
 getCompletions arg =
@@ -286,7 +277,7 @@ interLoop =
        L.runInputT (L.setComplete completionFunc L.defaultSettings) interaction
        liftIO $ printf "-> Goodbye.\n"
 
--- Top Level Logic --
+-- top level logic --
 
 loadFile :: String -> StateT Env IO ()
 loadFile file =
@@ -305,18 +296,17 @@ output out file = if null out then f file else out
 
 saveMidi :: Int -> Int -> Int -> String -> StateT Env IO ()
 saveMidi s q b file =
-    do midi <- getMidi s q b
+    do midi <- genMidi s q b
        liftIO $ exportFile file midi
        liftIO $ printf "-> MIDI file saved as \"%s\".\n" file
 
 sm :: StateT Env IO () -> IO ()
-sm x = void $ runStateT x Env { eDefinitions  = dfltDefinitions
-                              , eRandGen      = dfltRandGen
-                              , ePrompt       = dfltPrompt
-                              , ePrvLength    = dfltPrvLen
-                              , eBlockSize    = dfltBlSize
-                              , eFileName     = dfltFileName
-                              , eHistory      = [] }
+sm x = void $ runStateT x Env { eDefs      = dfltDefs
+                              , eRandGen   = dfltRandGen
+                              , ePrompt    = dfltPrompt
+                              , ePrvLength = dfltPrvLen
+                              , eBlockSize = dfltBlSize
+                              , eFileName  = dfltFileName }
 
 main :: IO ()
 main = execParser opts >>= f

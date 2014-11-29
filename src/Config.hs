@@ -1,6 +1,6 @@
 -- -*- Mode: HASKELL; -*-
 
--- Config module helps parse unix-style config files.
+-- Config module helps parse Unix-styled configuration files.
 
 -- Copyright (c) 2014 Mark Karpov
 
@@ -15,33 +15,45 @@
 -- Public License for more details.
 
 module Config
-    ( parseConfig )
+    ( parseConfig
+    , parseInt
+    , lookupStr
+    , lookupInt )
     where
 
--- Import Section --
-
+import Data.Char (isDigit)
+import qualified Data.Map as M
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
-import qualified Text.ParserCombinators.Parsec.Token as T
+import qualified Text.ParserCombinators.Parsec.Token as Token
 
--- Parsing --
+-- data types --
 
-language = emptyDef { T.commentLine     = "#"
-                    , T.identStart      = letter
-                    , T.identLetter     = alphaNum
-                    , T.reservedOpNames = ["="]
-                    , T.caseSensitive   = True }
+type Params = M.Map String String
 
-lexer = T.makeTokenParser language
+-- language and lexemes --
 
-identifier = T.identifier    lexer
-reservedOp = T.reservedOp    lexer
-pstring    = T.stringLiteral lexer
-natural    = T.natural       lexer
-whiteSpace = T.whiteSpace    lexer
+lang = emptyDef { Token.commentLine     = "#"
+                , Token.identStart      = letter
+                , Token.identLetter     = alphaNum
+                , Token.reservedOpNames = ["="]
+                , Token.caseSensitive   = True }
 
-pConfig :: Parser [(String, String)]
-pConfig = whiteSpace >> many (try pVarInt <|> pVarString)
+lexer = Token.makeTokenParser lang
+
+identifier = Token.identifier    lexer
+natural    = Token.natural       lexer
+pstring    = Token.stringLiteral lexer
+reservedOp = Token.reservedOp    lexer
+whiteSpace = Token.whiteSpace    lexer
+
+-- parsing --
+
+pConfig :: Parser Params
+pConfig =
+    do whiteSpace
+       items <- many (try pVarInt <|> pVarString)
+       return $ M.fromList items
 
 pVarInt :: Parser (String, String)
 pVarInt =
@@ -57,10 +69,27 @@ pVarString =
        x   <- pstring
        return (var, x)
 
-parseConfig :: String -> String -> Either String [(String, String)]
+parseConfig :: String -> String -> Either String Params
 parseConfig file str =
     case parse pConfig file str of
-      (Right x) -> if null x
-                   then Left "invalid syntax of config file"
-                   else Right x
+      (Right x) -> Right x
       (Left  x) -> Left $ show x
+
+-- miscellaneous functions --
+
+parseInt :: String -> Int -> Int
+parseInt s x
+    | all isDigit s = read s :: Int
+    | otherwise     = x
+
+lookupStr :: Params -> String -> String -> String
+lookupStr cfg v d =
+    case M.lookup v cfg of
+      (Just x) -> x
+      Nothing  -> d
+
+lookupInt :: Params -> String -> Int -> Int
+lookupInt cfg v d =
+    case M.lookup v cfg of
+      (Just x) -> parseInt x d
+      Nothing  -> d
