@@ -11,7 +11,7 @@
     <link href="mida.css" rel="stylesheet" type="text/css">
   </head>
   <body>
-    <h1 id="top">MIDA</h1>
+    <h1>MIDA</h1>
     <h2>Table of Contents</h2>
     <ul>
       <li><a href="#1">1 What is MIDA?</a></li>
@@ -64,7 +64,7 @@
     <p>MIDA is licensed
       under <a href="http://www.gnu.org/copyleft/gpl.html">GNU General
       Public License</a>; it's opensource, free software.</p>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h2 id="2">2 Installation</h2>
     <p>It's absolutely possible to install MIDA on any platform on
       which <a href="https://www.haskell.org/platform/">Haskell Platform</a>
@@ -73,17 +73,20 @@
       propose installer for Windows users and self-extracting script for
       Linux users. To install MIDA on other platforms see
       section <a href="2.3">2.3 Compilation from Source</a>.</p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="2.1">2.1 Windows</h3>
     <p>To install MIDA on
       Windows <a href="https://github.com/mrkkrp/mida/releases">download
       MIDA installer</a>, then run it. To uninstall MIDA, run
       uninstaller.</p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="2.2">2.2 Linux</h3>
     <p><a href="https://github.com/mrkkrp/mida/releases">Download
       self-extracting script</a> and run it as root. To uninstall MIDA
       execute:</p>
     <pre># midarm</pre>
     <p>The script will remove MIDA from your system.</p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="2.3">2.3 Compilation from Source</h3>
     <p>First, install <a href="https://www.haskell.org/platform/">Haskell
       Platform</a>. You also need to
@@ -107,7 +110,7 @@ $ cabal build</pre>
       script (it also copies documentation and <code>midarm</code> for
       uninstallation.):</p>
     <pre># sh install.sh</pre>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h2 id="3">3 Invocation</h2>
     <p>MIDA can work as translator from source code to MIDI files, and also
       as an interactive environment (interpreter). Here's invocation
@@ -134,7 +137,7 @@ $ cabal build</pre>
       in interactive mode even without <code>-i</code> option. Note that
       options <code>-s</code>, <code>-q</code>, and <code>-b</code> will be
       ignored if option <code>-i</code> is used.</p>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h2 id="4">4 Configuration File</h2>
     <p>One can customize MIDA to some extent using configuration file. One
       should create the file in his/her home directory. This directory will
@@ -163,7 +166,7 @@ $ cabal build</pre>
 prompt = &quot;M> &quot;
 length = 20
 block  = 8192 # default is 4096</pre>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h2 id="5">5 MIDA Tutorial</h2>
     <p>Now that you know all the basic information about the interpreter, we
       can start our journey into the magic world of MIDA.</p>
@@ -182,7 +185,7 @@ block  = 8192 # default is 4096</pre>
       itself. Algorithm may be really impressive, but audience just don't
       give a fuck. We're gonna use basic tools of MIDA to create super sexy
       pop stuff, that's what we need, man.</p>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="5.1">5.1 Literal Values</h3>
     <p>Start the interactive environment. Now you should be looking at
       something like this:</p>
@@ -198,7 +201,7 @@ mida> _</pre>
     </ul>
     <p>Let's start from how you can enter the numbers at the prompt
       and what you get as a result.</p>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="5.1.1">5.1.1 Duration</h3>
     <p>Durations in MIDI are relative to <i>ticks per quarter note</i>
       (TPQ). TPQ is set before translation either via command line
@@ -215,8 +218,8 @@ mida> _</pre>
 => 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24...
 mida> _</pre>
     <p>So, we see that we can enter literal values! However, the result may
-    look a bit strange, but ignore this repetitiveness for now.</p>
-    <p><a href="#top">back to the top</a></p>
+      look a bit strange, but ignore this repetitiveness for now.</p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="5.1.2">5.1.2 Velocity</h3>
     <p>Since MIDI format is piano-oriented, velocity in our case means
       loudness. Again, to write down velocities we use plain numbers. Valid
@@ -225,7 +228,7 @@ mida> _</pre>
       loudest note.</p>
     <p>Although you can enter literals greater than <code>127</code>, they
       are not guaranteed to be processed correctly.</p>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="5.1.3">5.1.3 Pitch</h3>
     <p>Sure, you can use the same plain numbers from <code>0</code>
       to <code>127</code> for pitch, but it's a bit inconvenient. MIDA knows
@@ -262,7 +265,7 @@ mida> _</pre>
 => 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60...</pre>
     <p>...and that's it! Now you can use literal values. Oh, that's
       incredible.</p>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="5.2">5.2 Elements, Principles, and Realizations</h3>
     <p>Smallest piece of composition in MIDA is called <i>element</i>. Now
       we know at least one kind of element: literal values. Realization of
@@ -291,7 +294,7 @@ mida> c5 d5 e5 f5 g5 a5 b5 c6
     <pre>mida>
 => none</pre>
     <p>In the next section we will see other roles of <code>none</code>.</p>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="5.3">5.3 Definitions</h3>
     <p>I said that it's quite hard to write an incorrect statement in
       MIDA. Let's prove it. This is my attempt:</p>
@@ -364,7 +367,7 @@ mida> pch0 = c5 d5 e5 f5 g5 a5 b5
       use <code>timidity++</code> for testing on Linux, it's free
       software). Description of available special commands is given in the
       next section.</p>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="5.4">5.4 Special Commands</h3>
     <p>MIDA has a number of useful commands that can be invoked from
       interactive environment. All the commands begin with
@@ -500,7 +503,7 @@ mida> :save
       with <code>:quit</code> command!</p>
     <pre>mida> :quit
 -> Goodbye.</pre>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="5.5">5.5 Ranges</h3>
     <p>Now that you know all the basics, we can talk about advanced methods
       of element manipulation. Simplest such method is range. Range in MIDA
@@ -517,7 +520,7 @@ mida> c5..e5
     <p>Although you cannot specify step between resulting elements, you can
       add a number to all elements of a principle or multiply all the
       elements by given number. How? Keep reading!</p>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="5.6">5.6 Multivalues</h3>
     <p>So far, we worked only with literal values. But MIDA knows one more
       kind of element: <i>multivalue</i>. Multivalue is such an element that
@@ -543,7 +546,7 @@ mida> {[1] $ 8, 2 3} // 1 - 80%, 2 - 10%, 3 - 10%
       probability 50%. Inside <code>{2 3}</code> every element has equal
       probability 50%, so result probabilities look like: <code>1</code> -
       50%, <code>2</code> - 25%, <code>3</code> - 25%.</p>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="5.7">5.7 Sections</h3>
     <p>Section is another kind of element. Section is collection of elements
       that can be manipulated as one element.</p>
@@ -562,7 +565,7 @@ mida> {[1] $ 8, 2 3} // 1 - 80%, 2 - 10%, 3 - 10%
       probability.</p>
     <p>We could use multivalues in the section too, to get arbitrary complex
       structures.</p>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="5.8">5.8 Conditional Multivalues</h3>
     <p>One step forward is <i>conditional multivalues</i>. These are just
       like multivalues, but they depend on realized value of previous
@@ -603,7 +606,7 @@ mida> {[1] $ 8, 2 3} // 1 - 80%, 2 - 10%, 3 - 10%
     <p>As always, you can use conditional multivalues inside of any part of
       other conditional multivalues, but sometimes such complex structures
       are difficult to understand for human reader.</p>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="5.9">5.9 Polymorphic Operators</h3>
     <p>Now you know about all basic elements in MIDA. There are a number of
       operations that can be performed on these elements. You can combine
@@ -612,6 +615,7 @@ mida> {[1] $ 8, 2 3} // 1 - 80%, 2 - 10%, 3 - 10%
       operators <i>polymorphic</i>.</p>
     <p>All operators in MIDA are infix (or prefix if unary) and left
       associative.</p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="5.9.1">5.9.1 Addition</h3>
     <p>For addition we use the plus operator <code>+</code>:</p>
     <pre>mida> 2 + 12
@@ -631,7 +635,7 @@ mida> {(1) 2 (2) 1} + 5 // {(6) 7 (7) 6}
       non-determinism with result being multivalue that has all possible
       results in it; every part of conditional multivalue is processed
       according to these rules.</p>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="5.9.2">5.9.2 Multiplication</h3>
     <p>Multiplication is done in similar fashion. Use
       asterisk <code>*</code> to multiply a principle by a given number:</p>
@@ -641,7 +645,7 @@ mida> {(1) 2 (2) 1} + 5 // {(6) 7 (7) 6}
       same precedence (except for unary):</p>
     <pre>mida> [1..3] + 10 * 2
 => 22 24 26 22 24 26 22 24 26 22 24 26 22 24 26 22...</pre>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="5.9.3">5.9.3 Repetition</h3>
     <p>Operator for repetition is <code>$</code>. Principles of evaluation
       are generally the same:</p>
@@ -655,7 +659,7 @@ mida> 1 $ {2 3}, 10
 => 1 1 10 1 1 1 10 1 1 10 1 1 1 10 1 1...
 mida> [1 2 3] $ [2 3], 10
 => 1 1 2 2 2 3 3 10 1 1 2 2 2 3 3 10...</pre>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="5.9.4">5.9.4 Rotation</h3>
     <p>You also can 'rotate' a principle with caret <code>^</code> operator,
       removing its former elements that will appear at the end of the
@@ -669,7 +673,7 @@ mida> [[1 2 3] $ 3] ^ [0 2 1]
     <p>This is so-called left rotation, but you can emulate
       right-rotation too knowing length of given principle. Note that
       rotation only makes sense applied to sections.</p>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="5.9.5">5.9.5 Reverse</h3>
     <p>Reverse is the single unary operator in MIDA. It has the highest
       precedence, it means that it is evaluated before all other
@@ -679,7 +683,7 @@ mida> [[1 2 3] $ 3] ^ [0 2 1]
 mida> @{[1 2] [3 4]}
 => 4 3 4 3 2 1 4 3 4 3 4 3 4 3 4 3...</pre>
     <p>As always, arbitrary complex elements can be reversed.</p>
-    <p><a href="#top">back to the top</a></p>
+    <p>[<a href="#top">contents</a>]</p>
     <h3 id="6">6 Final Notes</h3>
     <p>It's allowed to put comments in MIDA source files or in interactive
       environment. MIDA uses C-like comments. Line comments starts
@@ -691,7 +695,7 @@ mida> @{[1 2] [3 4]}
       comma <code>,</code>. Since comma is allowed only between elements of
       a principle MIDA will know that current principle is not
       completed.</p>
-    <p>I sincerely hope that MIDA will be useful to you. Good luck! </p>
-    <p><a href="#top">back to the top</a></p>
+    <p>I sincerely hope that MIDA will be useful to you. Good luck!</p>
+    <p>[<a href="#top">contents</a>]</p>
   </body>
 </html>
