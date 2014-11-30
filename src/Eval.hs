@@ -30,33 +30,46 @@ import Environment
 -- data types --
 
 data Temp = Temp
-    { tHistory :: [Int]
+    { tBadRow  :: Int
     , tCounter :: Int
-    , tLimit   :: Int }
+    , tLimit   :: Int
+    , tHistory :: [Int] }
 
 -- evaluation --
 
-getHistory :: Monad m => StateT Temp m [Int]
-getHistory = get >>= return . tHistory
+getBadRow :: Monad m => StateT Temp m Int
+getBadRow = get >>= return . tBadRow
+
+addBadRow :: Monad m => StateT Temp m ()
+addBadRow = modify (\e -> e { tBadRow = succ (tBadRow e)})
 
 getCounter :: Monad m => StateT Temp m Int
 getCounter = get >>= return . tCounter
 
+getLimit :: Monad m => StateT Temp m Int
+getLimit = get >>= return . tLimit
+
+getHistory :: Monad m => StateT Temp m [Int]
+getHistory = get >>= return . tHistory
+
 addHistory :: Monad m => Int -> StateT Temp m ()
-addHistory x = modify (\e -> e { tHistory = x : tHistory e
-                               , tCounter = succ (tCounter e)})
+addHistory x = modify (\e -> e { tBadRow  = 0
+                               , tCounter = succ (tCounter e)
+                               , tHistory = x : tHistory e})
+
+done :: Monad m => StateT Temp m Bool
+done =
+    do b <- getBadRow
+       c <- getCounter
+       l <- getLimit
+       return (c >= l || b >= l)
 
 getResult :: Monad m => StateT Temp m [Int]
 getResult =
     do h <- getHistory
        c <- getCounter
-       return . reverse $ take c h
-
-done :: Monad m => StateT Temp m Bool
-done =
-    do c <- getCounter
-       l <- get >>= return . tLimit
-       return (c >= l)
+       l <- getLimit
+       return $ if (c >= l) then reverse $ take c h else []
 
 mapCond :: (Element -> Element) -> Element -> Element
 mapCond f (CMulti xs) = CMulti $ map ((,) <$> (map f . fst) <*> (f . snd)) xs
@@ -151,6 +164,7 @@ resolve :: Monad m => Principle -> StateT Temp (StateT Env m) [Int]
 resolve []     = return []
 resolve (y:ys) =
     do f y
+       addBadRow
        b <- done
        if b then getResult else resolve ys
     where f (Value   x) = addHistory x >> return [x]
@@ -170,9 +184,10 @@ eval :: Monad m => Principle -> Int -> StateT Env m [Int]
 eval prin n =
     do p <- simplify prin
        let result = runStateT (resolve . f $ p)
-                    Temp { tHistory = repeat (-1)
+                    Temp { tBadRow  = 0
                          , tCounter = 0
-                         , tLimit   = n }
+                         , tLimit   = n
+                         , tHistory = repeat (-1) }
        result >>= return . fst
     where f [] = []
           f x  = cycle x
