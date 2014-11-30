@@ -32,19 +32,19 @@ type Batch = ([Int], [Int], [Int])
 
 -- constants --
 
-mvIndex = 7
-durName = "dur"
-velName = "vel"
-pchName = "pch"
-topDefs = [x ++ show n | x <- [durName,velName,pchName], n <- [0..mvIndex]]
+mvIndex = 7 :: Int
+defDur  = "dur"
+defVel  = "vel"
+defPch  = "pch"
+topDefs = [x ++ show n | x <- [defDur,defVel,defPch], n <- [0..mvIndex]]
 
 -- translation --
 
 request :: Monad m => Int -> StateT Env m Batch
 request n =
-    do dur <- evalDef $ durName ++ i
-       vel <- evalDef $ velName ++ i
-       pch <- evalDef $ pchName ++ i
+    do dur <- evalDef $ defDur ++ i
+       vel <- evalDef $ defVel ++ i
+       pch <- evalDef $ defPch ++ i
        return (dur, vel, pch)
     where i = show n
 

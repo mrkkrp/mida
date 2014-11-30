@@ -54,21 +54,36 @@ data Element
 
 -- constants --
 
-notes :: [String]
-notes = [n ++ show i | i <- [0..9] :: [Int],
-         n <- ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]]
+noteAlias = [n ++ show i | i <- [0..9] :: [Int],
+             n <- ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]]
+langCommentStart = "/*"
+langCommentEnd   = "*/"
+langCommentLine  = "//"
+langProductOp    = "*"
+langSumOp        = "+"
+langLoopOp       = "$"
+langRotationOp   = "^"
+langReverseOp    = "@"
+langRangeOp      = ".."
+langDefinitionOp = "="
 
 -- language and lexemes --
 
-lang = emptyDef { Token.commentStart    = "/*"
-                , Token.commentEnd      = "*/"
-                , Token.commentLine     = "//"
+lang = emptyDef { Token.commentStart    = langCommentStart
+                , Token.commentEnd      = langCommentEnd
+                , Token.commentLine     = langCommentLine
                 , Token.nestedComments  = True
                 , Token.identStart      = letter
                 , Token.identLetter     = alphaNum
-                , Token.reservedNames   = notes
+                , Token.reservedNames   = noteAlias
                 , Token.reservedOpNames =
-                    ["*","+","$","^","@","..","="]
+                    [ langProductOp
+                    , langSumOp
+                    , langLoopOp
+                    , langRotationOp
+                    , langReverseOp
+                    , langRangeOp
+                    , langDefinitionOp ]
                 , Token.caseSensitive   = True }
 
 lexer = Token.makeTokenParser lang
@@ -92,7 +107,7 @@ pDefinition :: Parser Statement
 pDefinition =
     do x <- getInput
        n <- identifier
-       reservedOp "="
+       reservedOp langDefinitionOp
        p <- pPrinciple
        y <- getInput
        return $ Definition n p $ take (length x - length y) x
@@ -116,7 +131,7 @@ pElement
 pRange :: Parser Element
 pRange =
     do (Value x) <- pValue
-       reservedOp ".."
+       reservedOp langRangeOp
        (Value y) <- pValue
        return $ Range (fromIntegral x) (fromIntegral y)
 
@@ -128,14 +143,14 @@ pNatural = natural >>= return . Value . fromIntegral
 
 pNote :: Parser Element
 pNote =
-    do note <- choice $ map (try . string) notes
+    do note <- choice $ map (try . string) noteAlias
        whiteSpace
-       return . Value . fromJust $ elemIndex note notes
+       return . Value . fromJust $ elemIndex note noteAlias
 
 pReference :: Parser Element
 pReference =
     do n <- identifier
-       notFollowedBy $ reservedOp "="
+       notFollowedBy $ reservedOp langDefinitionOp
        return $ Reference n
 
 pSection :: Parser Element
@@ -155,11 +170,11 @@ pExpression = buildExpressionParser pOperators pElement
 
 pOperators :: [[Operator Char st Element]]
 pOperators =
-    [[ Prefix (reservedOp "@" >> return Reverse ) ]
-     , [ Infix  (reservedOp "*" >> return Product ) AssocLeft
-       , Infix  (reservedOp "+" >> return Sum     ) AssocLeft
-       , Infix  (reservedOp "$" >> return Loop    ) AssocLeft
-       , Infix  (reservedOp "^" >> return Rotation) AssocLeft ]]
+    [[ Prefix (reservedOp langReverseOp >> return Reverse ) ]
+     , [ Infix  (reservedOp langProductOp  >> return Product ) AssocLeft
+       , Infix  (reservedOp langSumOp      >> return Sum     ) AssocLeft
+       , Infix  (reservedOp langLoopOp     >> return Loop    ) AssocLeft
+       , Infix  (reservedOp langRotationOp >> return Rotation) AssocLeft ]]
 
 parseMida :: String -> String -> Either String [Statement]
 parseMida file str =
@@ -168,4 +183,6 @@ parseMida file str =
                    then Left "invalid definition syntax"
                    else Right x
       (Left  x) -> Left $ show x
-    where parser = if elem '=' str then pSource else pExposition
+    where parser = if langDefinitionOp `isInfixOf` str
+                   then pSource
+                   else pExposition
