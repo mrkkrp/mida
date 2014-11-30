@@ -18,9 +18,6 @@ module Main (main) where
 
 import Control.Monad.State.Strict
 import Options.Applicative
-import System.FilePath (takeFileName)
-import Text.Printf (printf)
-import Parser
 import Environment
 import Defaults
 import Interaction
@@ -69,17 +66,6 @@ opts =  info (helper <*> bar)
 
 -- top level logic --
 
-loadFile :: String -> StateT Env IO ()
-loadFile file =
-    do contents <- liftIO $ readFile file
-       case parseMida (takeFileName file) contents of
-         (Right x) -> mapM_ f x
-         (Left  x) -> error $ "parse error in " ++ x
-       liftIO $ printf "-> \"%s\" loaded successfully;\n" file
-       where f (Definition n e s) = addDef n e s
-             f (Exposition _)     =
-                 error "source file does not contain valid definitions"
-
 sm :: StateT Env IO () -> IO ()
 sm x = void $ runStateT x Env { eDefs      = dfltDefs
                               , eRandGen   = dfltRandGen
@@ -93,6 +79,6 @@ main = execParser opts >>= f
     where f (Opts _    _ _ _ _ "") =
               sm interLoop
           f (Opts True  _ _ _ _ n) =
-              sm $ loadFile n >> setFileName n >> interLoop
+              sm $ loadSrc n >> interLoop
           f (Opts False s q b o n) =
-              sm $ loadFile n >> setFileName n >> saveMidi s q b o
+              sm $ loadSrc n >> saveMidi s q b o

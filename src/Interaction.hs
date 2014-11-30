@@ -15,15 +15,16 @@
 -- General Public License for more details.
 
 module Interaction
-    ( saveMidi
+    ( loadSrc
+    , saveMidi
     , interLoop )
 where
 
 import Data.Char (isSpace)
 import Data.List
-import Control.Exception
+import Control.Exception (SomeException, try)
 import Control.Monad.State.Strict
-import System.FilePath (replaceExtension, combine)
+import System.FilePath (takeFileName, replaceExtension, combine)
 import System.Directory (getHomeDirectory, doesFileExist)
 import Control.Applicative ((<$>), (<*>))
 import System.IO
@@ -40,7 +41,7 @@ import Defaults
 -- constants --
 
 version   = "0.3.0"
-cmdPrefix  = ":"
+cmdPrefix = ":"
 
 -- misc --
 
@@ -59,6 +60,17 @@ fancyPrint = putStr . unlines . map ("=> " ++) . lines
 
 printExc :: SomeException -> IO ()
 printExc e = hPutStr stderr $ printf "-> %s;\n" (show e)
+
+loadSrc :: String -> StateT Env IO ()
+loadSrc file =
+    do contents <- liftIO $ readFile file
+       case parseMida (takeFileName file) contents of
+         Right x -> do mapM_ f x
+                       setFileName file
+                       liftIO $ printf "-> \"%s\" loaded successfully;\n" file
+         Left  x -> liftIO $ fancyPrint $ "parse error in " ++ x
+       where f (Definition n e s) = addDef n e s
+             f (Exposition     _) = return ()
 
 saveMidi :: Int -> Int -> Int -> String -> StateT Env IO ()
 saveMidi s q b given =
@@ -96,6 +108,7 @@ loadConfig file =
 
 commands = [ ("help",    cmdHelp,    "Show this help text")
            , ("license", cmdLicense, "Show license")
+           , ("load",    cmdLoad,    "Load definitions from given file.")
            , ("save",    cmdSave,    "Save current environment in file")
            , ("purge",   cmdPurge,   "Remove redundant definitions")
            , ("make",    cmdMake,    "Generate and save MIDI file")
@@ -109,7 +122,7 @@ processCmd :: String -> StateT Env IO ()
 processCmd input =
     case find f commands of
       (Just (_, x, _)) -> x args
-      Nothing  -> liftIO $ printf "=> unknown command, try %shelp;\n" cmdPrefix
+      Nothing  -> liftIO $ printf "-> unknown command, try %shelp;\n" cmdPrefix
     where f (x, _, _)    = x == cmd
           (cmd', args')  = break isSpace (trim input)
           cmd            = drop (length cmdPrefix) cmd'
@@ -177,10 +190,10 @@ interLoop =
 
 cmdHelp :: String -> StateT Env IO ()
 cmdHelp _ = liftIO (printf "Available commands:\n") >> mapM_ f commands
-    where f (cmd, _, text) = liftIO $ printf "  %c%-24s%s\n" cmdPrefix cmd text
+    where f (cmd, _, text) = liftIO $ printf "  %s%-24s%s\n" cmdPrefix cmd text
 
 cmdLicense :: String -> StateT Env IO ()
-cmdLicense _ = liftIO $ printf
+cmdLicense _ = liftIO $ fancyPrint
     "MIDA - realization of MIDA, language for generation of MIDI files.\n\
     \Copyright (c) 2014 Mark Karpov\n\
     \\n\
@@ -197,15 +210,23 @@ cmdLicense _ = liftIO $ printf
     \You should have received a copy of the GNU General Public License\n\
     \along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
 
+cmdLoad :: String -> StateT Env IO ()
+cmdLoad file =
+    do b <- liftIO $ doesFileExist file
+       if b
+       then (loadSrc file)
+       else liftIO $ printf "-> cannot find \"%s\";\n" file
+
 cmdSave :: String -> StateT Env IO ()
 cmdSave given =
     do actual <- getFileName
        let file = if null given then actual else given
-       source <- fullSrc
-       setFileName file
-       liftIO $ catch (do writeFile file source
-                          printf "-> environment saved as \"%s\".\n" file)
-                      printExc
+       src    <- fullSrc
+       result <- liftIO (try (writeFile file src) :: IO (Either SomeException ()))
+       case result of
+         Right _ -> do setFileName file
+                       liftIO $ printf "-> environment saved as \"%s\".\n" file
+         Left  e -> liftIO $ printExc e
 
 cmdPurge :: String -> StateT Env IO ()
 cmdPurge _ =
