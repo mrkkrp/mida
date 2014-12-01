@@ -66,6 +66,13 @@ langRotationOp   = "^"
 langReverseOp    = "@"
 langRangeOp      = ".."
 langDefinitionOp = "="
+langOps          = [ langProductOp
+                   , langSumOp
+                   , langLoopOp
+                   , langRotationOp
+                   , langReverseOp
+                   , langRangeOp
+                   , langDefinitionOp ]
 
 -- language and lexemes --
 
@@ -76,14 +83,7 @@ lang = emptyDef { Token.commentStart    = langCommentStart
                 , Token.identStart      = letter
                 , Token.identLetter     = alphaNum
                 , Token.reservedNames   = noteAlias
-                , Token.reservedOpNames =
-                    [ langProductOp
-                    , langSumOp
-                    , langLoopOp
-                    , langRotationOp
-                    , langReverseOp
-                    , langRangeOp
-                    , langDefinitionOp ]
+                , Token.reservedOpNames = langOps
                 , Token.caseSensitive   = True }
 
 lexer = Token.makeTokenParser lang
@@ -116,13 +116,17 @@ pExposition :: Parser [Statement]
 pExposition = whiteSpace >> pPrinciple >>= return . return . Exposition
 
 pPrinciple :: Parser Principle
-pPrinciple = sepBy (try pExpression <|> pElement) (optional comma)
+pPrinciple =
+    do result <- sepBy (pExpression <|> pElement) (optional comma)
+       optional . choice $ map f langOps
+       return result
+    where f x = reservedOp x >> unexpected ("\"" ++ x ++ "\"")
 
 pElement :: Parser Element
 pElement
     =  try pRange
    <|> pValue
-   <|> pReference
+   <|> try pReference
    <|> pSection
    <|> try pMulti
    <|> pCMulti
@@ -180,7 +184,7 @@ parseMida :: String -> String -> Either String [Statement]
 parseMida file str =
     case parse parser file str of
       (Right x) -> if null x
-                   then Left "invalid definition syntax"
+                   then Left $ "\"" ++ file ++ "\":\ninvalid definition syntax"
                    else Right x
       (Left  x) -> Left $ show x
     where parser = if langDefinitionOp `isInfixOf` str
