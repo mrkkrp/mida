@@ -172,13 +172,13 @@ resolve (y:ys) =
           f (Multi   x) =
               do p <- lift $ choice x
                  case p of
-                   (Just r) -> f r
-                   Nothing  -> return []
+                   Just r  -> f r
+                   Nothing -> return []
           f (CMulti  x) =
               do hs <- getHistory
                  case find (any (condTest hs) . fst) x of
-                   (Just (_, r)) -> f r
-                   Nothing       -> f . Multi . map snd $ x
+                   Just (_, r) -> f r
+                   Nothing     -> f . Multi . map snd $ x
 
 eval :: Monad m => Principle -> Int -> StateT Env m [Int]
 eval prin n =

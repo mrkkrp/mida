@@ -55,8 +55,8 @@ fullyDefined (dur, vel, pch) = f dur && f vel && f pch
 slice :: Int -> Batch -> Batch
 slice t (dur, vel, pch) = (take n dur, take n vel, take n pch)
     where n = case find ((>= t) . sum) (inits dur) of
-                (Just x) -> length x
-                Nothing  -> length dur
+                Just x  -> length x
+                Nothing -> length dur
 
 toTrack :: Batch -> Track Int
 toTrack (dur, vel, pch) = (concat $ zipWith3 f dur vel pch) ++ [(0, TrackEnd)]

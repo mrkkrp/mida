@@ -106,8 +106,8 @@ remDef name = getDefs >>= return . M.delete name >>= setDefs
 tDefs :: String -> M.Map String Principle -> [String]
 tDefs name defs =
     case M.lookup name defs of
-      (Just x) -> name : cm x
-      Nothing  -> [name]
+      Just x  -> name : cm x
+      Nothing -> [name]
     where cm                = concatMap f
           f (Value     _  ) = []
           f (Reference x  ) = tDefs x defs

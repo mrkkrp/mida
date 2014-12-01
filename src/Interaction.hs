@@ -24,7 +24,7 @@ import Data.Char (isSpace)
 import Data.List
 import Control.Exception (SomeException, try)
 import Control.Monad.State.Strict
-import System.FilePath (takeFileName, replaceExtension, combine)
+import System.FilePath
 import System.Directory (getHomeDirectory, doesFileExist)
 import Control.Applicative ((<$>), (<*>))
 import System.IO
@@ -61,6 +61,15 @@ fancyPrint = putStr . unlines . map ("=> " ++) . lines
 printExc :: SomeException -> IO ()
 printExc e = hPutStr stderr $ printf "-> %s;\n" (show e)
 
+output :: String -> String -> StateT Env IO String
+output given ext =
+    do actual <- getFileName
+       home   <- liftIO $ getHomeDirectory
+       let a = replaceExtension actual ext
+           g = joinPath . map f . splitDirectories $ given
+               where f x = if x == "~" then home else x
+       return $ if null given then a else g
+
 loadSrc :: String -> StateT Env IO ()
 loadSrc file =
     do contents <- liftIO $ readFile file
@@ -73,14 +82,13 @@ loadSrc file =
              f (Exposition     _) = return ()
 
 saveMidi :: Int -> Int -> Int -> String -> StateT Env IO ()
-saveMidi s q b given =
+saveMidi s q b file =
     do midi <- genMidi s q b
-       f    <- getFileName
-       let file = if null given
-                  then replaceExtension f ".mid"
-                  else given
-       liftIO $ exportFile file midi
-       liftIO $ printf "-> MIDI file saved as \"%s\".\n" file
+       result <- liftIO (try (exportFile file midi)
+                         :: IO (Either SomeException ()))
+       case result of
+         Right _ -> liftIO $ printf "-> MIDI file saved as \"%s\".\n" file
+         Left  e -> liftIO $ printExc e
 
 prettyList :: [Int] -> String
 prettyList [] = "=> none"
@@ -179,7 +187,7 @@ interLoop :: StateT Env IO ()
 interLoop =
     do liftIO $ hSetBuffering stdin LineBuffering
        home <- liftIO $ getHomeDirectory
-       let file = combine home ".mida"
+       let file = home </> ".mida"
        exist <- liftIO $ doesFileExist file
        when exist (loadConfig file)
        liftIO $ printf "-> Loading MIDA Interactive Environment v%s;\n" version
@@ -211,18 +219,19 @@ cmdLicense _ = liftIO $ fancyPrint
     \along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
 
 cmdLoad :: String -> StateT Env IO ()
-cmdLoad file =
-    do b <- liftIO $ doesFileExist file
+cmdLoad given =
+    do file <- output given ""
+       b    <- liftIO $ doesFileExist file
        if b
        then (loadSrc file)
        else liftIO $ printf "-> cannot find \"%s\";\n" file
 
 cmdSave :: String -> StateT Env IO ()
 cmdSave given =
-    do actual <- getFileName
-       let file = if null given then actual else given
+    do file   <- output given ""
        src    <- fullSrc
-       result <- liftIO (try (writeFile file src) :: IO (Either SomeException ()))
+       result <- liftIO (try (writeFile file src)
+                         :: IO (Either SomeException ()))
        case result of
          Right _ -> do setFileName file
                        liftIO $ printf "-> environment saved as \"%s\".\n" file
@@ -234,11 +243,13 @@ cmdPurge _ =
        liftIO $ printf "-> environment purged;\n"
 
 cmdMake :: String -> StateT Env IO ()
-cmdMake arg = saveMidi (parseInt s dfltSeed)
-                       (parseInt q dfltQuarter)
-                       (parseInt b dfltBeats)
-                       f
-    where (s:q:b:f:_) = (words arg) ++ repeat ""
+cmdMake arg =
+    do let (s:q:b:f:_) = words arg ++ repeat ""
+       file <- output f "mid"
+       saveMidi (parseInt s dfltSeed)
+                (parseInt q dfltQuarter)
+                (parseInt b dfltBeats)
+                file
 
 cmdDef :: String -> StateT Env IO ()
 cmdDef name =
