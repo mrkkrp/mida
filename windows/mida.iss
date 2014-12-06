@@ -1,6 +1,6 @@
 ;;;;
 ;;;; Inno Setup Script
-;;;; Product Name: MIDA 0.2.0
+;;;; Product Name: MIDA 0.3.0
 ;;;;
 
 ;; Please note that in order to use this file with Inno Setup you will
@@ -20,7 +20,7 @@
 [Setup]
 AppId = {{4BB579A5-13F5-4DE4-B5F4-68937769D84B}
 AppName = "MIDA"
-AppVersion = "0.2.0"
+AppVersion = "0.3.0"
 AppPublisher = "Mark Karpov"
 AppPublisherURL = "https://github.com/mrkkrp/mida/"
 AppSupportURL = "https://github.com/mrkkrp/mida/"
@@ -30,7 +30,7 @@ DefaultGroupName = "MIDA"
 LicenseFile = "LICENSE.md"
 InfoBeforeFile = "README.md"
 OutputDir = "."
-OutputBaseFilename = "mida-0.2.0"
+OutputBaseFilename = "mida-0.3.0"
 SetupIconFile = ""
 Compression = "lzma"
 SolidCompression = yes
