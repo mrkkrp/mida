@@ -29,7 +29,7 @@
       <li><a href="#2">2 Installation</a>
         <ul class="no-bullet">
           <li><a href="#2.1">2.1 Windows</a></li>
-          <li><a href="#2.2">2.2 Linux</a></li>
+          <li><a href="#2.2">2.2 GNU/Linux</a></li>
           <li><a href="#2.3">2.3 Compilation from Source</a></li>
       </ul></li>
       <li><a href="#3">3 Invocation</a></li>
@@ -86,7 +86,7 @@
       is supported. However, there are some precompiled options that may be
       more convenient and straightforward for some people. In particular, I
       propose installer for Windows users and self-extracting script for
-      Linux users. To install MIDA on other platforms see
+      GNU/Linux users. To install MIDA on other platforms see
       section <a href="2.3">2.3 Compilation from Source</a>.</p>
     <p>[<a href="#0">contents</a>]</p>
     <h3 id="2.1">2.1 Windows</h3>
@@ -95,7 +95,7 @@
       MIDA installer</a>, then run it. To uninstall MIDA, run
       uninstaller.</p>
     <p>[<a href="#0">contents</a>]</p>
-    <h3 id="2.2">2.2 Linux</h3>
+    <h3 id="2.2">2.2 GNU/Linux</h3>
     <p><a href="https://github.com/mrkkrp/mida/releases">Download
       self-extracting script</a> and run it as root. To uninstall MIDA
       execute:</p>
@@ -121,7 +121,7 @@ $ cabal build</pre>
       you.</p>
     <p>After compilation you should manually copy executable
       file <code>dist/build/mida/mida</code> into some directory where your
-      system can see the executable. Linux users can run the following
+      system can see the executable. GNU/Linux users can run the following
       script (it also copies documentation and <code>midarm</code> for
       uninstallation.):</p>
     <pre># sh install.sh</pre>
@@ -162,7 +162,7 @@ $ cabal build</pre>
     <h2 id="4">4 Configuration File</h2>
     <p>One can customize MIDA to some extent using configuration file. One
       should create the file in his/her home directory. This directory will
-      be different on different operating systems. On Linux machines it
+      be different on different operating systems. On GNU/Linux machines it
       would be something like <code>/home/username/.mida</code>, while
       Windows users should create the file
       in <code>C:\Users\username\.mida</code>.</p>
@@ -433,7 +433,7 @@ mida&gt; pch0 = c5 d5 e5 f5 g5 a5 b5
     <pre>mida&gt; :make 0 24 14
 -> MIDI file saved as &quot;bar.mid&quot;.</pre>
     <p>Use any available software to hear this astonishing masterpiece (I
-      use <code>timidity++</code> for testing on Linux, it's free
+      use <code>timidity++</code> for testing on GNU/Linux, it's free
       software). Description of available special commands is given in the
       next section.</p>
     <p>[<a href="#0">contents</a>]</p>
