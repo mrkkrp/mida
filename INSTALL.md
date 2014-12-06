@@ -7,7 +7,7 @@
 3. Agree with everything;
 4. Done.
 
-## Installation on Linux
+## Installation on GNU/Linux
 
 1. Download self-extracting archive;
 2. Go to the directory where the archive is located and execute:
@@ -20,8 +20,8 @@
 
 ## Compilation from Source
 
-This is more general way and it works on every platform on which
-Haskell Platform is supported.
+This is more general way and it works on every platform on which Haskell
+Platform is supported.
 
 1. Install [Haskell Platform](https://www.haskell.org/platform/);
 2. Install [Cabal](https://www.haskell.org/cabal/);
@@ -40,14 +40,13 @@ Haskell Platform is supported.
    $ cabal build
    ```
 
-   It's very likely that Cabal will not compile MIDA from the first
-   time so you'll need to install all dependencies that Cabal will
-   list for you.
+   It's very likely that Cabal will not compile MIDA from the first time so
+   you'll need to install all dependencies that Cabal will list for you.
 
 5. After compilation you should manually copy executable file
-   `dist/build/mida/mida` into some directory where your system will
-   see the executable. Linux users can run the following script (it
-   also copies the documentation and midarm for uninstallation.):
+   `dist/build/mida/mida` into some directory where your system will see the
+   executable. GNU/Linux users can run the following script (it also copies
+   the documentation and midarm for uninstallation.):
 
    ```
    # sh install.sh
