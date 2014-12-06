@@ -1,5 +1,16 @@
 # History of changes
 
+## MIDA 0.3.0
+
+* improved interface and parsing;
+
+* added `:preview` and `:load` special commands;
+
+* added additional parameters: modulation, breath, aftertouch, and pitch
+  bend;
+
+* fixed minor bugs.
+
 ## MIDA 0.2.0
 
 * better command line experience: history, auto-completion and more;
