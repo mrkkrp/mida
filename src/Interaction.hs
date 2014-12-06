@@ -25,7 +25,8 @@ import Data.List
 import Control.Exception (SomeException, try)
 import Control.Monad.State.Strict
 import System.FilePath
-import System.Directory (getHomeDirectory, doesFileExist)
+import System.Directory (getHomeDirectory, getTemporaryDirectory, doesFileExist)
+import System.Process (shell, createProcess, waitForProcess, delegate_ctlc)
 import Control.Applicative ((<$>), (<*>))
 import System.IO
 import Text.Printf (printf)
@@ -65,7 +66,7 @@ output :: String -> String -> StateT Env IO String
 output given ext =
     do actual <- getFileName
        home   <- liftIO $ getHomeDirectory
-       let a = replaceExtension actual ext
+       let a = if null ext then actual else replaceExtension actual ext
            g = joinPath . map f . splitDirectories $ given
                where f x = if x == "~" then home else x
        return $ if null given then a else g
@@ -110,21 +111,25 @@ loadConfig file =
                          setPrvLength $ lookupInt x "length" prvlen
                          block  <- getBlockSize
                          setBlockSize $ lookupInt x "block"  block
+                         prvcmd <- getPrvCmd
+                         setPrvCmd    $ lookupStr x "prvcmd" prvcmd
+                         liftIO $ printf prvcmd
          (Left  _) -> return ()
 
 -- interaction --
 
-commands = [ ("help",    cmdHelp,    "Show this help text")
+commands = [ ("block",   cmdBlock,   "Set size of block")
+           , ("def",     cmdDef,     "Print definition of given symbol")
+           , ("help",    cmdHelp,    "Show this help text")
+           , ("length",  cmdLength,  "Set length of displayed results")
            , ("license", cmdLicense, "Show license")
            , ("load",    cmdLoad,    "Load definitions from given file.")
-           , ("save",    cmdSave,    "Save current environment in file")
-           , ("purge",   cmdPurge,   "Remove redundant definitions")
            , ("make",    cmdMake,    "Generate and save MIDI file")
-           , ("def",     cmdDef,     "Print definition of given symbol")
+           , ("preview", cmdPreview, "Hear score using external program")
            , ("prompt",  cmdPrompt,  "Set MIDA prompt")
-           , ("length",  cmdLength,  "Set length of displayed results")
-           , ("block",   cmdBlock,   "Set size of block")
-           , ("quit",    undefined,  "Quit the interactive environment") ]
+           , ("purge",   cmdPurge,   "Remove redundant definitions")
+           , ("quit",    undefined,  "Quit the interactive environment")
+           , ("save",    cmdSave,    "Save current environment in file") ]
 
 processCmd :: String -> StateT Env IO ()
 processCmd input =
@@ -250,6 +255,26 @@ cmdMake arg =
                 (parseInt q dfltQuarter)
                 (parseInt b dfltBeats)
                 file
+
+cmdPreview :: String -> StateT Env IO ()
+cmdPreview arg =
+    do prvcmd <- getPrvCmd
+       if null prvcmd
+       then liftIO $ printf
+                "-> please set variable \"prvcmd\" in \".mida\" file;\n"
+       else do temp <- liftIO $ getTemporaryDirectory
+               f    <- output "" "mid"
+               let (s:q:b:_) = words arg ++ repeat ""
+                   file      = combine temp (takeFileName f)
+               saveMidi (parseInt s dfltSeed)
+                        (parseInt q dfltQuarter)
+                        (parseInt b dfltBeats)
+                        file
+               (_, _, _, ph) <- liftIO $ createProcess
+                                (shell $ prvcmd ++ " " ++ file)
+                                { delegate_ctlc = True }
+               liftIO $ waitForProcess ph
+               liftIO $ printf "-> done;\n"
 
 cmdDef :: String -> StateT Env IO ()
 cmdDef name =

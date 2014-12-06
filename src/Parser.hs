@@ -73,6 +73,7 @@ langOps          = [ langProductOp
                    , langReverseOp
                    , langRangeOp
                    , langDefinitionOp ]
+langFigures      = [ "/\\","\\/","/","\\" ]
 
 -- language and lexemes --
 
@@ -140,7 +141,7 @@ pRange =
        return $ Range (fromIntegral x) (fromIntegral y)
 
 pValue :: Parser Element
-pValue = pNatural <|> pNote <?> "literal value"
+pValue = pNatural <|> pNote <|> pFigure <?> "literal value"
 
 pNatural :: Parser Element
 pNatural = natural >>= return . Value . fromIntegral
@@ -150,6 +151,13 @@ pNote =
     do note <- choice $ map (try . string) noteAlias
        whiteSpace
        return . Value . fromJust $ elemIndex note noteAlias
+
+pFigure :: Parser Element
+pFigure =
+    do figure <- choice $ map (try . string) langFigures
+       whiteSpace
+       return . Value . (* 128) . succ . fromJust $
+              elemIndex figure langFigures
 
 pReference :: Parser Element
 pReference =

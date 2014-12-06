@@ -27,6 +27,8 @@ module Environment
     , setBlockSize
     , getFileName
     , setFileName
+    , getPrvCmd
+    , setPrvCmd
     , addDef
     , remDef
     , purgeEnv
@@ -51,7 +53,8 @@ data Env = Env
     , ePrompt    :: String
     , ePrvLength :: Int
     , eBlockSize :: Int
-    , eFileName  :: String }
+    , eFileName  :: String
+    , ePrvCmd    :: String }
 
 type Defs = M.Map String DefRep
 
@@ -96,6 +99,12 @@ getFileName = get >>= return . eFileName
 
 setFileName :: Monad m => String -> StateT Env m ()
 setFileName x = modify (\e -> e { eFileName = x })
+
+getPrvCmd :: Monad m => StateT Env m String
+getPrvCmd = get >>= return . ePrvCmd
+
+setPrvCmd :: Monad m => String -> StateT Env m ()
+setPrvCmd x = modify (\e -> e { ePrvCmd = x })
 
 addDef :: Monad m => String -> Principle -> String -> StateT Env m ()
 addDef name p s = getDefs >>= return . M.insert name (DefRep p s) >>= setDefs

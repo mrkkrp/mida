@@ -21,6 +21,7 @@ module Defaults
     , dfltPrvLen
     , dfltBlock
     , dfltFileName
+    , dfltPrvCmd
     , dfltSeed
     , dfltQuarter
     , dfltBeats )
@@ -37,6 +38,7 @@ dfltPrompt   = "mida> "
 dfltPrvLen   = 16 :: Int
 dfltBlock    = 4096 :: Int
 dfltFileName = "bar.da"
+dfltPrvCmd   = ""
 dfltSeed     = 0 :: Int
 dfltQuarter  = 24 :: Int
 dfltBeats    = 16 :: Int

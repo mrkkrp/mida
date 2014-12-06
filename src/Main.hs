@@ -72,7 +72,8 @@ sm x = void $ runStateT x Env { eDefs      = dfltDefs
                               , ePrompt    = dfltPrompt
                               , ePrvLength = dfltPrvLen
                               , eBlockSize = dfltBlock
-                              , eFileName  = dfltFileName }
+                              , eFileName  = dfltFileName
+                              , ePrvCmd    = dfltPrvCmd }
 
 main :: IO ()
 main = execParser opts >>= f

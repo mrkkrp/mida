@@ -79,6 +79,7 @@ parseConfig file str =
 
 parseInt :: String -> Int -> Int
 parseInt s x
+    | null s        = x
     | all isDigit s = read s :: Int
     | otherwise     = x
 
