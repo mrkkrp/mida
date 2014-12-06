@@ -1,6 +1,17 @@
 <!doctype html>
 <html lang="en">
-  <!-- the file is written by hand, with Emacs and love -->
+  <!--
+  Documentation for MIDA - minimalistic language for generation of MIDI
+  files.
+  
+  Copyright (c) 2014 Mark Karpov
+  
+  Permission is granted to copy, distribute and/or modify this document
+  under the terms of the GNU Free Documentation License, Version 1.3 or any
+  later version published by the Free Software Foundation; with no Invariant
+  Sections, no Front-Cover Texts, and no Back-Cover Texts.  A copy of the
+  license is included in the section entitled "GNU Free Documentation
+  License".  -->
   <head>
     <meta charset="utf-8">
     <meta name="description"    content="MIDA Manual">
@@ -8,15 +19,15 @@
     <meta name="dcterms.rights" content="(c) 2014 Mark Karpov">
     <meta name="keywords"       content="generative music, midi">
     <title>MIDA Manual</title>
-    <link href="mida.css" rel="stylesheet" type="text/css">
+    <link href="ascetic.css" rel="stylesheet" type="text/css">
   </head>
   <body>
     <h1>MIDA</h1>
-    <h2>Table of Contents</h2>
-    <ul>
+    <h2 id="0">Table of Contents</h2>
+    <ul class="no-bullet">
       <li><a href="#1">1 What is MIDA?</a></li>
       <li><a href="#2">2 Installation</a>
-        <ul>
+        <ul class="no-bullet">
           <li><a href="#2.1">2.1 Windows</a></li>
           <li><a href="#2.2">2.2 Linux</a></li>
           <li><a href="#2.3">2.3 Compilation from Source</a></li>
@@ -24,12 +35,13 @@
       <li><a href="#3">3 Invocation</a></li>
       <li><a href="#4">4 Configuration File</a></li>
       <li><a href="#5">5 MIDA Tutorial</a>
-        <ul>
+        <ul class="no-bullet">
           <li><a href="#5.1">5.1 Literal Values</a>
-            <ul>
+            <ul class="no-bullet">
               <li><a href="#5.1.1">5.1.1 Duration</a></li>
               <li><a href="#5.1.2">5.1.2 Velocity</a></li>
               <li><a href="#5.1.3">5.1.3 Pitch</a></li>
+              <li><a href="#5.1.4">5.1.4 Additional Parameters</a></li>
           </ul></li>
           <li><a href="#5.2">5.2 Elements, Principles, and Realizations</a></li>
           <li><a href="#5.3">5.3 Definitions</a></li>
@@ -39,7 +51,7 @@
           <li><a href="#5.7">5.7 Sections</a></li>
           <li><a href="#5.8">5.8 Conditional Multivalues</a></li>
           <li><a href="#5.9">5.9 Polymorphic Operators</a>
-            <ul>
+            <ul class="no-bullet">
               <li><a href="#5.9.1">5.9.1 Addition</a></li>
               <li><a href="#5.9.2">5.9.2 Multiplication</a></li>
               <li><a href="#5.9.3">5.9.3 Repetition</a></li>
@@ -50,12 +62,15 @@
       <li><a href="#6">6 Final Notes</a></li>
     </ul>
     <h2 id="1">1 What is MIDA?</h2>
-    <p>MIDA is a minimalistic language for creating generative MIDI
+    <p>MIDA is a minimalistic language for algorithmic generation of MIDI
       files. MIDA is not interactive in sense that you cannot control result
       of its activity in real time, it is intended for producers and should
       be used with a DAW. MIDA can help you create variative elements in
       your music in a very simple way. Since MIDI can control a lot of
       different instruments, power of MIDA is truly great.</p>
+    <p>Main reason for MIDA development is to create software tool that can
+      be used in such a way that does not change established workflow, so
+      people could use familiar plugins and software instruments.</p>
     <p>Manual Copyright &copy; 2014 Mark Karpov.</p>
     <p>MIDA Copyright &copy; 2014 Mark Karpov.</p>
     <p>All contents here is copyright by the developer and is released under
@@ -63,8 +78,8 @@
       Documentation License</a>.</p>
     <p>MIDA is licensed
       under <a href="http://www.gnu.org/copyleft/gpl.html">GNU General
-      Public License</a>; it's opensource, free software.</p>
-    <p>[<a href="#top">contents</a>]</p>
+      Public License v.3</a>; it's free software.</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h2 id="2">2 Installation</h2>
     <p>It's absolutely possible to install MIDA on any platform on
       which <a href="https://www.haskell.org/platform/">Haskell Platform</a>
@@ -73,20 +88,20 @@
       propose installer for Windows users and self-extracting script for
       Linux users. To install MIDA on other platforms see
       section <a href="2.3">2.3 Compilation from Source</a>.</p>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="2.1">2.1 Windows</h3>
     <p>To install MIDA on
       Windows <a href="https://github.com/mrkkrp/mida/releases">download
       MIDA installer</a>, then run it. To uninstall MIDA, run
       uninstaller.</p>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="2.2">2.2 Linux</h3>
     <p><a href="https://github.com/mrkkrp/mida/releases">Download
       self-extracting script</a> and run it as root. To uninstall MIDA
       execute:</p>
     <pre># midarm</pre>
     <p>The script will remove MIDA from your system.</p>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="2.3">2.3 Compilation from Source</h3>
     <p>First, install <a href="https://www.haskell.org/platform/">Haskell
       Platform</a>. You also need to
@@ -110,34 +125,40 @@ $ cabal build</pre>
       script (it also copies documentation and <code>midarm</code> for
       uninstallation.):</p>
     <pre># sh install.sh</pre>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h2 id="3">3 Invocation</h2>
-    <p>MIDA can work as translator from source code to MIDI files, and also
-      as an interactive environment (interpreter). Here's invocation
-      scheme:</p>
+    <p>MIDA can work as translator from source code to MIDI files, or as
+      interactive environment (interpreter) that functions much like
+      REPL. If no input file is supplied, MIDA starts in interactive mode by
+      default. Otherwise, one should use command line options to start MIDA
+      in interactive mode.</p>
+    <p>Here's the complete list of command line options:</p>
     <pre>mida [-i|--interactive] [-s|--seed SEED] [-q|--quarter TICKS]
      [-b|--beats BEATS] [-o|--output OUT] [FILE]</pre>
     <p>Let's list all available options:</p>
    <table>
       <tr><th>Option</th><th>Description</th></tr>
       <tr><td><code>-h</code>,<code>--help</code></td>
-        <td>Shows this information about invocation parameters and available options</td></tr>
+        <td>Shows information regarding invocation parameters.</td></tr>
       <tr><td><code>-i</code>,<code>--interactive</code></td>
-        <td>Enables interactive (interpreter) mode</td></tr>
+        <td>Starts MIDA in interactive mode. This option effectively
+        disables all other supplied options, because they only make sense
+        in non-interactive (batch) mode.</td></tr>
       <tr><td><code>-s</code>,<code>--seed</code></td>
-        <td>Sets seed for MIDI generation, default value is <code>0</code></td></tr>
+        <td>Sets seed for MIDI generation. You can generate identical MIDI
+        files if you use the same seed. Default value
+        is <code>0</code>.</td></tr>
       <tr><td><code>-q</code>,<code>--quarter</code></td>
-        <td>Sets number of ticks for quarter note, default value is <code>24</code></td></tr>
+        <td>Sets number of ticks for quarter note, default value
+        is <code>24</code>.</td></tr>
       <tr><td><code>-b</code>,<code>--beats</code></td>
-        <td>Sets total time of result MIDI file as number of quarter notes (beats), default value is <code>16</code></td></tr>
+        <td>Sets total time of result MIDI file as number of beats (quarter
+        notes), default value is <code>16</code>.</td></tr>
       <tr><td><code>-o</code>,<code>--output</code></td>
-        <td>Specifies output file name; default value is evaluated as <code>FILE</code> with extension <code>.mid</code></td></tr>
+        <td>Specifies output file. Default value is built from base name of
+        supplied file and extension <code>.mid</code>.</td></tr>
    </table>
-    <p>If you don't supply a file as a command line argument, MIDA will run
-      in interactive mode even without <code>-i</code> option. Note that
-      options <code>-s</code>, <code>-q</code>, and <code>-b</code> will be
-      ignored if option <code>-i</code> is used.</p>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h2 id="4">4 Configuration File</h2>
     <p>One can customize MIDA to some extent using configuration file. One
       should create the file in his/her home directory. This directory will
@@ -145,14 +166,15 @@ $ cabal build</pre>
       would be something like <code>/home/username/.mida</code>, while
       Windows users should create the file
       in <code>C:\Users\username\.mida</code>.</p>
-    <p>For now, only three parameters can be changed:</p>
+    <p>For now, only four parameters can be changed:</p>
       <ul>
-        <li>&bull; prompt (as <code>prompt</code>);</li>
-        <li>&bull; length of displayed result of evaluation
+        <li>prompt (as <code>prompt</code>);</li>
+        <li>length of displayed result of evaluation
           (as <code>length</code>);</li>
-        <li>&bull; maximum size (as number of top-level elements) of a score
-          (as <code>block</code>). This helps to prevents infinite
-          generation of scores that consist only of zero-time elements.</li>
+        <li>maximum size (as number of top-level elements) of a score
+          (as <code>block</code>); this helps to prevents infinite
+          generation of scores that consist only of zero-time elements;</li>
+        <li>preview command (as <code>prvcmd</code>).</li>
       </ul>
     <p>Syntax of <code>.mida</code> file is one of Unix configuration
       file. That is, you can use <code>#</code> for line comments,
@@ -165,8 +187,9 @@ $ cabal build</pre>
 
 prompt = &quot;M> &quot;
 length = 20
-block  = 8192 # default is 4096</pre>
-    <p>[<a href="#top">contents</a>]</p>
+block  = 8192 # default is 4096
+prvcmd = &quot;timidity -Os&quot;</pre>
+    <p>[<a href="#0">contents</a>]</p>
     <h2 id="5">5 MIDA Tutorial</h2>
     <p>Now that you know all the basic information about the interpreter, we
       can start our journey into the magic world of MIDA.</p>
@@ -185,42 +208,45 @@ block  = 8192 # default is 4096</pre>
       itself. Algorithm may be really impressive, but audience just don't
       give a fuck. We're gonna use basic tools of MIDA to create super sexy
       pop stuff, that's what we need, man.</p>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="5.1">5.1 Literal Values</h3>
     <p>Start the interactive environment. Now you should be looking at
       something like this:</p>
     <pre>[mark@arch ~]$ mida
--> Loading MIDA Interactive Environment v0.2.0;
-mida> _</pre>
+-> Loading MIDA Interactive Environment v0.3.0;
+mida&gt; _</pre>
     <p>You can try your powers right away. Remember, MIDA is all about
       sequences of numbers. Numbers can represent different things:</p>
     <ul>
-      <li>&bull; duration;</li>
-      <li>&bull; velocity;</li>
-      <li>&bull; pitch.</li>
+      <li>duration;</li>
+      <li>velocity;</li>
+      <li>pitch;</li>
+      <li>controller events;</li>
+      <li>aftertouch;</li>
+      <li>pitch bend.</li>
     </ul>
     <p>Let's start from how you can enter the numbers at the prompt
       and what you get as a result.</p>
-    <p>[<a href="#top">contents</a>]</p>
-    <h3 id="5.1.1">5.1.1 Duration</h3>
+    <p>[<a href="#0">contents</a>]</p>
+    <h4 id="5.1.1">5.1.1 Duration</h4>
     <p>Durations in MIDI are relative to <i>ticks per quarter note</i>
-      (TPQ). TPQ is set before translation either via command line
-      options or as a parameter of <code>:make</code> command. As I
-      said, default value is <code>24</code>, so try to work with this
-      in mind.</p>
+      (TPQ). TPQ is set before translation either via command line options
+      or as a parameter of <code>:make</code> and <code>:preview</code>
+      commands. As I said, default value is <code>24</code>, so try to work
+      with this in mind.</p>
     <p>So, if quarter note is <code>24</code> ticks, whole note will
       be <code>96</code> ticks, while eight note will be <code>12</code>
       ticks, etc. You can also use any number in between creating really
       strange rhythms. Remember that you can use numbers greater
       than <code>127</code> for duration, so there is no limits.</p>
     <p>Let's enter a number:</p>
-    <pre>mida> 24
+    <pre>mida&gt; 24
 => 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24...
-mida> _</pre>
+mida&gt; _</pre>
     <p>So, we see that we can enter literal values! However, the result may
       look a bit strange, but ignore this repetitiveness for now.</p>
-    <p>[<a href="#top">contents</a>]</p>
-    <h3 id="5.1.2">5.1.2 Velocity</h3>
+    <p>[<a href="#0">contents</a>]</p>
+    <h4 id="5.1.2">5.1.2 Velocity</h4>
     <p>Since MIDI format is piano-oriented, velocity in our case means
       loudness. Again, to write down velocities we use plain numbers. Valid
       values are form <code>0</code> to <code>127</code>,
@@ -228,8 +254,8 @@ mida> _</pre>
       loudest note.</p>
     <p>Although you can enter literals greater than <code>127</code>, they
       are not guaranteed to be processed correctly.</p>
-    <p>[<a href="#top">contents</a>]</p>
-    <h3 id="5.1.3">5.1.3 Pitch</h3>
+    <p>[<a href="#0">contents</a>]</p>
+    <h4 id="5.1.3">5.1.3 Pitch</h4>
     <p>Sure, you can use the same plain numbers from <code>0</code>
       to <code>127</code> for pitch, but it's a bit inconvenient. MIDA knows
       some alias for that case. Since MIDA doesn't work with negative
@@ -261,11 +287,48 @@ mida> _</pre>
     <p>Enter any alias into MIDA and see for yourself that it's just like
       entering corresponding MIDI code (note that all alias are
       case-sensitive):</p>
-    <pre>mida> c5
+    <pre>mida&gt; c5
 => 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60...</pre>
     <p>...and that's it! Now you can use literal values. Oh, that's
       incredible.</p>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
+    <h4 id="5.1.4">5.1.4 Additional Parameters</h4>
+    <p>Parameters like modulation, breath, aftertouch, and pitch bend are
+      called <i>additional parameters</i>. In <a href="#5.3">section 5.3</a>
+      I will explain why they are called so, but for now it's important to
+      understand how you can use literal values to represent these
+      parameters and their change in time.</p>
+    <p>Additional parameters are written either as plain numbers
+      from <code>0</code> to <code>127</code> or as sum of predefined
+      constant called <i>modifier</i> and plain number.</p>
+    <p>Numbers from <code>0</code> to <code>127</code> without modifier
+      represent value that doesn't change during length of note. Modifiers
+      tells MIDA to use special forms of modulation, while number that's
+      added to modifier signifies intensity of such modulation.</p>
+    <p>This table describes forms of modulation that exist in MIDA:</p>
+    <table>
+      <tr><th>Symbol</th><th>Description</th></tr>
+      <tr><td><code>/</code></td><td>Ascending change for whole duration of
+          note.</td></tr>
+      <tr><td><code>\</code></td><td>Condescending change for whole duration
+          of note.</td></tr>
+      <tr><td><code>/\</code></td><td>Ascending change for first half of
+          note's duration and condescending change for the second
+          half.</td></tr>
+      <tr><td><code>\/</code></td><td>Condescending change for first half of
+          note's duration and ascending change for the second
+          half.</td></tr>
+    </table>
+    <p>So, for example, the command <code>/\ + 127</code> represents
+      ascending change of some parameter for half duration of given note and
+      condescending change back to initial value for another
+      half. <code>127</code> signifies maximal possible intensity of this
+      modulation.</p>
+    <p>Symbols <code>/</code>, <code>\</code>, <code>\/</code>,
+      and <code>/\</code> represent plain numbers, you can check it in your
+      REPL, but don't use 'magic numbers', because they are subject of
+      change in future versions of MIDA.</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="5.2">5.2 Elements, Principles, and Realizations</h3>
     <p>Smallest piece of composition in MIDA is called <i>element</i>. Now
       we know at least one kind of element: literal values. Realization of
@@ -274,19 +337,18 @@ mida> _</pre>
     <p>Thing we enter into interactive prompt is called <i>principle</i>. A
       principle can consist of zero or more elements. These elements may be
       separated by commas <code>,</code>. Let's try some principles:</p>
-    <pre>mida> 1, 2, 3
+    <pre>mida&gt; 1, 2, 3
 => 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...
-mida> c5 d5 e5 f5 g5 a5 b5 c6
+mida&gt; c5 d5 e5 f5 g5 a5 b5 c6
 => 60 62 64 65 67 69 71 72 60 62 64 65 67 69 71 72...</pre>
     <p>So, we enter a principle and MIDA prints its realization. Realization
       of principle is built this way:</p>
     <ul>
-      <li>&bull; system tries to simplify given principle by applying some
+      <li>system tries to simplify given principle by applying some
         operators, such as ranges or polymorphic operators;</li>
-      <li>&bull; MIDA cycles elements (not their values, you'll see
-      difference later), so we have now infinite collection of
-      elements;</li>
-      <li>&bull; it realizes all the elements one by one.</li>
+      <li>MIDA cycles elements (not their values, you'll see difference
+      later), so we have now infinite collection of elements;</li>
+      <li>it realizes all the elements one by one.</li>
     </ul>
     <p>Realization can be either infinite sequence of non-negative numbers
       or <code>none</code>. <code>none</code> is a special value that
@@ -294,15 +356,15 @@ mida> c5 d5 e5 f5 g5 a5 b5 c6
     <pre>mida>
 => none</pre>
     <p>In the next section we will see other roles of <code>none</code>.</p>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="5.3">5.3 Definitions</h3>
     <p>I said that it's quite hard to write an incorrect statement in
       MIDA. Let's prove it. This is my attempt:</p>
-    <pre>mida> foo
+    <pre>mida&gt; foo
 => none
-mida> asdfasdflk
+mida&gt; asdfasdflk
 => none
-mida> 1 2 rere 5
+mida&gt; 1 2 rere 5
 => 1 2 5 1 2 5 1 2 5 1 2 5 1 2 5 1...</pre>
     <p>So, MIDA thinks that these things are realized to <code>none</code>,
       they can be even put inside a principle without any obvious harm.</p>
@@ -315,25 +377,25 @@ mida> 1 2 rere 5
     <p>One can create definitions by putting definition name on the left
       side of equation sign <code>=</code> and a principle on the right of
       the sigh. Let's give it a go:</p>
-    <pre>mida> foo = 1 2 3
+    <pre>mida&gt; foo = 1 2 3
 -> defined 'foo'
-mida> foo
+mida&gt; foo
 => 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...
-mida> foo 5
+mida&gt; foo 5
 => 1 2 3 5 1 2 3 5 1 2 3 5 1 2 3 5...</pre>
     <p>It seems to work! What a magic! Remember that definitions are
       something like recipes how to create a principle, not static
       values. So we can change a definition and all other definitions which
       use it will change accordingly:</p>
-    <pre>mida> foo = 5 boo = 6 baz = foo boo
+    <pre>mida&gt; foo = 5 boo = 6 baz = foo boo
 -> defined 'foo'
 -> defined 'boo'
 -> defined 'baz'
-mida> baz
+mida&gt; baz
 => 5 6 5 6 5 6 5 6 5 6 5 6 5 6 5 6...
-mida> boo = 10
+mida&gt; boo = 10
 -> defined 'boo'
-mida> baz
+mida&gt; baz
 => 5 10 5 10 5 10 5 10 5 10 5 10 5 10 5 10...</pre>
     <p>And since all possible definitions are bound to <code>none</code>, we
       can even design our principles in top-down manner, using definitions
@@ -341,33 +403,40 @@ mida> baz
     <p>Now you're ready to create your first piece of music, but before you
       do it I should explain something about <i>top-level
       definitions</i>. These are special names that represent duration,
-      velocity, and pitch of voices. There may be up to 8 different voices
-      in a MIDA score.</p>
+      velocity, pitch, and other parameters of voices. There may be up to 16
+      different voices in a MIDA score.</p>
     <p>The names are as following:</p>
     <ul>
-      <li>&bull; <code>dur_</code> &ndash; durations;</li>
-      <li>&bull; <code>vel_</code> &ndash; velocities;</li>
-      <li>&bull; <code>pch_</code> &ndash; pitches.</li>
+      <li><code>dur_</code> &ndash; duration;</li>
+      <li><code>vel_</code> &ndash; velocity;</li>
+      <li><code>pch_</code> &ndash; pitch;</li>
+      <li><code>mod_</code> &ndash; modulation;</li>
+      <li><code>bth_</code> &ndash; breath;</li>
+      <li><code>aft_</code> &ndash; aftertouch;</li>
+      <li><code>bnd_</code> &ndash; pitch bend.</li>
     </ul>
     <p>Substitute <code>_</code> with index of desired voice, valid values
-      are from <code>0</code> to <code>7</code>.</p>
+      are from <code>0</code> to <code>15</code>.</p>
     <p>Let's create some music:</p>
-    <pre>mida> dur0 = 24
+    <pre>mida&gt; dur0 = 24
 -> defined 'dur0'
-mida> vel0 = 70
+mida&gt; vel0 = 70
 -> defined 'vel0'
-mida> pch0 = c5 d5 e5 f5 g5 a5 b5
+mida&gt; pch0 = c5 d5 e5 f5 g5 a5 b5
 -> defined 'pch0'</pre>
     <p>It's as simple as that! Other top-level definitions hold empty
-      principles, so they will be ignored. Use <code>:make</code> command to
+      principles, so they will be ignored. Additional parameters like
+      modulation, breath, aftertouch, and pitch bend may be omitted &ndash;
+      in this case there will be no corresponding events in result MIDI
+      file. Use <code>:make</code> command to
       create a MIDI file:</p>
-    <pre>mida> :make 0 24 14
--> MIDI file saved as &quot;interactive.mid&quot;.</pre>
+    <pre>mida&gt; :make 0 24 14
+-> MIDI file saved as &quot;bar.mid&quot;.</pre>
     <p>Use any available software to hear this astonishing masterpiece (I
       use <code>timidity++</code> for testing on Linux, it's free
       software). Description of available special commands is given in the
       next section.</p>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="5.4">5.4 Special Commands</h3>
     <p>MIDA has a number of useful commands that can be invoked from
       interactive environment. All the commands begin with
@@ -375,81 +444,83 @@ mida> pch0 = c5 d5 e5 f5 g5 a5 b5
     <h6>:help</h6>
     <p>Let's start with <code>:help</code>, this command prints list of all
       available commands and their descriptions:</p>
-    <pre>mida> :help
+    <pre>mida&gt; :help
 Available commands:
-  :help                    Show this help text
-  :license                 Show license
-  :save                    Save current environment in file
-  :purge                   Remove redundant definitions
-  :make                    Generate and save MIDI file
-  :def                     Print definition of given symbol
-  :prompt                  Set MIDA prompt
-  :length                  Set length of displayed results
   :block                   Set size of block
-  :quit                    Quit the interactive environment</pre>
+  :def                     Print definition of given symbol
+  :help                    Show this help text
+  :length                  Set length of displayed results
+  :license                 Show license
+  :load                    Load definitions from given file.
+  :make                    Generate and save MIDI file
+  :preview                 Hear score using external program
+  :prompt                  Set MIDA prompt
+  :purge                   Remove redundant definitions
+  :quit                    Quit the interactive environment
+  :save                    Save current environment in file</pre>
     <h6>:license</h6>
     <p>MIDA is distributed under GNU GPL v.3, it means that the program
       <a href="http://www.gnu.org/philosophy/free-sw.html">respects your
       freedom</a>:</p>
-    <pre>mida> :license
-MIDA - realization of MIDA, language for generation of MIDI files.
-Copyright (c) 2014 Mark Karpov
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</pre>
+    <pre>mida&gt; :license 
+=> MIDA - realization of MIDA, language for generation of MIDI files.
+=> Copyright (c) 2014 Mark Karpov
+=> 
+=> This program is free software: you can redistribute it and/or modify
+=> it under the terms of the GNU General Public License as published by
+=> the Free Software Foundation, either version 3 of the License, or
+=> (at your option) any later version.
+=> 
+=> This program is distributed in the hope that it will be useful,
+=> but WITHOUT ANY WARRANTY; without even the implied warranty of
+=> MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+=> GNU General Public License for more details.
+=> 
+=> You should have received a copy of the GNU General Public License
+=> along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</pre>
     <h6>:prompt</h6>
     <p>You can temporarily change MIDA prompt with <code>:prompt</code>
       command:</p>
-    <pre>mida> :prompt boom>
+    <pre>mida&gt; :prompt boom>
 boom> _</pre>
     <h6>:length</h6>
     <p>You can also set how many elements of realized principle will be
       displayed:</p>
-    <pre>mida> 1
+    <pre>mida&gt; 1
 => 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1...
-mida> :length 20
-mida> 1
+mida&gt; :length 20
+mida&gt; 1
 => 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1...</pre>
     <h6>:block</h6>
     <p>You can set maximum size (number of top-level elements) of MIDA
       principle. If you want to create something really long and MIDA
       generates only part of it, increase this value, default
       is <code>4096</code>.</p>
-    <pre>mida> :block 10000</pre>
+    <pre>mida&gt; :block 10000</pre>
     <h6>:def</h6>
     <p>It's possible to see any definition by its name
       with <code>:def</code> command:</p>
-    <pre>mida> foo = 12
+    <pre>mida&gt; foo = 12
 -> defined 'foo'
-mida> :def foo
+mida&gt; :def foo
 => foo = 12
-mida> :def bar
+mida&gt; :def bar
 => cannot find the definition</pre>
     <h6>:purge</h6>
     <p>You can 'purge' all useless definitions from memory
       using <code>:purge</code> command. A definition is considered useless
       if it's not used as a part of a top-level definition. Here's an
       example:</p>
-    <pre>mida> foo = bar bar = 12 baz = 13 dur0 = foo
+    <pre>mida&gt; foo = bar bar = 12 baz = 13 dur0 = foo
 -> defined 'foo'
 -> defined 'bar'
 -> defined 'baz'
 -> defined 'dur0'
-mida> :def baz
+mida&gt; :def baz
 => baz = 13
-mida> :purge
+mida&gt; :purge
 -> environment purged;
-mida> :def baz
+mida&gt; :def baz
 => cannot find the definition</pre>
     <p>What happened here? Well, we see that <code>dur0</code> is a top
       level definition. <code>foo</code> is used in <code>dur0</code>'s
@@ -458,21 +529,28 @@ mida> :def baz
       definitions. What's about <code>baz</code>? It does not participate in
       principle building for any top-level definition. System considers it
       useless, so it purges it.</p>
+    <h6>:load</h6>
+    <p>This command allows instantly load all definitions from specified
+      source file. It takes one parameter &ndash; name of the file. If no
+      parameters given, default file name will be used that's not what you
+      want in most cases.</p>
+    <pre>mida> :load ~/test.da
+-> &quot;/home/mark/test.da&quot; loaded successfully;</pre>
     <h6>:save</h6>
     <p>As you compose music with MIDA, you will need to save all existing
-      definitions to hard disk. You can then edit them as normal file or
+      definitions to hard disk. You can then edit them as a normal file or
       load it into MIDA to continue your work. It's quite easy to accomplish
       with <code>:save</code> command. This command takes an optional
       argument &ndash; file name. If you don't supply the file name, system
       will try to guess it. It will be file name of loaded source file, last
-      used file name, or default value <code>interactive</code>. I
+      used file name, or default value <code>bar.da</code>. I
       recommend <code>.da</code> as file name extension for MIDA source
       files.</p>
-    <pre>mida> :save
--> environment saved as &quot;interactive&quot;.
-mida> :save boo.da
+    <pre>mida&gt; :save
+-> environment saved as &quot;bar.da&quot;.
+mida&gt; :save boo.da
 -> environment saved as &quot;boo.da&quot;.
-mida> :save
+mida&gt; :save
 -> environment saved as &quot;boo.da&quot;.</pre>
     <h6>:make</h6>
     <p>One of the most useful commands is <code>:make</code>. It creates
@@ -496,31 +574,46 @@ mida> :save
       for <code>:save</code> command but extension will be replaced
       with <code>.mid</code>.</p>
     <p>See the stuff in action:</p>
-    <pre>mida> :make 0 24 16
+    <pre>mida&gt; :make 0 24 16
 -> MIDI file saved as &quot;boo.mid&quot;.</pre>
+    <h6>:preview</h6>
+    <p>Starting with MIDA 0.3.0 there is command to preview your score
+      interactively. To use this command you need to install program that
+      can generate sound from MIDI files and has command line
+      interface. Next, you need to create or edit <code>.mida</code> file in
+      your home directory. Add parameter <code>prvcmd</code>:</p>
+    <pre>cmdprv = &quot;timidity -Os&quot;</pre>
+    <p>In this example I use <code>timidity++</code>. Name of temporary MIDI
+      file will be appended to this string and the command will be
+      executed. Timidity is a useful tool for this sort of testing because
+      it provides some console output and playing can be interrupted
+      with <code>Ctrl-C</code> command (on Unix systems).</p>
+    <p><code>:preview</code> command takes three arguments similar to those
+      of <code>:make</code>: seed, ticks per quarter note, and total
+      length.</p>
     <h6>:quit</h6>
     <p>Don't forget that you quit MIDA environment
       with <code>:quit</code> command!</p>
-    <pre>mida> :quit
+    <pre>mida&gt; :quit
 -> Goodbye.</pre>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="5.5">5.5 Ranges</h3>
     <p>Now that you know all the basics, we can talk about advanced methods
-      of element manipulation. Simplest such method is range. Range in MIDA
-      is written as two numbers (or note alias) separated by two
+      of element manipulation. Simplest such a method is range. Range in
+      MIDA is written as two numbers (or note alias) separated by two
       commas <code>..</code> (without space between them). Range notation
       represents collection of successive natural numbers from left-side
       number to right-side number inclusively.</p>
-    <pre>mida> 1..3
+    <pre>mida&gt; 1..3
 => 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...
-mida> 5..2
+mida&gt; 5..2
 => 5 4 3 2 5 4 3 2 5 4 3 2 5 4 3 2...
-mida> c5..e5
+mida&gt; c5..e5
 => 60 61 62 63 64 60 61 62 63 64 60 61 62 63 64 60...</pre>
     <p>Although you cannot specify step between resulting elements, you can
       add a number to all elements of a principle or multiply all the
       elements by given number. How? Keep reading!</p>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="5.6">5.6 Multivalues</h3>
     <p>So far, we worked only with literal values. But MIDA knows one more
       kind of element: <i>multivalue</i>. Multivalue is such an element that
@@ -529,43 +622,43 @@ mida> c5..e5
       multivalue is a random value chosen from all possible variants.</p>
     <p>Multivalue is written as collection of possible values inside
       of braces:</p>
-    <pre>mida> {1 2 3}
+    <pre>mida&gt; {1 2 3}
 => 3 1 3 2 1 2 2 1 1 1 3 2 2 1 1 2...</pre>
     <p>As you can see, the same element is replicated, but its realized
       value is different for every instance. Here we have uniform
       probability, but you can change it with help of repetition:</p>
-    <pre>mida> {1 1 2 3} // 1 - 50%, 2 - 25%, 3 - 25%
+    <pre>mida&gt; {1 1 2 3} // 1 - 50%, 2 - 25%, 3 - 25%
 => 1 1 1 3 1 3 1 3 2 1 3 1 3 1 1 1...
-mida> {[1] $ 8, 2 3} // 1 - 80%, 2 - 10%, 3 - 10%
+mida&gt; {1 $ 8, 2 3} // 1 - 80%, 2 - 10%, 3 - 10%
 => 1 1 1 1 1 2 1 1 1 1 2 1 3 1 1 1...</pre>
     <p>Basic operations work together! You can put a multivalue into another
       multivalue too:</p>
-    <pre>mida> {1 {2 3}} // 1 - 50%, 2 - 25%, 3 - 25%
+    <pre>mida&gt; {1 {2 3}} // 1 - 50%, 2 - 25%, 3 - 25%
 => 1 1 1 2 2 1 1 1 2 1 1 1 3 1 1 2...</pre>
     <p><code>1</code> has probability 50%, and <code>{2 3}</code> has
       probability 50%. Inside <code>{2 3}</code> every element has equal
       probability 50%, so result probabilities look like: <code>1</code> -
       50%, <code>2</code> - 25%, <code>3</code> - 25%.</p>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="5.7">5.7 Sections</h3>
     <p>Section is another kind of element. Section is collection of elements
       that can be manipulated as one element.</p>
     <p>Sections are represented as a principle inside of square brackets
       (<code>[</code> and <code>]</code>):</p>
-    <pre>mida> [1 2 3]
+    <pre>mida&gt; [1 2 3]
 => 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...</pre>
     <p>Typical example of its use is in juxtaposition with multivalues. With
       help of sections you can easily include sequence of elements as part
       of multivalue:</p>
-    <pre>mida> {1 2 [3..5]}
+    <pre>mida&gt; {1 2 [3..5]}
 => 1 3 4 5 2 2 1 3 4 5 1 1 3 4 5 3...</pre>
     <p>So here we have <code>1</code> with
       probability <code>1/3</code>, <code>2</code> with
       probability <code>1/3</code> and <code>3 4 5</code> with the same
       probability.</p>
-    <p>We could use multivalues in the section too, to get arbitrary complex
+    <p>We could use multivalues in the section too to get arbitrary complex
       structures.</p>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="5.8">5.8 Conditional Multivalues</h3>
     <p>One step forward is <i>conditional multivalues</i>. These are just
       like multivalues, but they depend on realized value of previous
@@ -576,7 +669,7 @@ mida> {[1] $ 8, 2 3} // 1 - 80%, 2 - 10%, 3 - 10%
       will be chosen randomly.</p>
     <p>This example demonstrates syntax of conditional multivalue and its
       logic:</p>
-    <pre>mida> {(1) 2 3 (2) 3 (3) 1}
+    <pre>mida&gt; {(1) 2 3 (2) 3 (3) 1}
 => 3 1 3 1 2 3 1 2 3 1 2 3 1 3 1 3...</pre>
     <p>If the last element has value <code>1</code>, conditional multivalue
       will have value <code>2</code> or <code>3</code>. If the last element
@@ -587,18 +680,18 @@ mida> {[1] $ 8, 2 3} // 1 - 80%, 2 - 10%, 3 - 10%
       elements.</p>
     <p>Starting with MIDA 0.2.0 it's also possible to use multiple
       conditional elements:</p>
-    <pre>mida> {(1 2) 3 (3) 1 2}
+    <pre>mida&gt; {(1 2) 3 (3) 1 2}
 => 1 3 1 3 2 3 2 3 1 3 2 3 1 3 2 3...</pre>
     <p>You can use sections to match not only the last element, but sequence
       of elements:</p>
-    <pre>mida> {([1 2 3]) 4 (1..4) 1..3}
+    <pre>mida&gt; {([1 2 3]) 4 (1..4) 1..3}
 => 1 1 2 3 4 1 1 3 1 1 3 2 3 3 1 1...</pre>
     <p>Here, <code>1 2 3</code> triggers <code>4</code> while any other
       single element triggers <code>1</code>, <code>2</code>,
       or <code>3</code>.</p>
     <p>You can use multivalues in conditional clauses as sort of 'or'
       operator, consider this example:</p>
-    <pre>mida> {([1 {2 3}]) 7 (1..7) 1..6}
+    <pre>mida&gt; {([1 {2 3}]) 7 (1..7) 1..6}
 => 7 1 1 6 1 1 2 7 1 1 4 1 3 7 3 4 5 5 1 3 7 6 5 1 4 2 5 1 1 2 7 1 4 6 2 1...</pre>
     <p>Here our first condition says 'if last but one realized element
       is <code>1</code> and after it goes <code>2</code> or <code>3</code>,
@@ -606,7 +699,7 @@ mida> {[1] $ 8, 2 3} // 1 - 80%, 2 - 10%, 3 - 10%
     <p>As always, you can use conditional multivalues inside of any part of
       other conditional multivalues, but sometimes such complex structures
       are difficult to understand for human reader.</p>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="5.9">5.9 Polymorphic Operators</h3>
     <p>Now you know about all basic elements in MIDA. There are a number of
       operations that can be performed on these elements. You can combine
@@ -615,75 +708,77 @@ mida> {[1] $ 8, 2 3} // 1 - 80%, 2 - 10%, 3 - 10%
       operators <i>polymorphic</i>.</p>
     <p>All operators in MIDA are infix (or prefix if unary) and left
       associative.</p>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="5.9.1">5.9.1 Addition</h3>
     <p>For addition we use the plus operator <code>+</code>:</p>
-    <pre>mida> 2 + 12
+    <pre>mida&gt; 2 + 12
 => 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14...</pre>
     <p>So two literal values are added. Let's see other examples:</p>
-    <pre>mida> [1 2 3] + 10      // [11 12 13]
+    <pre>mida&gt; [1 2 3] + 10      // [11 12 13]
 => 11 12 13 11 12 13 11 12 13 11 12 13 11 12 13 11...
-mida> [1 2 3] + [0 1]   // [1 + 0, 2 + 1, 3 + 0]
+mida&gt; [1 2 3] + [0 1]   // [1 + 0, 2 + 1, 3 + 0]
 => 1 3 3 1 3 3 1 3 3 1 3 3 1 3 3 1...
-mida> [1 2 3] + {1 2}   // {[2 3 4] [3 4 5]}
+mida&gt; [1 2 3] + {1 2}   // {[2 3 4] [3 4 5]}
 => 2 3 4 3 4 5 2 3 4 2 3 4 2 3 4 3...
-mida> {(1) 2 (2) 1} + 5 // {(6) 7 (7) 6}
-=> 7 6 7 6 7 6 7 6 7 6 7 6 7 6 7 6...</pre>
-    <p>General principle: literal values affect every element of element,
-      sections are cycled and their elements at corresponding indexes are
-      applied to elements of another section; multivalues introduce
-      non-determinism with result being multivalue that has all possible
-      results in it; every part of conditional multivalue is processed
-      according to these rules.</p>
-    <p>[<a href="#top">contents</a>]</p>
+mida&gt; {(1) 2 (2) 1} + 5 // {(6) 7 (7) 6}
+=> 7 6 7 6 7 6 7 6 7 6 7 6 7 6 7 6...
+mida> {/, \, /\, \/} + 127 // randomly selecting form of modulation
+=> 639 383 383 511 383 383 255 255 511 383 255 255 383 383 511 383...</pre>
+    <p>General principle: literal values affect every subelement, sections
+      are cycled and their elements at corresponding indexes are applied to
+      elements of another section; multivalues introduce non-determinism
+      with result being multivalue that has all possible results in it;
+      every part of conditional multivalue is processed according to these
+      rules.</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="5.9.2">5.9.2 Multiplication</h3>
     <p>Multiplication is done in similar fashion. Use
       asterisk <code>*</code> to multiply a principle by a given number:</p>
-    <pre>mida> [1..3] * 2
+    <pre>mida&gt; [1..3] * 2
 => 2 4 6 2 4 6 2 4 6 2 4 6 2 4 6 2...</pre>
     <p>You can combine different operations easily, all operators have the
       same precedence (except for unary):</p>
-    <pre>mida> [1..3] + 10 * 2
+    <pre>mida&gt; [1..3] + 10 * 2
 => 22 24 26 22 24 26 22 24 26 22 24 26 22 24 26 22...</pre>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="5.9.3">5.9.3 Repetition</h3>
     <p>Operator for repetition is <code>$</code>. Principles of evaluation
       are generally the same:</p>
-    <pre>mida> 1 $ 3, 10
+    <pre>mida&gt; 1 $ 3, 10
 => 1 1 1 10 1 1 1 10 1 1 1 10 1 1 1 10...
-mida> {1 2} $ 3, 10
+mida&gt; {1 2} $ 3, 10
 => 1 1 1 10 1 1 2 10 1 2 2 10 2 2 1 10...
-mida> [1..3] $ 3, 10
+mida&gt; [1..3] $ 3, 10
 => 1 2 3 1 2 3 1 2 3 10 1 2 3 1 2 3...
-mida> 1 $ {2 3}, 10
+mida&gt; 1 $ {2 3}, 10
 => 1 1 10 1 1 1 10 1 1 10 1 1 1 10 1 1...
-mida> [1 2 3] $ [2 3], 10
+mida&gt; [1 2 3] $ [2 3], 10
 => 1 1 2 2 2 3 3 10 1 1 2 2 2 3 3 10...</pre>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="5.9.4">5.9.4 Rotation</h3>
     <p>You also can 'rotate' a principle with caret <code>^</code> operator,
       removing its former elements that will appear at the end of the
       principle:</p>
-    <pre>mida> [1 2 3] ^ 1
+    <pre>mida&gt; [1 2 3] ^ 1
 => 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2...
-mida> [1 2 3] ^ {1 2}
+mida&gt; [1 2 3] ^ {1 2}
 => 3 1 2 2 3 1 2 3 1 3 1 2 2 3 1 3...
-mida> [[1 2 3] $ 3] ^ [0 2 1]
+mida&gt; [[1 2 3] $ 3] ^ [0 2 1]
 => 1 2 3 3 1 2 2 3 1 1 2 3 3 1 2 2...</pre>
     <p>This is so-called left rotation, but you can emulate
       right-rotation too knowing length of given principle. Note that
       rotation only makes sense applied to sections.</p>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="5.9.5">5.9.5 Reverse</h3>
     <p>Reverse is the single unary operator in MIDA. It has the highest
       precedence, it means that it is evaluated before all other
       operators:</p>
-    <pre>mida> @[1 2 3]
+    <pre>mida&gt; @[1 2 3]
 => 3 2 1 3 2 1 3 2 1 3 2 1 3 2 1 3...
-mida> @{[1 2] [3 4]}
+mida&gt; @{[1 2] [3 4]}
 => 4 3 4 3 2 1 4 3 4 3 4 3 4 3 4 3...</pre>
     <p>As always, arbitrary complex elements can be reversed.</p>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
     <h3 id="6">6 Final Notes</h3>
     <p>It's allowed to put comments in MIDA source files or in interactive
       environment. MIDA uses C-like comments. Line comments starts
@@ -696,6 +791,6 @@ mida> @{[1 2] [3 4]}
       a principle MIDA will know that current principle is not
       completed.</p>
     <p>I sincerely hope that MIDA will be useful to you. Good luck!</p>
-    <p>[<a href="#top">contents</a>]</p>
+    <p>[<a href="#0">contents</a>]</p>
   </body>
 </html>
