@@ -13,7 +13,7 @@
 2. Go to the directory where the archive is located and execute:
 
    ```
-   # sh mida-0.2.0.sh
+   # sh mida-0.3.0.sh
    ```
 
 3. Done.
@@ -45,9 +45,9 @@ Haskell Platform is supported.
    list for you.
 
 5. After compilation you should manually copy executable file
-   `dist/bulid/mida/mida` into some directory where your system will
+   `dist/build/mida/mida` into some directory where your system will
    see the executable. Linux users can run the following script (it
-   also copies documentation and midarm for uninstallation.):
+   also copies the documentation and midarm for uninstallation.):
 
    ```
    # sh install.sh
