@@ -1,7 +1,6 @@
 -- -*- Mode: HASKELL; -*-
 
--- Environment is formed via evaluation of definitions. Envionment can be
--- changed with a number of different methods.
+-- This module describes process of principle evaluation.
 
 -- Copyright (c) 2014 Mark Karpov
 
@@ -108,9 +107,13 @@ rvrs (Section x) = Section $ reverse $ map rvrs x
 rvrs x@(CMulti _) = mapCond rvrs x
 
 osc :: (Element -> Element -> [Element]) -> Principle -> Principle -> Principle
+osc _ [] [] = []
+osc _ xs [] = xs
+osc _ [] ys = ys
 osc f xs ys = init xs ++ (f (last xs) (head ys)) ++ tail ys
 
 osd :: (Element -> Element) -> Principle -> Principle
+osd _ [] = []
 osd f xs = f (head xs) : tail xs
 
 simplify :: Monad m => Principle -> StateT Env m Principle
