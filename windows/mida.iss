@@ -11,7 +11,7 @@
 ;; mida
 ;; |-- doc
 ;; |   |-- index.html
-;; |   `-- mida.css
+;; |   `-- ascetic.css
 ;; |-- LICENSE.md
 ;; |-- mida.exe
 ;; |-- NEWS.md
