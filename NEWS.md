@@ -4,7 +4,7 @@
 
 * improved interface and parsing;
 
-* added `:preview` and `:load` special commands;
+* added `:prv` and `:load` special commands;
 
 * added additional parameters: modulation, breath, aftertouch, and pitch
   bend;
