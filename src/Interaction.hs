@@ -108,7 +108,7 @@ loadConfig file =
          (Right x) -> do prompt <- getPrompt
                          setPrompt    $ lookupStr x "prompt" prompt
                          prvlen <- getPrvLength
-                         setPrvLength $ lookupInt x "length" prvlen
+                         setPrvLength $ lookupInt x "prvlen" prvlen
                          block  <- getBlockSize
                          setBlockSize $ lookupInt x "block"  block
                          prvcmd <- getPrvCmd
@@ -121,11 +121,11 @@ loadConfig file =
 commands = [ ("block",   cmdBlock,   "Set size of block")
            , ("def",     cmdDef,     "Print definition of given symbol")
            , ("help",    cmdHelp,    "Show this help text")
-           , ("length",  cmdLength,  "Set length of displayed results")
            , ("license", cmdLicense, "Show license")
            , ("load",    cmdLoad,    "Load definitions from given file.")
            , ("make",    cmdMake,    "Generate and save MIDI file")
-           , ("preview", cmdPreview, "Hear score using external program")
+           , ("prv",     cmdPreview, "Listen to score using external program")
+           , ("prvlen",  cmdLength,  "Set length of displayed results")
            , ("prompt",  cmdPrompt,  "Set MIDA prompt")
            , ("purge",   cmdPurge,   "Remove redundant definitions")
            , ("quit",    undefined,  "Quit the interactive environment")
