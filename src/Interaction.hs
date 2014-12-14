@@ -83,8 +83,9 @@ loadSrc file =
              f (Exposition     _) = return ()
 
 saveMidi :: Int -> Int -> Int -> String -> StateT Env IO ()
-saveMidi s q b file =
+saveMidi s q b given =
     do midi <- genMidi s q b
+       file <- output given "mid"
        result <- liftIO (try (exportFile file midi)
                          :: IO (Either SomeException ()))
        case result of
