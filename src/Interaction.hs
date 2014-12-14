@@ -124,6 +124,7 @@ loadConfig file =
 -- interaction --
 
 commands = [ ("block",   cmdBlock,   "Set size of block")
+           , ("clear",   cmdClear,   "Restore default state of environment")
            , ("def",     cmdDef,     "Print definition of given symbol")
            , ("help",    cmdHelp,    "Show this help text")
            , ("license", cmdLicense, "Show license")
@@ -251,6 +252,11 @@ cmdPurge :: String -> StateT Env IO ()
 cmdPurge _ =
     do purgeEnv topDefs
        liftIO $ printf "-> environment purged;\n"
+
+cmdClear :: String -> StateT Env IO ()
+cmdClear _ =
+    do setDefs dfltDefs
+       liftIO $ printf "-> environment cleared;\n"
 
 cmdMake :: String -> StateT Env IO ()
 cmdMake arg =
