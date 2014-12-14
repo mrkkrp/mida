@@ -21,6 +21,7 @@
 
 module Environment
     ( Env (..)
+    , setDefs
     , getRandGen
     , setRandGen
     , getPrompt
