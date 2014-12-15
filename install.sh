@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # MIDA Installation script
 #
@@ -19,63 +19,60 @@
 
 ### constants
 
-SCRIPT_DIR="$( cd "$( dirname "{BASH_SOURCE[0]}" )" && pwd )"
-I_DIRS="/usr/share{,/licenses,/doc}/mida/"
-I_ITEMS="/usr/{bin/mida{,rm},share/man/man1/mida{,rm}.1.gz,\
-share/{licenses,doc}/mida}"
+I_DIRS="/usr/share/{licenses,doc}/mida"
+I_ITEMS="/usr/{bin/mida,share/man/man1/mida.1.gz,share/{licenses,doc}/mida}"
 
 ### functions
 
 bad_exit() # prints error message and exits the program
 {
-    echo "FAILED." 1>&2
+    echo "failed" 1>&2
     exit 1
 }
 
 ### main
 
-echo '-> MIDA installation has been started;'
+echo 'MIDA installation has been started;'
 
 # 1. check if actual user is root (must be root to install the software)
 
-echo -n '=> actual user must be root....'
+echo -n 'actual user must be root...'
 test $(id -u) -gt 0 && bad_exit
-echo 'OK,'
+echo 'ok'
 
 # 2. check if there is compiled executable
 
-echo -n '=> searching for executable....'
-test -f $SCRIPT_DIR/dist/build/mida/mida || bad_exit
-echo 'OK,'
+echo -n 'searching for executable...'
+test -f dist/build/mida/mida || bad_exit
+echo 'ok'
 
 # 3. creating directories
 
-echo -n '=> creating directories........'
+echo -n 'creating directories...'
 eval mkdir -p $I_DIRS > /dev/null 2>&1
 if test $? -eq 0
-then echo 'OK,'
+then echo 'ok'
 else bad_exit
 fi
 
 # 4. copying new files
 
-echo -n '=> copying new files...........'
-cp -u $SCRIPT_DIR/dist/build/mida/mida /usr/bin/
-cp -u $SCRIPT_DIR/midarm               /usr/bin/
-cp -u $SCRIPT_DIR/LICENSE.md           /usr/share/licenses/mida/
-cp -u $SCRIPT_DIR/doc/*.{html,css}     /usr/share/doc/mida/
-cp -u $SCRIPT_DIR/doc/mida{,rm}.1.gz   /usr/share/man/man1/
-echo 'OK,'
+echo -n 'copying new files...'
+cp -u dist/build/mida/mida /usr/bin/
+cp -u LICENSE.md           /usr/share/licenses/mida/
+cp -u doc/*.{html,css}     /usr/share/doc/mida/
+cp -u doc/mida.1.gz        /usr/share/man/man1/
+echo 'ok'
 
-# 5. settting permissions
+# 5. setting permissions
 
-echo -n '=> setting permissions.........'
+echo -n 'setting permissions...'
 eval chmod -R 755 $I_ITEMS
 if test $? -eq 0
-then echo 'OK,'
+then echo 'ok'
 else bad_exit
 fi
 
 # 6. done
 
-echo '=> done.'
+echo 'done.'
