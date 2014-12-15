@@ -185,13 +185,15 @@ interaction =
                              interaction
          Nothing    -> return ()
 
-getCompletions :: Monad m => String -> StateT Env m [L.Completion]
+getCompletions :: MonadIO m => String -> StateT Env m [L.Completion]
 getCompletions arg =
-    do ns <- getNames
-       return $ map L.simpleCompletion $ filter (arg `isPrefixOf`) (ns ++ cs)
-       where cs = map (\(x, _, _) -> cmdPrefix ++ x) commands
+    do names <- getNames
+       files <- lift $ L.listFiles arg
+       return $ files ++ (map L.simpleCompletion $
+                              filter (arg `isPrefixOf`) (names ++ cmds))
+       where cmds = map (\(x, _, _) -> cmdPrefix ++ x) commands
 
-completionFunc :: Monad m => L.CompletionFunc (StateT Env m)
+completionFunc :: MonadIO m => L.CompletionFunc (StateT Env m)
 completionFunc = L.completeWord Nothing " " getCompletions
 
 interLoop :: StateT Env IO ()
