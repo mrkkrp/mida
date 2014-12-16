@@ -75,6 +75,13 @@ output given ext =
                where f x = if x == "~" then home else x
        return $ if null given then a else g
 
+processDef :: String -> Principle -> String -> StateT Env IO ()
+processDef n e s =
+    do b <- checkRecursion n e
+       if b
+       then liftIO $ printf "-> rejected recursive definition for '%s';\n" n
+       else addDef n e s >> (liftIO $ printf "-> defined '%s';\n" n)
+
 loadSrc :: String -> StateT Env IO ()
 loadSrc file =
     do contents <- liftIO $ readFile file
@@ -82,8 +89,8 @@ loadSrc file =
          Right x -> do mapM_ f x
                        setFileName file
                        liftIO $ printf "-> \"%s\" loaded successfully;\n" file
-         Left  x -> liftIO $ fancyPrint $ "parse error in " ++ x
-       where f (Definition n e s) = addDef n e s
+         Left  x -> liftIO $ fancyPrint $ printf "parse error in %s;\n" x
+       where f (Definition n e s) = processDef n e s
              f (Exposition     _) = return ()
 
 saveMidi :: Int -> Int -> Int -> String -> StateT Env IO ()
@@ -93,7 +100,7 @@ saveMidi s q b given =
        result <- liftIO (try (exportFile file midi)
                          :: IO (Either SomeException ()))
        case result of
-         Right _ -> liftIO $ printf "-> MIDI file saved as \"%s\".\n" file
+         Right _ -> liftIO $ printf "-> MIDI file saved as \"%s\";\n" file
          Left  e -> liftIO $ printExc e
 
 prettyList :: [Int] -> String
@@ -152,10 +159,8 @@ processExpr expr =
     do file    <- getFileName
        case parseMida file expr of
          (Right x) -> mapM_ f x
-         (Left  x) -> liftIO $ fancyPrint $ printf "parse error in %s\n" x
-       where f (Definition n e s) =
-                 do addDef n e s
-                    liftIO $ printf "-> defined '%s'\n" n
+         (Left  x) -> liftIO $ fancyPrint $ printf "parse error in %s;\n" x
+       where f (Definition n e s) = processDef n e s
              f (Exposition e) =
                  do l <- getPrvLength
                     r <- eval e l
@@ -237,7 +242,7 @@ cmdLoad given =
        b    <- liftIO $ doesFileExist file
        if b
        then (loadSrc file)
-       else liftIO $ printf "-> cannot find \"%s\";\n" file
+       else liftIO $ printf "-> could not find \"%s\";\n" file
 
 cmdSave :: String -> StateT Env IO ()
 cmdSave given =
@@ -274,7 +279,7 @@ cmdPreview arg =
     do prvcmd <- getPrvCmd
        if null prvcmd
        then liftIO $ printf
-                "-> please set variable \"prvcmd\" in \".mida\" file;\n"
+                "-> please set variable 'prvcmd' in \".mida\" file;\n"
        else do temp <- liftIO $ getTemporaryDirectory
                f    <- output "" "mid"
                let (s:q:b:_) = words arg ++ repeat ""

@@ -37,6 +37,7 @@ module Environment
     , addDef
     , remDef
     , purgeEnv
+    , checkRecursion
     , getPrin
     , getSrc
     , fullSrc
@@ -120,11 +121,11 @@ remDef name = getDefs >>= return . M.delete name >>= setDefs
 tDefs :: String -> M.Map String Principle -> [String]
 tDefs name defs =
     case M.lookup name defs of
-      Just x  -> name : cm x
-      Nothing -> [name]
+      Just x  -> cm x
+      Nothing -> []
     where cm                = concatMap f
           f (Value     _  ) = []
-          f (Reference x  ) = tDefs x defs
+          f (Reference x  ) = x : tDefs x defs
           f (Section   xs ) = cm xs
           f (Product   x y) = f x ++ f y
           f (Sum       x y) = f x ++ f y
@@ -137,8 +138,14 @@ tDefs name defs =
 
 purgeEnv :: Monad m => [String] -> StateT Env m ()
 purgeEnv tops = getDefs >>= return . f >>= setDefs
-    where f defs = foldr M.delete defs $ M.keys defs \\ musts defs
+    where f defs = foldr M.delete defs $ M.keys defs \\ (musts defs ++ tops)
           musts  = nub . concat . zipWith tDefs tops . repeat . M.map drPrin
+
+checkRecursion :: Monad m => String -> Principle -> StateT Env m Bool
+checkRecursion name prin =
+    do defs <- getDefs
+       let defs' = M.insert name prin $ M.map drPrin defs
+       return . elem name $ (tDefs name defs')
 
 getPrin :: Monad m => String -> StateT Env m Principle
 getPrin name =
