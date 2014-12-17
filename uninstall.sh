@@ -42,7 +42,7 @@ echo 'ok'
 # 2. removing files
 
 echo -n 'deleting files...'
-eval rm -rv $I_ITEMS > /dev/null 2>&1
+eval rm -r $I_ITEMS > /dev/null 2>&1
 if test $? -eq 0
 then echo 'ok'
 else bad_exit
