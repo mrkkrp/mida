@@ -78,8 +78,15 @@ sm x = void $ runStateT x Env { eDefs      = dfltDefs
                               , eFileName  = dfltFileName
                               , ePrvCmd    = dfltPrvCmd }
 
+notice :: String
+notice =
+    "MIDA Copyright (c) 2014 Mark Karpov\n\n\
+    \This program comes with ABSOLUTELY NO WARRANTY. This is free software,\n\
+    \and you are welcome to redistribute it under certain conditions; see\n\
+    \GNU General Public License <http://www.gnu.org/licenses/> for details.\n"
+
 main :: IO ()
-main = execParser opts >>= f
+main = putStrLn notice >> execParser opts >>= f
     where f (Opts _    _ _ _ _ "") =
               sm interLoop
           f (Opts True  _ _ _ _ n) =
