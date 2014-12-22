@@ -22,11 +22,11 @@
 
 5. After compilation you should manually copy executable file
    `dist/build/mida/mida` into some directory where your system will see the
-   executable. GNU/Linux users can run the following script (it also copies
-   the documentation):
+   executable. You can also execute this script that will copy files of the
+   program, docs, etc.
 
    ```
    # sh install.sh
    ```
 
-6. Done.
+6. Done (you can use `uninstall.sh` to uninstall the program).
