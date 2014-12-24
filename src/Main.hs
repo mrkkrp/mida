@@ -83,7 +83,7 @@ notice =
     "MIDA Copyright (c) 2014 Mark Karpov\n\n\
     \This program comes with ABSOLUTELY NO WARRANTY. This is free software,\n\
     \and you are welcome to redistribute it under certain conditions; see\n\
-    \GNU General Public License <http://www.gnu.org/licenses/> for details.\n"
+    \GNU General Public License for details.\n"
 
 main :: IO ()
 main = putStrLn notice >> execParser opts >>= f
