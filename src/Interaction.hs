@@ -1,19 +1,19 @@
--- -*- Mode: HASKELL; -*-
+-- -*- Mode: Haskell; -*-
 --
 -- This module describes how MIDA processes commands in interactive
 -- mode. These commands are also used in batch mode.
 --
--- Copyright (c) 2014 Mark Karpov
+-- Copyright (c) 2014, 2015 Mark Karpov
 --
--- This program is free software: you can redistribute it and/or modify it
--- under the terms of the GNU General Public License as published by the
--- Free Software Foundation, either version 3 of the License, or (at your
--- option) any later version.
+-- MIDA is free software: you can redistribute it and/or modify it under the
+-- terms of the GNU General Public License as published by the Free Software
+-- Foundation, either version 3 of the License, or (at your option) any
+-- later version.
 --
--- This program is distributed in the hope that it will be useful, but
--- WITHOUT ANY WARRANTY; without even the implied warranty of
--- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
--- Public License for more details.
+-- MIDA is distributed in the hope that it will be useful, but WITHOUT ANY
+-- WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+-- FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+-- details.
 --
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
@@ -45,7 +45,7 @@ import Defaults
 
 -- constants --
 
-version   = "0.3.0"
+version   = "0.3.1"
 cmdPrefix = ":"
 
 -- misc --
@@ -221,7 +221,7 @@ cmdHelp _ = liftIO (printf "Available commands:\n") >> mapM_ f commands
 cmdLicense :: String -> StateT Env IO ()
 cmdLicense _ = liftIO $ fancyPrint
     "MIDA - realization of MIDA, language for generation of MIDI files.\n\
-    \Copyright (c) 2014 Mark Karpov\n\
+    \Copyright (c) 2014, 2015 Mark Karpov\n\
     \\n\
     \This program is free software: you can redistribute it and/or modify\n\
     \it under the terms of the GNU General Public License as published by\n\
