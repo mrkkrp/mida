@@ -21,7 +21,7 @@
 module Parser
     ( Statement (..)
     , Principle
-    , Element   (..)
+    , Element (..)
     , parseMida )
 where
 
@@ -76,7 +76,7 @@ langOps          = [ langProductOp
                    , langReverseOp
                    , langRangeOp
                    , langDefinitionOp ]
-langFigures      = [ "/\\","\\/","/","\\" ]
+langFigures      = ["/\\","\\/","/","\\"]
 
 -- language and lexemes --
 
@@ -103,6 +103,17 @@ reservedOp = Token.reservedOp lexer
 whiteSpace = Token.whiteSpace lexer
 
 -- parsing --
+
+parseMida :: String -> String -> Either String [Statement]
+parseMida file str =
+    case parse parser file str of
+      (Right x) -> if null x
+                   then Left $ "\"" ++ file ++ "\":\ninvalid definition syntax"
+                   else Right x
+      (Left  x) -> Left $ show x
+    where parser = if langDefinitionOp `isInfixOf` str
+                   then pSource
+                   else pExposition
 
 pSource :: Parser [Statement]
 pSource = whiteSpace >> many pDefinition
@@ -141,7 +152,7 @@ pRange =
     do (Value x) <- pValue
        reservedOp langRangeOp
        (Value y) <- pValue
-       return $ Range (fromIntegral x) (fromIntegral y)
+       return $ Range x y
 
 pValue :: Parser Element
 pValue = pNatural <|> pNote <|> pFigure <?> "literal value"
@@ -153,14 +164,14 @@ pNote :: Parser Element
 pNote =
     do note <- choice $ map (try . string) noteAlias
        whiteSpace
-       return . Value . fromJust $ elemIndex note noteAlias
+       return . Value . fromJust $ note `elemIndex` noteAlias
 
 pFigure :: Parser Element
 pFigure =
     do figure <- choice $ map (try . string) langFigures
        whiteSpace
        return . Value . (* 128) . succ . fromJust $
-              elemIndex figure langFigures
+              figure `elemIndex` langFigures
 
 pReference :: Parser Element
 pReference =
@@ -190,14 +201,3 @@ pOperators =
        , Infix  (reservedOp langSumOp      >> return Sum     ) AssocLeft
        , Infix  (reservedOp langLoopOp     >> return Loop    ) AssocLeft
        , Infix  (reservedOp langRotationOp >> return Rotation) AssocLeft ]]
-
-parseMida :: String -> String -> Either String [Statement]
-parseMida file str =
-    case parse parser file str of
-      (Right x) -> if null x
-                   then Left $ "\"" ++ file ++ "\":\ninvalid definition syntax"
-                   else Right x
-      (Left  x) -> Left $ show x
-    where parser = if langDefinitionOp `isInfixOf` str
-                   then pSource
-                   else pExposition
