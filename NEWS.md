@@ -1,5 +1,16 @@
 # History of changes
 
+## MIDA 0.3.1
+
+* fixed bug in batch mode;
+
+* added tab completion for file names;
+
+* detection and rejection of recursive definitions;
+
+* improved interface.
+
+
 ## MIDA 0.3.0
 
 * improved interface and parsing;
