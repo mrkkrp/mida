@@ -2,7 +2,7 @@
 #
 # MIDA Installation script
 #
-# Copyright (c) 2014 Mark Karpov
+# Copyright (c) 2014, 2015 Mark Karpov
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -48,31 +48,22 @@ echo 'ok'
 
 # 3. creating directories
 
-echo -n 'creating directories...'
-eval mkdir -p $I_DIRS > /dev/null 2>&1
+echo 'creating directories...'
+eval install -vdm755 $I_DIRS
 if test $? -eq 0
-then echo 'ok'
+then echo 'creating directories: ok'
 else bad_exit
 fi
 
 # 4. copying new files
 
-echo -n 'copying new files...'
-cp -u dist/build/mida/mida /usr/bin/
-cp -u LICENSE.md           /usr/share/licenses/mida/
-cp -u doc/*.{html,css}     /usr/share/doc/mida/
-cp -u doc/mida.1.gz        /usr/share/man/man1/
-echo 'ok'
+echo 'copying new files...'
+install -vDm755 dist/build/mida/mida /usr/bin/
+install -vDm644 LICENSE.md           /usr/share/licenses/mida/
+install -vDm644 doc/*.{texi,html}    /usr/share/doc/mida/
+install -vDm644 doc/mida.1.gz        /usr/share/man/man1/
+echo 'copying new files: ok'
 
-# 5. setting permissions
-
-echo -n 'setting permissions...'
-eval chmod -R 755 $I_ITEMS
-if test $? -eq 0
-then echo 'ok'
-else bad_exit
-fi
-
-# 6. done
+# 5. done
 
 echo 'done.'

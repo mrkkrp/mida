@@ -2,7 +2,7 @@
 #
 # MIDA Uninstallation script
 #
-# Copyright (c) 2014 Mark Karpov
+# Copyright (c) 2014, 2015 Mark Karpov
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -41,10 +41,10 @@ echo 'ok'
 
 # 2. removing files
 
-echo -n 'deleting files...'
-eval rm -r $I_ITEMS > /dev/null 2>&1
+echo 'deleting files...'
+eval rm -vr $I_ITEMS
 if test $? -eq 0
-then echo 'ok'
+then echo 'deleting files: ok'
 else bad_exit
 fi
 
