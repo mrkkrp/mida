@@ -12,21 +12,10 @@
 
    ```
    $ cabal update
-   $ cabal install cabal-install
    $ cabal configure
+   $ cabal install --only-dependencies
    $ cabal build
-   ```
-
-   It's very likely that Cabal will not compile MIDA from the first time so
-   you'll need to install all dependencies that Cabal will list for you.
-
-5. After compilation you should manually copy executable file
-   `dist/build/mida/mida` into some directory where your system will see the
-   executable. You can also execute this script that will copy files of the
-   program, docs, etc.
-
-   ```
    # sh install.sh
    ```
 
-6. Done (you can use `uninstall.sh` to uninstall the program).
+5. Done (you can use `uninstall.sh` to uninstall the program).
