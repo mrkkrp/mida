@@ -107,10 +107,10 @@ whiteSpace = Token.whiteSpace lexer
 parseMida :: String -> String -> Either String [Statement]
 parseMida file str =
     case parse parser file str of
-      (Right x) -> if null x
-                   then Left $ "\"" ++ file ++ "\":\ninvalid definition syntax"
-                   else Right x
-      (Left  x) -> Left $ show x
+      Right x -> if null x
+                 then Left $ "\"" ++ file ++ "\":\ninvalid definition syntax"
+                 else Right x
+      Left  x -> Left $ show x
     where parser = if langDefinitionOp `isInfixOf` str
                    then pSource
                    else pExposition
@@ -119,22 +119,22 @@ pSource :: Parser [Statement]
 pSource = whiteSpace >> many pDefinition
 
 pDefinition :: Parser Statement
-pDefinition =
-    do x <- getInput
-       n <- identifier
-       reservedOp langDefinitionOp
-       p <- pPrinciple
-       y <- getInput
-       return $ Definition n p $ take (length x - length y) x
+pDefinition = do
+  x <- getInput
+  n <- identifier
+  reservedOp langDefinitionOp
+  p <- pPrinciple
+  y <- getInput
+  return $ Definition n p $ take (length x - length y) x
 
 pExposition :: Parser [Statement]
 pExposition = whiteSpace >> pPrinciple >>= return . return . Exposition
 
 pPrinciple :: Parser Principle
-pPrinciple =
-    do result <- sepBy (pExpression <|> pElement) (optional comma)
-       optional . choice $ map f langOps
-       return result
+pPrinciple = do
+  result <- sepBy (pExpression <|> pElement) (optional comma)
+  optional . choice $ map f langOps
+  return result
     where f x = reservedOp x >> unexpected ("\"" ++ x ++ "\"")
 
 pElement :: Parser Element
@@ -148,11 +148,11 @@ pElement
    <?> "element"
 
 pRange :: Parser Element
-pRange =
-    do (Value x) <- pValue
-       reservedOp langRangeOp
-       (Value y) <- pValue
-       return $ Range x y
+pRange = do
+  Value x <- pValue
+  reservedOp langRangeOp
+  Value y <- pValue
+  return $ Range x y
 
 pValue :: Parser Element
 pValue = pNatural <|> pNote <|> pFigure <?> "literal value"
@@ -161,23 +161,22 @@ pNatural :: Parser Element
 pNatural = natural >>= return . Value . fromIntegral
 
 pNote :: Parser Element
-pNote =
-    do note <- choice $ map (try . string) noteAlias
-       whiteSpace
-       return . Value . fromJust $ note `elemIndex` noteAlias
+pNote = do
+  note <- choice $ map (try . string) noteAlias
+  whiteSpace
+  return . Value . fromJust $ note `elemIndex` noteAlias
 
 pFigure :: Parser Element
-pFigure =
-    do figure <- choice $ map (try . string) langFigures
-       whiteSpace
-       return . Value . (* 128) . succ . fromJust $
-              figure `elemIndex` langFigures
+pFigure = do
+  figure <- choice $ map (try . string) langFigures
+  whiteSpace
+  return . Value . (* 128) . succ . fromJust $ figure `elemIndex` langFigures
 
 pReference :: Parser Element
-pReference =
-    do n <- identifier
-       notFollowedBy $ reservedOp langDefinitionOp
-       return $ Reference n
+pReference = do
+  n <- identifier
+  notFollowedBy $ reservedOp langDefinitionOp
+  return $ Reference n
 
 pSection :: Parser Element
 pSection = brackets pPrinciple >>= return . Section
@@ -187,9 +186,10 @@ pMulti = braces pPrinciple >>= return . Multi
 
 pCMulti :: Parser Element
 pCMulti = braces (many f) >>= return . CMulti
-    where f = do c <- parens pPrinciple
-                 r <- pPrinciple
-                 return (c, Multi r)
+    where f = do
+            c <- parens pPrinciple
+            r <- pPrinciple
+            return (c, Multi r)
 
 pExpression :: Parser Element
 pExpression = buildExpressionParser pOperators pElement
