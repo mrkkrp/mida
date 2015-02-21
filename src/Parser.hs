@@ -27,9 +27,10 @@ where
 
 import Data.List
 import Data.Maybe (fromJust)
+
 import Text.ParserCombinators.Parsec
-import Text.ParserCombinators.Parsec.Language
 import Text.ParserCombinators.Parsec.Expr
+import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as Token
 
 -- data types --
