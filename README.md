@@ -17,6 +17,18 @@ See [MIDA Manual](http://mrkkrp.github.io/mida/) for more information.
 
 For installation instructions see `INSTALL.md`.
 
+MIDA is a [member of Linux Audio
+consortium](http://linuxaudio.org/members.html).
+
+## TODO
+
+Currently we're trying to achieve the following goals in order to improve
+MIDA:
+
+* full refactoring to make the code more elegant;
+* add Jack support for interactive preview;
+* rewrite documentation in TexInfo format.
+
 ## License
 
 Copyright (c) 2014, 2015 Mark Karpov
