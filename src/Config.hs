@@ -1,6 +1,6 @@
 -- -*- Mode: Haskell; -*-
 --
--- Config module helps parse Unix-styled configuration files.
+-- Config module helps parse Unix-style configuration files.
 --
 -- Copyright (c) 2014, 2015 Mark Karpov
 --
@@ -17,24 +17,48 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
-module Config
-    ( parseConfig
-    , parseInt
-    , lookupStr
-    , lookupInt )
-    where
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances    #-}
 
-import Data.Char (isDigit)
+module Config
+    ( Params
+    , parseConfig
+    , lookupCfg )
+where
+
+import Data.Char (isDigit, isSpace)
 import qualified Data.Map as M
+
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as Token
 
--- data types --
+----------------------------------------------------------------------------
+--                               Data Types                               --
+----------------------------------------------------------------------------
 
 type Params = M.Map String String
 
--- language and lexemes --
+class Parsable a where
+    parseValue :: String -> Maybe a
+
+instance Parsable String where
+    parseValue = Just
+
+instance Parsable Int where
+    parseValue x
+        | null x        = Nothing
+        | all isDigit x = Just $ read x
+        | otherwise     = Nothing
+
+instance Parsable Bool where
+    parseValue "true"  = Just True
+    parseValue "false" = Just False
+    parseValue _       = Nothing
+
+----------------------------------------------------------------------------
+--                          Language and Lexemes                          --
+----------------------------------------------------------------------------
 
 lang = emptyDef { Token.commentLine     = "#"
                 , Token.identStart      = letter
@@ -50,50 +74,29 @@ pstring    = Token.stringLiteral lexer
 reservedOp = Token.reservedOp    lexer
 whiteSpace = Token.whiteSpace    lexer
 
--- parsing --
-
-pConfig :: Parser Params
-pConfig =
-    do whiteSpace
-       items <- many (try pVarInt <|> pVarString)
-       return $ M.fromList items
-
-pVarInt :: Parser (String, String)
-pVarInt =
-    do var <- identifier
-       reservedOp "="
-       x   <- natural
-       return (var, show x)
-
-pVarString :: Parser (String, String)
-pVarString =
-    do var <- identifier
-       reservedOp "="
-       x   <- pstring
-       return (var, x)
+----------------------------------------------------------------------------
+--                                Parsing                                 --
+----------------------------------------------------------------------------
 
 parseConfig :: String -> String -> Either String Params
 parseConfig file str =
     case parse pConfig file str of
-      (Right x) -> Right x
-      (Left  x) -> Left $ show x
+      Right x -> Right x
+      Left  x -> Left $ show x
 
--- miscellaneous functions --
+pConfig :: Parser Params
+pConfig = do
+  whiteSpace
+  items <- many pItem
+  return $ M.fromList items
 
-parseInt :: String -> Int -> Int
-parseInt s x
-    | null s        = x
-    | all isDigit s = read s :: Int
-    | otherwise     = x
+pItem :: Parser (String, String)
+pItem = do
+  var <- identifier
+  reservedOp "="
+  val <- try pstring <|> (many $ satisfy (not . isSpace))
+  whiteSpace
+  return (var, val)
 
-lookupStr :: Params -> String -> String -> String
-lookupStr cfg v d =
-    case M.lookup v cfg of
-      (Just x) -> x
-      Nothing  -> d
-
-lookupInt :: Params -> String -> Int -> Int
-lookupInt cfg v d =
-    case M.lookup v cfg of
-      (Just x) -> parseInt x d
-      Nothing  -> d
+lookupCfg :: Parsable a => Params -> String -> a -> a
+lookupCfg cfg v d = maybe d id $ M.lookup v cfg >>= parseValue

@@ -19,110 +19,128 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module Environment
-    ( Env (..)
-    , setDefs
-    , getRandGen
+    ( MidaState  (..)
+    , MidaConfig (..)
+    , MidaEnv    (..)
+    , runMidaEnv
+    , clearDefs
     , setRandGen
+    , newRandGen
+    , getPrevLen
+    , setPrevLen
+    , getSrcFile
+    , setSrcFile
     , getPrompt
-    , setPrompt
-    , getPrvLength
-    , setPrvLength
-    , getBlockSize
-    , setBlockSize
-    , getFileName
-    , setFileName
-    , getPrvCmd
-    , setPrvCmd
     , addDef
     , remDef
-    , purgeEnv
-    , checkRecursion
     , getPrin
     , getSrc
     , fullSrc
-    , getNames )
+    , getRefs
+    , purgeEnv
+    , checkRecur )
 where
 
+import Control.Applicative (Applicative, (<$>), (<*>))
+import Control.Monad.Reader
+import Control.Monad.State.Strict
 import Data.List
 import qualified Data.Map as M
-import Control.Monad.State.Strict
+
 import System.Random.Mersenne.Pure64
-import Control.Applicative ((<$>), (<*>))
+
 import Parser
 
--- data types --
+----------------------------------------------------------------------------
+--                               Data Types                               --
+----------------------------------------------------------------------------
 
-data Env = Env
-    { eDefs      :: Defs
-    , eRandGen   :: PureMT
-    , ePrompt    :: String
-    , ePrvLength :: Int
-    , eBlockSize :: Int
-    , eFileName  :: String
-    , ePrvCmd    :: String }
+data MidaState = MidaState
+    { stDefs    :: Defs
+    , stRandGen :: PureMT
+    , stPrevLen :: Int
+    , stSrcFile :: String }
 
-type Defs = M.Map String DefRep
+type Defs = M.Map String (Principle, String)
 
-data DefRep = DefRep
-    { drPrin :: Principle
-    , drSrc  :: String }
+data MidaConfig = MidaConfig
+    { cfgPrompt :: String }
 
--- environment api --
+newtype MidaEnv m a = MidaEnv
+    { unMidaEnv :: StateT MidaState (ReaderT MidaConfig m) a }
+    deriving ( Functor
+             , Applicative
+             , Monad
+             , MonadState MidaState
+             , MonadReader MidaConfig
+             , MonadIO )
 
-getDefs :: Monad m => StateT Env m Defs
-getDefs = get >>= return . eDefs
+instance MonadTrans MidaEnv where
+    lift = MidaEnv . lift . lift
 
-setDefs :: Monad m => Defs -> StateT Env m ()
-setDefs x = modify (\e -> e { eDefs = x })
+----------------------------------------------------------------------------
+--                              Environment                               --
+----------------------------------------------------------------------------
 
-getRandGen :: Monad m => StateT Env m PureMT
-getRandGen = get >>= return . eRandGen
+runMidaEnv :: Monad m => MidaEnv m a -> MidaState -> MidaConfig -> m a
+runMidaEnv e st cfg = runReaderT (fst `liftM` runStateT (unMidaEnv e) st) cfg
 
-setRandGen :: Monad m => PureMT -> StateT Env m ()
-setRandGen x = modify (\e -> e { eRandGen = x })
+getDefs :: Monad m => MidaEnv m Defs
+getDefs = stDefs `liftM` get
 
-getPrompt :: Monad m => StateT Env m String
-getPrompt = get >>= return . ePrompt
+setDefs :: Monad m => Defs -> MidaEnv m ()
+setDefs x = modify $ \e -> e { stDefs = x }
 
-setPrompt :: Monad m => String -> StateT Env m ()
-setPrompt x = modify (\e -> e { ePrompt = x })
+clearDefs :: Monad m => MidaEnv m ()
+clearDefs = setDefs M.empty
 
-getPrvLength :: Monad m => StateT Env m Int
-getPrvLength = get >>= return . ePrvLength
+setRandGen :: Monad m => Int -> MidaEnv m ()
+setRandGen x = modify $ \e -> e { stRandGen = pureMT (fromIntegral x) }
 
-setPrvLength :: Monad m => Int -> StateT Env m ()
-setPrvLength x = modify (\e -> e { ePrvLength = x })
+newRandGen :: Monad m => MidaEnv m PureMT
+newRandGen = do
+  (n, g) <- (randomWord64 . stRandGen) `liftM` get
+  modify $ \e -> e { stRandGen = pureMT n }
+  return . pureMT . fst . randomWord64 $ g
 
-getBlockSize :: Monad m => StateT Env m Int
-getBlockSize = get >>= return . eBlockSize
+getPrevLen :: Monad m => MidaEnv m Int
+getPrevLen = stPrevLen `liftM` get
 
-setBlockSize :: Monad m => Int -> StateT Env m ()
-setBlockSize x = modify (\e -> e { eBlockSize = x })
+setPrevLen :: Monad m => Int -> MidaEnv m ()
+setPrevLen x = modify $ \e -> e { stPrevLen = x }
 
-getFileName :: Monad m => StateT Env m String
-getFileName = get >>= return . eFileName
+getSrcFile :: Monad m => MidaEnv m String
+getSrcFile = stSrcFile `liftM` get
 
-setFileName :: Monad m => String -> StateT Env m ()
-setFileName x = modify (\e -> e { eFileName = x })
+setSrcFile :: Monad m => String -> MidaEnv m ()
+setSrcFile x = modify $ \e -> e { stSrcFile = x }
 
-getPrvCmd :: Monad m => StateT Env m String
-getPrvCmd = get >>= return . ePrvCmd
+getPrompt :: Monad m => MidaEnv m String
+getPrompt = cfgPrompt `liftM` ask
 
-setPrvCmd :: Monad m => String -> StateT Env m ()
-setPrvCmd x = modify (\e -> e { ePrvCmd = x })
+addDef :: Monad m => String -> Principle -> String -> MidaEnv m ()
+addDef name prin src = M.insert name (prin, src) `liftM` getDefs >>= setDefs
 
-addDef :: Monad m => String -> Principle -> String -> StateT Env m ()
-addDef name p s = getDefs >>= return . M.insert name (DefRep p s) >>= setDefs
+remDef :: Monad m => String -> MidaEnv m ()
+remDef name = M.delete name `liftM` getDefs >>= setDefs
 
-remDef :: Monad m => String -> StateT Env m ()
-remDef name = getDefs >>= return . M.delete name >>= setDefs
+getPrin :: Monad m => String -> MidaEnv m Principle
+getPrin name = (maybe [] fst . M.lookup name) `liftM` getDefs
 
-tDefs :: String -> M.Map String Principle -> [String]
-tDefs name defs =
-    case M.lookup name defs of
-      Just x  -> cm x
-      Nothing -> []
+getSrc :: Monad m => String -> MidaEnv m String
+getSrc name = (maybe "no definition\n" snd . M.lookup name) `liftM` getDefs
+
+fullSrc :: Monad m => MidaEnv m String
+fullSrc = (concat . filter (not . null) . map snd . M.elems) `liftM` getDefs
+
+getRefs :: Monad m => MidaEnv m [String]
+getRefs = getDefs >>= return . M.keys
+
+tDefs :: String -> Defs -> [String]
+tDefs name defs = maybe [] (cm . fst) $ M.lookup name defs
     where cm                = concatMap f
           f (Value     _  ) = []
           f (Reference x  ) = x : tDefs x defs
@@ -136,35 +154,11 @@ tDefs name defs =
           f (Multi     xs ) = cm xs
           f (CMulti    xs ) = concatMap ((++) <$> cm . fst <*> f . snd) xs
 
-purgeEnv :: Monad m => [String] -> StateT Env m ()
-purgeEnv tops = getDefs >>= return . f >>= setDefs
+purgeEnv :: Monad m => [String] -> MidaEnv m ()
+purgeEnv tops = f `liftM` getDefs >>= setDefs
     where f defs = foldr M.delete defs $ M.keys defs \\ (musts defs ++ tops)
-          musts  = nub . concat . zipWith tDefs tops . repeat . M.map drPrin
+          musts  = nub . concat . zipWith tDefs tops . repeat
 
-checkRecursion :: Monad m => String -> Principle -> StateT Env m Bool
-checkRecursion name prin =
-    do defs <- getDefs
-       let defs' = M.insert name prin $ M.map drPrin defs
-       return . elem name $ (tDefs name defs')
-
-getPrin :: Monad m => String -> StateT Env m Principle
-getPrin name =
-    do defs <- getDefs
-       case M.lookup name defs of
-         Just x  -> return $ drPrin x
-         Nothing -> return []
-
-getSrc :: Monad m => String -> StateT Env m String
-getSrc name =
-    do defs <- getDefs
-       case M.lookup name defs of
-         Just x  -> return $ drSrc x
-         Nothing -> return "cannot find the definition\n"
-
-
-fullSrc :: Monad m => StateT Env m String
-fullSrc = getDefs >>= return . concat . map drSrc . M.elems . M.filter f
-    where f (DefRep x _) = not $ null x
-
-getNames :: Monad m => StateT Env m [String]
-getNames = getDefs >>= return . M.keys
+checkRecur :: Monad m => String -> Principle -> MidaEnv m Bool
+checkRecur name prin = check `liftM` getDefs
+    where check = elem name . tDefs name . M.insert name (prin, "")

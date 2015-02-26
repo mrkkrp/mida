@@ -34,8 +34,8 @@ cabal-version:       >= 1.10
 
 executable mida
   main-is:             Main.hs
-  other-modules:       Config, Defaults, Parser, Environment, Eval,
-                       Translator, Interaction
+  other-modules:       Parser, Environment, Eval, Translator, Interaction,
+                       Config, Main
   -- other-extensions:
   build-depends:       base                   >= 4.7 && <4.8,
                        parsec                 >= 3.1.7,

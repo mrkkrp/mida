@@ -20,8 +20,8 @@
 
 module Parser
     ( Statement (..)
+    , Element   (..)
     , Principle
-    , Element (..)
     , parseMida )
 where
 
@@ -33,7 +33,9 @@ import Text.ParserCombinators.Parsec.Expr
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as Token
 
--- data types --
+----------------------------------------------------------------------------
+--                               Data Types                               --
+----------------------------------------------------------------------------
 
 data Statement
     = Definition String Principle String
@@ -56,7 +58,9 @@ data Element
     | CMulti    [(Principle, Element)]
       deriving (Show)
 
--- constants --
+----------------------------------------------------------------------------
+--                               Constants                                --
+----------------------------------------------------------------------------
 
 noteAlias = [n ++ show i | i <- [0..9] :: [Int],
              n <- ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]]
@@ -79,17 +83,20 @@ langOps          = [ langProductOp
                    , langDefinitionOp ]
 langFigures      = ["/\\","\\/","/","\\"]
 
--- language and lexemes --
+----------------------------------------------------------------------------
+--                          Language and Lexemes                          --
+----------------------------------------------------------------------------
 
-lang = emptyDef { Token.commentStart    = langCommentStart
-                , Token.commentEnd      = langCommentEnd
-                , Token.commentLine     = langCommentLine
-                , Token.nestedComments  = True
-                , Token.identStart      = letter
-                , Token.identLetter     = alphaNum
-                , Token.reservedNames   = noteAlias
-                , Token.reservedOpNames = langOps
-                , Token.caseSensitive   = True }
+lang = emptyDef
+       { Token.commentStart    = langCommentStart
+       , Token.commentEnd      = langCommentEnd
+       , Token.commentLine     = langCommentLine
+       , Token.nestedComments  = True
+       , Token.identStart      = letter
+       , Token.identLetter     = alphaNum
+       , Token.reservedNames   = noteAlias
+       , Token.reservedOpNames = langOps
+       , Token.caseSensitive   = True }
 
 lexer = Token.makeTokenParser lang
 
@@ -103,7 +110,9 @@ reserved   = Token.reserved   lexer
 reservedOp = Token.reservedOp lexer
 whiteSpace = Token.whiteSpace lexer
 
--- parsing --
+----------------------------------------------------------------------------
+--                                Parsing                                 --
+----------------------------------------------------------------------------
 
 parseMida :: String -> String -> Either String [Statement]
 parseMida file str =

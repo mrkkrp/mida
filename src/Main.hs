@@ -19,15 +19,75 @@
 
 module Main (main) where
 
-import Control.Monad.State.Strict
+import Control.Monad
 import Options.Applicative
+import System.Directory (getHomeDirectory, doesFileExist)
+import System.FilePath
+import qualified Data.Map as M
+
+import System.Random.Mersenne.Pure64
+
+import Config
 import Environment
-import Defaults
 import Interaction
 
--- command line processing --
+----------------------------------------------------------------------------
+--                               Data Types                               --
+----------------------------------------------------------------------------
 
 data Opts = Opts Bool Int Int Int String String
+
+----------------------------------------------------------------------------
+--                               Constants                                --
+----------------------------------------------------------------------------
+
+dfltPrevLen = 16 :: Int
+dfltSrcFile = "bar.da"
+dfltPrompt  = "? "
+notice      =
+    "MIDA Copyright (c) 2014, 2015 Mark Karpov\n\n\
+    \This program comes with ABSOLUTELY NO WARRANTY. This is free software,\n\
+    \and you are welcome to redistribute it under certain conditions; see\n\
+    \GNU General Public License for details.\n"
+
+----------------------------------------------------------------------------
+--                         Top Level (Invocation)                         --
+----------------------------------------------------------------------------
+
+main :: IO ()
+main = putStrLn notice >> execParser opts >>= f
+    where f (Opts _ _ _ _ _ "") =
+              runMida interaction
+          f (Opts True  _ _ _ _ name) =
+              runMida $ cmdLoad name >> interaction
+          f (Opts False s q b out name) =
+              runMida $ cmdLoad name >> cmdMake s q b out
+
+runMida :: MidaEnv IO () -> IO ()
+runMida e = do
+  params <- loadConfig
+  void $ runMidaEnv e
+       MidaState { stDefs    = M.empty
+                 , stRandGen = pureMT 0
+                 , stPrevLen = lookupCfg params "prvlen" dfltPrevLen
+                 , stSrcFile = lookupCfg params "src"    dfltSrcFile }
+       MidaConfig { cfgPrompt = lookupCfg params "prompt" dfltPrompt }
+
+loadConfig :: IO Params
+loadConfig = do
+  home <- getHomeDirectory
+  let file = home </> ".mida"
+  exist <- doesFileExist file
+  if exist
+  then do params <- parseConfig file <$> (readFile file)
+          case params of
+            Right x -> return x
+            Left  _ -> return M.empty
+  else return M.empty
+
+----------------------------------------------------------------------------
+--                        Command Line Processing                         --
+----------------------------------------------------------------------------
 
 opts :: ParserInfo Opts
 opts =  info (helper <*> bar)
@@ -44,19 +104,22 @@ opts =  info (helper <*> bar)
               <> short   's'
               <> metavar "SEED"
               <> value   dfltSeed
-              <> help    "Set seed for MIDI generation, default is 0" )
+              <> help    ("Set seed for MIDI generation, default is "
+                          ++ show dfltSeed))
              <*> option  auto
                ( long    "quarter"
               <> short   'q'
               <> metavar "TICKS"
               <> value   dfltQuarter
-              <> help    "Set ticks per quarter note, default is 24" )
+              <> help    ("Set ticks per quarter note, default is "
+                          ++ show dfltQuarter))
              <*> option  auto
                ( long    "beats"
               <> short   'b'
               <> metavar "BEATS"
               <> value   dfltBeats
-              <> help    "Set total time in quarter notes, default is 16" )
+              <> help    ("Set total time in quarter notes, default is "
+                          ++ show dfltBeats))
              <*> strOption
                ( long    "output"
               <> short   'o'
@@ -66,30 +129,3 @@ opts =  info (helper <*> bar)
              <*> argument str
                ( metavar "FILE"
               <> value   "" )
-
--- top level logic --
-
-sm :: StateT Env IO () -> IO ()
-sm x = void $ runStateT x Env { eDefs      = dfltDefs
-                              , eRandGen   = dfltRandGen
-                              , ePrompt    = dfltPrompt
-                              , ePrvLength = dfltPrvLen
-                              , eBlockSize = dfltBlock
-                              , eFileName  = dfltFileName
-                              , ePrvCmd    = dfltPrvCmd }
-
-notice :: String
-notice =
-    "MIDA Copyright (c) 2014, 2015 Mark Karpov\n\n\
-    \This program comes with ABSOLUTELY NO WARRANTY. This is free software,\n\
-    \and you are welcome to redistribute it under certain conditions; see\n\
-    \GNU General Public License for details.\n"
-
-main :: IO ()
-main = putStrLn notice >> execParser opts >>= f
-    where f (Opts _    _ _ _ _ "") =
-              sm interLoop
-          f (Opts True  _ _ _ _ n) =
-              sm $ loadSrc n >> interLoop
-          f (Opts False s q b o n) =
-              sm $ loadSrc n >> saveMidi s q b o
