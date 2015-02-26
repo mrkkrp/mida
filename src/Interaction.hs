@@ -117,9 +117,12 @@ processExpr expr = do
     Right x -> mapM_ f x
     Left  x -> liftIO $ printf "parse error in %s\n" x
     where f (Definition n e s) = processDef n e s
-          f (Exposition e) = do l <- getPrevLen
-                                r <- eval e
-                                spitList $ take l r
+          f (Exposition e) = do length  <- getPrevLen
+                                verbose <- getVerbose
+                                result  <- eval e
+                                simpled <- simplify e
+                                when verbose $ spitPrin simpled
+                                spitList $ take length result
 
 ----------------------------------------------------------------------------
 --                                Commands                                --
@@ -269,3 +272,14 @@ spitExc = liftIO . putStrLn . printf "(!) %s" . show
 spitList :: Show a => [a] -> MidaIO ()
 spitList [] = liftIO $ printf "=> none\n"
 spitList xs = liftIO $ printf "=> %s...\n" $ intercalate " " (show <$> xs)
+
+spitPrin :: Principle -> MidaIO ()
+spitPrin = liftIO . putStrLn . ("~> "++) . cm
+    where cm = intercalate " " . map f
+          f (Value   x) = show x
+          f (Section x) = "[" ++ cm x ++ "]"
+          f (Multi   x) = "{" ++ cm x ++ "}"
+          f (CMulti  x) = "{" ++ concatMap cv x ++ "}"
+          cv            = (++) <$> (c . fst) <*> (v . snd)
+          c x           = " (" ++ cm x ++ ") "
+          v (Multi   x) = cm x

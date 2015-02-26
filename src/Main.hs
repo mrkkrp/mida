@@ -44,6 +44,7 @@ data Opts = Opts Bool Int Int Int String String
 dfltPrevLen = 16 :: Int
 dfltSrcFile = "bar.da"
 dfltPrompt  = "? "
+dfltVerbose = False
 notice      =
     "MIDA Copyright (c) 2014, 2015 Mark Karpov\n\n\
     \This program comes with ABSOLUTELY NO WARRANTY. This is free software,\n\
@@ -71,7 +72,8 @@ runMida e = do
                  , stRandGen = pureMT 0
                  , stPrevLen = lookupCfg params "prvlen" dfltPrevLen
                  , stSrcFile = lookupCfg params "src"    dfltSrcFile }
-       MidaConfig { cfgPrompt = lookupCfg params "prompt" dfltPrompt }
+       MidaConfig { cfgPrompt  = lookupCfg params "prompt"  dfltPrompt
+                  , cfgVerbose = lookupCfg params "verbose" dfltVerbose }
 
 loadConfig :: IO Params
 loadConfig = do

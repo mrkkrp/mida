@@ -34,6 +34,7 @@ module Environment
     , getSrcFile
     , setSrcFile
     , getPrompt
+    , getVerbose
     , addDef
     , remDef
     , getPrin
@@ -67,7 +68,8 @@ data MidaState = MidaState
 type Defs = M.Map String (Principle, String)
 
 data MidaConfig = MidaConfig
-    { cfgPrompt :: String }
+    { cfgPrompt  :: String
+    , cfgVerbose :: Bool }
 
 newtype MidaEnv m a = MidaEnv
     { unMidaEnv :: StateT MidaState (ReaderT MidaConfig m) a }
@@ -120,6 +122,9 @@ setSrcFile x = modify $ \e -> e { stSrcFile = x }
 
 getPrompt :: Monad m => MidaEnv m String
 getPrompt = cfgPrompt `liftM` ask
+
+getVerbose :: Monad m => MidaEnv m Bool
+getVerbose = cfgVerbose `liftM` ask
 
 addDef :: Monad m => String -> Principle -> String -> MidaEnv m ()
 addDef name prin src = M.insert name (prin, src) `liftM` getDefs >>= setDefs
