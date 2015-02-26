@@ -21,7 +21,8 @@
 
 module Eval
     ( evalDef
-    , eval )
+    , eval
+    , simplify )
 where
 
 import Control.Applicative (Applicative, (<$>), (<*>))
@@ -114,25 +115,22 @@ simplify = liftM concat . mapM f
       r                = return . return
       fPair (c, x)     = liftM2 (,) (simplify c) (head `liftM` f x)
       f x@(Value    _) = r x
-      f (Reference  x) = getPrin x >>= simplify
+      f (Reference  x) = getPrin x >>= f . Section
       f (Section   xs) = simplify xs >>= r . Section
       f (Range    x y) = return $ Value <$> if x > y then [x,x-1..y] else [x..y]
       f (Multi     xs) = simplify xs >>= r . Multi
       f (CMulti    xs) = mapM fPair xs >>= r . CMulti
-      f (Product  x y) = liftM2 (adb $ liftP (*)) (f x) (f y)
-      f (Sum      x y) = liftM2 (adb $ liftP (+)) (f x) (f y)
+      f (Product  x y) = liftM2 (adb $ liftE (*)) (f x) (f y)
+      f (Sum      x y) = liftM2 (adb $ liftE (+)) (f x) (f y)
       f (Loop     x y) = liftM2 (adb   loop     ) (f x) (f y)
-      f (Rotation x y) = liftM2 (adb   rotate'  ) (f x) (f y)
+      f (Rotation x y) = liftM2 (adb   rotate   ) (f x) (f y)
       f (Reverse    x) = liftM  (adu   reverse' ) (f x)
       adb _ [] []      = []
       adb _ xs []      = xs
       adb _ [] ys      = ys
-      adb g xs (y:ys)  = init xs ++ g (last xs) y ++ ys
+      adb g xs (y:ys)  = init xs ++ [g (last xs) y] ++ ys
       adu _ []         = []
       adu g (x:xs)     = g x : xs
-
-liftP :: (Int -> Int -> Int) -> Element -> Element -> Principle
-liftP f x y = [liftE f x y]
 
 liftE :: (Int -> Int -> Int) -> Element -> Element -> Element
 liftE f  (Value   x) (Value   y) = Value   $ f x y
@@ -144,15 +142,13 @@ liftE f  (Section x) (Section y) = Section $ zipWith (liftE f) x (cycle y)
 liftE f  (Section x) y           = Section $ map (flip (liftE f) y) x
 liftE f  x           (Section y) = Section $ map (liftE f x) y
 
-loop :: Element -> Element -> Principle
-loop x           (Value   y) = replicate y x
-loop x           (Multi   y) = [Multi   $ map (Section . loop x) y]
-loop (Section x) (Section y) = [Section $ concat $ zipWith loop x (cycle y)]
-loop x           (Section y) = [Section $ concat $ map (loop x) y]
-loop x         y@(CMulti  _) = [mapCond (Section . loop x) y]
-
-rotate' :: Element -> Element -> Principle
-rotate' x y = [rotate x y]
+loop :: Element -> Element -> Element
+loop (Section x) (Value   y) = Section $ take (length x * y) (cycle x)
+loop x           (Value   y) = Section $ replicate y x
+loop x           (Multi   y) = Multi   $ map (loop x) y
+loop (Section x) (Section y) = Section $ zipWith loop x (cycle y)
+loop x           (Section y) = Section $ map (loop x) y
+loop x         y@(CMulti  _) = mapCond (loop x) y
 
 rotate :: Element -> Element -> Element
 rotate  (Section  x)  (Value   y) = Section $ zipWith const (drop y (cycle x)) x
