@@ -58,12 +58,18 @@ evalDef :: Monad m => String -> MidaEnv m [Int]
 evalDef name = getPrin name >>= eval
 
 eval :: Monad m => Principle -> MidaEnv m [Int]
-eval prin =
-    do p <- simplify prin
-       g <- newRandGen
-       return $ runCalc (resolve $ f p) g
-    where f [] = []
-          f x  = cycle x
+eval prin = do
+  p <- simplify prin
+  g <- newRandGen
+  return $ runCalc (resolve $ if none p then [] else cycle p) g
+
+none :: Principle -> Bool
+none [] = True
+none xs = all f xs
+    where f (Value   _) = False
+          f (Section x) = none x
+          f (Multi   x) = none x
+          f (CMulti  x) = none (snd <$> x)
 
 resolve :: Principle -> Calc [Int]
 resolve [] = return []
