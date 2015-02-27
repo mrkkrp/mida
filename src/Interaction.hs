@@ -58,10 +58,7 @@ type MidaIO = MidaEnv IO
 
 deriving instance L.MonadException m => L.MonadException (MidaEnv m)
 
-data CompletionScheme
-    = Files
-    | Names
-      deriving (Eq, Show)
+data CompletionScheme = Files | Names deriving (Eq, Show)
 
 ----------------------------------------------------------------------------
 --                               Constants                                --
