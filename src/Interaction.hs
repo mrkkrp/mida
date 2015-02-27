@@ -58,6 +58,11 @@ type MidaIO = MidaEnv IO
 
 deriving instance L.MonadException m => L.MonadException (MidaEnv m)
 
+data CompletionScheme
+    = Files
+    | Names
+      deriving (Eq, Show)
+
 ----------------------------------------------------------------------------
 --                               Constants                                --
 ----------------------------------------------------------------------------
@@ -237,15 +242,29 @@ incompleteInput arg = or [isSuffixOf "," s, f "[]", f "{}", f "<>", f "()"]
           f [x,y] = ((&&) <$> (> 0) <*> (/= g y)) (g x)
 
 completionFunc :: L.CompletionFunc MidaIO
-completionFunc = L.completeWord Nothing " " getCompletions
+completionFunc = L.completeWordWithPrev Nothing " " getCompletions
 
-getCompletions :: String -> MidaIO [L.Completion]
-getCompletions arg = do
+cmdCompletion =
+    [ ("def",  Names)
+    , ("load", Files)
+    , ("make", Files)
+    , ("save", Files) ]
+
+getCompletions :: String -> String -> MidaIO [L.Completion]
+getCompletions prev word = do
   names <- getRefs
-  files <- L.listFiles arg
-  return $ files ++ (map L.simpleCompletion $
-                         filter (arg `isPrefixOf`) (names ++ cmds))
-    where cmds = map (\(x, _, _) -> cmdPrefix ++ x) commands
+  files <- L.listFiles word
+  let prev' = words . reverse $ prev
+      cmds  = map (\(x, _, _) -> cmdPrefix ++ x) commands
+      cmpl  = map (\(x, y) -> (cmdPrefix ++ x, y)) cmdCompletion
+      g Files = files
+      g Names = f names
+  return $ case prev' of
+             []    -> f $ cmds ++ names
+             (c:_) -> if c `elem` cmds
+                      then maybe [] (g . snd) (find ((== c) . fst) cmpl)
+                      else f names
+    where f = map L.simpleCompletion . filter (word `isPrefixOf`)
 
 output :: String -> String -> MidaIO String
 output given ext = do
