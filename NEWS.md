@@ -4,12 +4,20 @@
 
 * fixed bug in batch mode;
 
-* added tab completion for file names;
+* added tab completion based on contents of current input line, including
+  completion of file names for some commands;
 
 * detection and rejection of recursive definitions;
 
-* improved interface.
+* improved interface;
 
+* wholly refactored (and sometimes rewritten) code (it's finally
+  sufficiently elegant);
+
+* more intuitive logic of evaluation in some corner cases;
+
+* optional displaying of simplified principles (for debug and educational
+  purposes).
 
 ## MIDA 0.3.0
 
