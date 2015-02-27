@@ -75,7 +75,7 @@ dfltBeats   = 16 :: Int
 interaction :: MidaIO ()
 interaction = do
   liftIO $ hSetBuffering stdin LineBuffering
-  liftIO $ printf "Loading MIDA Interactive Environment v%s\n" version
+  liftIO $ printf "MIDA Interactive Environment %s\n" version
   L.runInputT (L.setComplete completionFunc L.defaultSettings) midaRepl
 
 midaRepl :: L.InputT MidaIO ()
@@ -104,7 +104,7 @@ processCmd :: String -> MidaIO ()
 processCmd input =
     case find f commands of
       Just (_, x, _) -> x args
-      Nothing -> liftIO $ printf "unknown command, try %shelp\n" cmdPrefix
+      Nothing -> liftIO $ printf "Unknown command, try %shelp.\n" cmdPrefix
     where f (x, _, _)   = x == cmd
           (cmd', args') = break isSpace (trim input)
           cmd           = drop (length cmdPrefix) cmd'
@@ -115,7 +115,7 @@ processExpr expr = do
   file <- getSrcFile
   case parseMida file expr of
     Right x -> mapM_ f x
-    Left  x -> liftIO $ printf "parse error in %s\n" x
+    Left  x -> liftIO $ printf "Parse error in %s.\n" x
     where f (Definition n e s) = processDef n e s
           f (Exposition e) = do length  <- getPrevLen
                                 verbose <- getVerbose
@@ -129,19 +129,19 @@ processExpr expr = do
 ----------------------------------------------------------------------------
 
 commands =
-    [ ("clear",   cmdClear,   "Restore default state of environment")
-    , ("def",     cmdDef,     "Print definition of given symbol"    )
-    , ("help",    cmdHelp,    "Show this help text"                 )
-    , ("license", cmdLicense, "Show license"                        )
-    , ("load",    cmdLoad,    "Load definitions from given file."   )
-    , ("make",    cmdMake',   "Generate and save MIDI file"         )
-    , ("prvlen",  cmdLength,  "Set length of displayed results"     )
-    , ("purge",   cmdPurge,   "Remove redundant definitions"        )
-    , ("quit",    cmdQuit,    "Quit the interactive environment"    )
-    , ("save",    cmdSave,    "Save current environment in file"    ) ]
+    [ ("clear",   cmdClear,   "Restore default state of environment.")
+    , ("def",     cmdDef,     "Print definition of given symbol."    )
+    , ("help",    cmdHelp,    "Show this help text."                 )
+    , ("license", cmdLicense, "Show license."                        )
+    , ("load",    cmdLoad,    "Load definitions from given file."    )
+    , ("make",    cmdMake',   "Generate and save MIDI file."         )
+    , ("prvlen",  cmdLength,  "Set length of displayed results."     )
+    , ("purge",   cmdPurge,   "Remove redundant definitions."        )
+    , ("quit",    cmdQuit,    "Quit the interactive environment."    )
+    , ("save",    cmdSave,    "Save current environment in file."    ) ]
 
 cmdClear :: String -> MidaIO ()
-cmdClear _ = clearDefs >> (liftIO $ printf "environment cleared\n")
+cmdClear _ = clearDefs >> (liftIO $ printf "Environment cleared.\n")
 
 cmdDef :: String -> MidaIO ()
 cmdDef name = getSrc name >>= liftIO . putStr
@@ -177,9 +177,9 @@ cmdLoad given = do
           case parseMida (takeFileName file) contents of
             Right x -> do mapM_ f x
                           setSrcFile file
-                          liftIO $ printf "\"%s\" loaded successfully\n" file
-            Left  x -> liftIO $ printf "parse error in %s;\n" x
-  else liftIO $ printf "could not find \"%s\"\n" file
+                          liftIO $ printf "\"%s\" loaded successfully.\n" file
+            Left  x -> liftIO $ printf "Parse error in %s.\n" x
+  else liftIO $ printf "Could not find \"%s\".\n" file
     where f (Definition n e s) = processDef n e s
           f (Exposition     _) = return ()
 
@@ -197,14 +197,14 @@ cmdMake s q b f = do
   midi   <- genMidi s q b
   result <- liftIO (try (exportFile file midi) :: IO (Either SomeException ()))
   case result of
-    Right _ -> liftIO $ printf "MIDI file saved as \"%s\"\n" file
+    Right _ -> liftIO $ printf "MIDI file saved as \"%s\".\n" file
     Left  e -> spitExc e
 
 cmdLength :: String -> MidaIO ()
 cmdLength x = getPrevLen >>= setPrevLen . parseInt x
 
 cmdPurge :: String -> MidaIO ()
-cmdPurge _ = purgeEnv topDefs >> (liftIO $ printf "environment purged\n")
+cmdPurge _ = purgeEnv topDefs >> (liftIO $ printf "Environment purged.\n")
 
 cmdQuit :: String -> MidaIO ()
 cmdQuit _ = (liftIO $ printf "Goodbye.\n") >> (liftIO $ exitSuccess)
@@ -216,7 +216,7 @@ cmdSave given = do
   result <- liftIO (try (writeFile file src) :: IO (Either SomeException ()))
   case result of
     Right _ -> setSrcFile file >>
-               (liftIO $ printf "environment saved as \"%s\"\n" file)
+               (liftIO $ printf "Environment saved as \"%s\".\n" file)
     Left  e -> spitExc e
 
 ----------------------------------------------------------------------------
@@ -227,8 +227,8 @@ processDef :: String -> Principle -> String -> MidaIO ()
 processDef n e s = do
   b <- checkRecur n e
   if b
-  then liftIO $ printf "rejected recursive definition for '%s'\n" n
-  else addDef n e s >> (liftIO $ printf "defined '%s'\n" n)
+  then liftIO $ printf "Rejected recursive definition for '%s'.\n" n
+  else addDef n e s >> (liftIO $ printf "Defined '%s'.\n" n)
 
 incompleteInput :: String -> Bool
 incompleteInput arg = or [isSuffixOf "," s, f "[]", f "{}", f "<>", f "()"]
@@ -244,7 +244,7 @@ getCompletions arg = do
   names <- getRefs
   files <- L.listFiles arg
   return $ files ++ (map L.simpleCompletion $
-                     filter (arg `isPrefixOf`) (names ++ cmds))
+                         filter (arg `isPrefixOf`) (names ++ cmds))
     where cmds = map (\(x, _, _) -> cmdPrefix ++ x) commands
 
 output :: String -> String -> MidaIO String
@@ -267,19 +267,18 @@ parseInt s x
     | otherwise     = x
 
 spitExc :: SomeException -> MidaIO ()
-spitExc = liftIO . putStrLn . printf "(!) %s" . show
+spitExc = liftIO . putStrLn . printf "(!) %s." . show
 
 spitList :: Show a => [a] -> MidaIO ()
-spitList [] = liftIO $ printf "=> none\n"
-spitList xs = liftIO $ printf "=> %s...\n" $ intercalate " " (show <$> xs)
+spitList [] = liftIO $ printf "none\n"
+spitList xs = liftIO $ printf "%s...\n" $ intercalate " " (show <$> xs)
 
 spitPrin :: Principle -> MidaIO ()
-spitPrin = liftIO . putStrLn . ("~> "++) . cm
-    where cm = intercalate " " . map f
+spitPrin = liftIO . putStrLn . ("= "++) . cm "" "" f
+    where cm b e g xs   = b ++ (intercalate " " $ map g xs) ++ e
           f (Value   x) = show x
-          f (Section x) = "[" ++ cm x ++ "]"
-          f (Multi   x) = "{" ++ cm x ++ "}"
-          f (CMulti  x) = "{" ++ concatMap cv x ++ "}"
-          cv            = (++) <$> (c . fst) <*> (v . snd)
-          c x           = " (" ++ cm x ++ ") "
-          v (Multi   x) = cm x
+          f (Section x) = cm "[" "]" f x
+          f (Multi   x) = cm "{" "}" f x
+          f (CMulti  x) = cm "{" "}" ((++) <$> (c . fst) <*> (v . snd)) x
+          c x           = cm "(" ") " f x
+          v (Multi   x) = cm "" "" f x
