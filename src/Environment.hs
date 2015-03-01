@@ -65,7 +65,7 @@ data MidaState = MidaState
     , stPrevLen :: Int
     , stSrcFile :: String }
 
-type Defs = M.Map String (Principle, String)
+type Defs = M.Map String (SyntaxTree, String)
 
 data MidaConfig = MidaConfig
     { cfgPrompt  :: String
@@ -126,13 +126,13 @@ getPrompt = cfgPrompt `liftM` ask
 getVerbose :: Monad m => MidaEnv m Bool
 getVerbose = cfgVerbose `liftM` ask
 
-addDef :: Monad m => String -> Principle -> String -> MidaEnv m ()
-addDef name prin src = M.insert name (prin, src) `liftM` getDefs >>= setDefs
+addDef :: Monad m => String -> SyntaxTree -> String -> MidaEnv m ()
+addDef name img src = M.insert name (img, src) `liftM` getDefs >>= setDefs
 
 remDef :: Monad m => String -> MidaEnv m ()
 remDef name = M.delete name `liftM` getDefs >>= setDefs
 
-getPrin :: Monad m => String -> MidaEnv m Principle
+getPrin :: Monad m => String -> MidaEnv m SyntaxTree
 getPrin name = (maybe [] fst . M.lookup name) `liftM` getDefs
 
 getSrc :: Monad m => String -> MidaEnv m String
@@ -147,23 +147,22 @@ getRefs = getDefs >>= return . M.keys
 tDefs :: String -> Defs -> [String]
 tDefs name defs = maybe [] (cm . fst) $ M.lookup name defs
     where cm                = concatMap f
-          f (Value     _  ) = []
+          f (Value'    _  ) = []
+          f (Section'  xs ) = cm xs
+          f (Multi'    xs ) = cm xs
+          f (CMulti'   xs ) = concatMap ((++) <$> f . fst <*> f . snd) xs
           f (Reference x  ) = x : tDefs x defs
-          f (Section   xs ) = cm xs
+          f (Range     _ _) = []
           f (Product   x y) = f x ++ f y
           f (Sum       x y) = f x ++ f y
           f (Loop      x y) = f x ++ f y
-          f (Rotation  x y) = f x ++ f y
           f (Reverse   x  ) = f x
-          f (Range     _ _) = []
-          f (Multi     xs ) = cm xs
-          f (CMulti    xs ) = concatMap ((++) <$> cm . fst <*> f . snd) xs
 
 purgeEnv :: Monad m => [String] -> MidaEnv m ()
 purgeEnv tops = f `liftM` getDefs >>= setDefs
     where f defs = foldr M.delete defs $ M.keys defs \\ (musts defs ++ tops)
           musts  = nub . concat . zipWith tDefs tops . repeat
 
-checkRecur :: Monad m => String -> Principle -> MidaEnv m Bool
-checkRecur name prin = check `liftM` getDefs
-    where check = elem name . tDefs name . M.insert name (prin, "")
+checkRecur :: Monad m => String -> SyntaxTree -> MidaEnv m Bool
+checkRecur name img = check `liftM` getDefs
+    where check = elem name . tDefs name . M.insert name (img, "")

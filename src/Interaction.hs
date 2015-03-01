@@ -64,7 +64,7 @@ data CompletionScheme = Files | Names deriving (Eq, Show)
 --                               Constants                                --
 ----------------------------------------------------------------------------
 
-version     = "0.3.1"
+version     = "0.4.0"
 cmdPrefix   = ":"
 dfltSeed    = 0  :: Int
 dfltQuarter = 24 :: Int
@@ -122,8 +122,8 @@ processExpr expr = do
           f (Exposition e) = do length  <- getPrevLen
                                 verbose <- getVerbose
                                 result  <- eval e
-                                simpled <- simplify e
-                                when verbose $ spitPrin simpled
+                                built   <- build e
+                                when verbose $ spitPrin built
                                 spitList $ take length result
 
 ----------------------------------------------------------------------------
@@ -225,7 +225,7 @@ cmdSave given = do
 --                                  Misc                                  --
 ----------------------------------------------------------------------------
 
-processDef :: String -> Principle -> String -> MidaIO ()
+processDef :: String -> SyntaxTree -> String -> MidaIO ()
 processDef n e s = do
   b <- checkRecur n e
   if b
@@ -296,5 +296,5 @@ spitPrin = liftIO . putStrLn . ("= "++) . cm "" "" f
           f (Section x) = cm "[" "]" f x
           f (Multi   x) = cm "{" "}" f x
           f (CMulti  x) = cm "{" "}" ((++) <$> (c . fst) <*> (v . snd)) x
-          c x           = cm "(" ") " f x
+          c (Multi   x) = cm "<" "> " f x
           v (Multi   x) = cm "" "" f x

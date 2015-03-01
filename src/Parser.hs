@@ -20,8 +20,8 @@
 
 module Parser
     ( Statement (..)
-    , Element   (..)
-    , Principle
+    , Elt'      (..)
+    , SyntaxTree
     , parseMida )
 where
 
@@ -38,24 +38,23 @@ import qualified Text.ParserCombinators.Parsec.Token as Token
 ----------------------------------------------------------------------------
 
 data Statement
-    = Definition String Principle String
-    | Exposition Principle
+    = Definition String SyntaxTree String
+    | Exposition SyntaxTree
       deriving (Show)
 
-type Principle = [Element]
+type SyntaxTree = [Elt']
 
-data Element
-    = Value     Int
+data Elt'
+    = Value'    Int
+    | Section'  [Elt']
+    | Multi'    [Elt']
+    | CMulti'   [(Elt', Elt')]
     | Reference String
-    | Section   Principle
-    | Product   Element Element
-    | Sum       Element Element
-    | Loop      Element Element
-    | Rotation  Element Element
-    | Reverse   Element
     | Range     Int Int
-    | Multi     Principle
-    | CMulti    [(Principle, Element)]
+    | Product   Elt' Elt'
+    | Sum       Elt' Elt'
+    | Loop      Elt' Elt'
+    | Reverse   Elt'
       deriving (Show)
 
 ----------------------------------------------------------------------------
@@ -70,14 +69,12 @@ langCommentLine  = "//"
 langProductOp    = "*"
 langSumOp        = "+"
 langLoopOp       = "$"
-langRotationOp   = "^"
 langReverseOp    = "@"
 langRangeOp      = ".."
 langDefinitionOp = "="
 langOps          = [ langProductOp
                    , langSumOp
                    , langLoopOp
-                   , langRotationOp
                    , langReverseOp
                    , langRangeOp
                    , langDefinitionOp ]
@@ -100,6 +97,7 @@ lang = emptyDef
 
 lexer = Token.makeTokenParser lang
 
+angles     = Token.angles     lexer
 braces     = Token.braces     lexer
 brackets   = Token.brackets   lexer
 comma      = Token.comma      lexer
@@ -140,14 +138,14 @@ pDefinition = do
 pExposition :: Parser [Statement]
 pExposition = whiteSpace >> pPrinciple >>= return . return . Exposition
 
-pPrinciple :: Parser Principle
+pPrinciple :: Parser SyntaxTree
 pPrinciple = do
   result <- sepBy (pExpression <|> pElement) (optional comma)
   optional . choice $ map f langOps
   return result
     where f x = reservedOp x >> unexpected ("\"" ++ x ++ "\"")
 
-pElement :: Parser Element
+pElement :: Parser Elt'
 pElement
     =  try pRange
    <|> pValue
@@ -157,57 +155,57 @@ pElement
    <|> pCMulti
    <?> "element"
 
-pRange :: Parser Element
+pRange :: Parser Elt'
 pRange = do
-  Value x <- pValue
+  Value' x <- pValue
   reservedOp langRangeOp
-  Value y <- pValue
+  Value' y <- pValue
   return $ Range x y
 
-pValue :: Parser Element
+pValue :: Parser Elt'
 pValue = pNatural <|> pNote <|> pFigure <?> "literal value"
 
-pNatural :: Parser Element
-pNatural = natural >>= return . Value . fromIntegral
+pNatural :: Parser Elt'
+pNatural = natural >>= return . Value' . fromIntegral
 
-pNote :: Parser Element
+pNote :: Parser Elt'
 pNote = do
   note <- choice $ map (try . string) noteAlias
   whiteSpace
-  return . Value . fromJust $ note `elemIndex` noteAlias
+  return . Value' . fromJust $ note `elemIndex` noteAlias
 
-pFigure :: Parser Element
+pFigure :: Parser Elt'
 pFigure = do
   figure <- choice $ map (try . string) langFigures
   whiteSpace
-  return . Value . (* 128) . succ . fromJust $ figure `elemIndex` langFigures
+  return . Value' . (* 128) . succ . fromJust $ figure `elemIndex` langFigures
 
-pReference :: Parser Element
+pReference :: Parser Elt'
 pReference = do
   n <- identifier
   notFollowedBy $ reservedOp langDefinitionOp
   return $ Reference n
 
-pSection :: Parser Element
-pSection = brackets pPrinciple >>= return . Section
+pSection :: Parser Elt'
+pSection = brackets pPrinciple >>= return . Section'
 
-pMulti :: Parser Element
-pMulti = braces pPrinciple >>= return . Multi
+pMulti :: Parser Elt'
+pMulti = braces pPrinciple >>= return . Multi'
 
-pCMulti :: Parser Element
-pCMulti = braces (many f) >>= return . CMulti
+pCMulti :: Parser Elt'
+pCMulti = braces (many f) >>= return . CMulti'
     where f = do
-            c <- parens pPrinciple
+            c <- angles pPrinciple
             r <- pPrinciple
-            return (c, Multi r)
+            return (Multi' c, Multi' r)
 
-pExpression :: Parser Element
-pExpression = buildExpressionParser pOperators pElement
+pExpression :: Parser Elt'
+pExpression = buildExpressionParser pOperators (parens pExpression <|> pElement)
+              <?> "expression"
 
-pOperators :: [[Operator Char st Element]]
+pOperators :: [[Operator Char st Elt']]
 pOperators =
     [[ Prefix (reservedOp langReverseOp >> return Reverse ) ]
      , [ Infix  (reservedOp langProductOp  >> return Product ) AssocLeft
        , Infix  (reservedOp langSumOp      >> return Sum     ) AssocLeft
-       , Infix  (reservedOp langLoopOp     >> return Loop    ) AssocLeft
-       , Infix  (reservedOp langRotationOp >> return Rotation) AssocLeft ]]
+       , Infix  (reservedOp langLoopOp     >> return Loop    ) AssocLeft ]]

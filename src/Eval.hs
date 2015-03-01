@@ -20,15 +20,20 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Eval
-    ( evalDef
+    ( Principle
+    , Elt
+    , Element (..)
+    , evalDef
     , eval
-    , simplify )
+    , build )
 where
 
-import Control.Applicative (Applicative, (<$>), (<*>))
+import Control.Applicative (Applicative, pure, (<$>), (<*>))
 import Control.Monad.State.Lazy
 import Data.List
 import Data.Maybe
+import Data.Monoid (mappend, mconcat)
+import qualified Data.Foldable as F
 
 import System.Random.Mersenne.Pure64
 
@@ -38,6 +43,16 @@ import Parser
 ----------------------------------------------------------------------------
 --                               Data Types                               --
 ----------------------------------------------------------------------------
+
+type Principle = [Elt]
+type Elt       = Element Int
+
+data Element a
+    = Value     a
+    | Section   [Element a]
+    | Multi     [Element a]
+    | CMulti    [(Element a, Element a)]
+      deriving (Show)
 
 data CalcState = CalcState
     { clcRandGen :: PureMT
@@ -50,6 +65,29 @@ newtype Calc a = Calc
              , Monad
              , MonadState CalcState)
 
+instance Functor Element where
+    fmap f (Value   x) = Value   $ f x
+    fmap f (Section x) = Section $ (f <$>) <$> x
+    fmap f (Multi   x) = Multi   $ (f <$>) <$> x
+    fmap f (CMulti  x) = CMulti  $
+                         ((,) <$> (f <$>) . fst <*> (f <$>) . snd) <$> x
+
+instance Applicative Element where
+    pure = Value
+    (Value   f) <*> x = f <$> x
+    (Section f) <*> x = Section $ (<*> x) <$> f
+    (Multi   f) <*> x = Multi   $ (<*> x) <$> f
+    (CMulti  f) <*> x = CMulti  $
+                        ((,) <$> (<*> x) . fst <*> (<*> x) . snd) <$> f
+
+instance F.Foldable Element where
+    foldMap f (Value   x) = f x
+    foldMap f (Section x) = mconcat $ (F.foldMap f) <$> x
+    foldMap f (Multi   x) = mconcat $ (F.foldMap f) <$> x
+    foldMap f (CMulti  x) = mconcat $
+                            (mappend <$> F.foldMap f . fst
+                                         <*> F.foldMap f . snd) <$> x
+
 ----------------------------------------------------------------------------
 --                               Evaluation                               --
 ----------------------------------------------------------------------------
@@ -57,19 +95,12 @@ newtype Calc a = Calc
 evalDef :: Monad m => String -> MidaEnv m [Int]
 evalDef name = getPrin name >>= eval
 
-eval :: Monad m => Principle -> MidaEnv m [Int]
+eval :: Monad m => SyntaxTree -> MidaEnv m [Int]
 eval prin = do
-  p <- simplify prin
+  p <- build prin
   g <- newRandGen
   return $ runCalc (resolve $ if none p then [] else cycle p) g
-
-none :: Principle -> Bool
-none [] = True
-none xs = all f xs
-    where f (Value   _) = False
-          f (Section x) = none x
-          f (Multi   x) = none x
-          f (CMulti  x) = none (snd <$> x)
+    where none = null . F.foldr (:) [] . Section
 
 resolve :: Principle -> Calc [Int]
 resolve [] = return []
@@ -96,17 +127,17 @@ choice xs = do
   modify $ \c -> c { clcRandGen = g }
   return . Just $ xs !! mod (abs n) (length xs)
 
-condMatch :: [Int] -> Element -> Bool
+condMatch :: [Int] -> Elt -> Bool
 condMatch []    _           = False
 condMatch (h:_) (Value   x) = h == x
 condMatch hs    (Section x) = and $ zipWith condMatch (tails hs) (reverse x)
 condMatch hs    (Multi   x) = or  $ zipWith condMatch (repeat hs) x
 condMatch hs    (CMulti  x) = condMatch hs (Multi $ map snd x)
 
-matchHistory :: [Element] -> Calc Bool
-matchHistory e = do
+matchHistory :: Elt -> Calc Bool
+matchHistory x = do
   hs <- clcHistory <$> get
-  return $ any (condMatch hs) e
+  return $ condMatch hs x
 
 addHistory :: Int -> Calc ()
 addHistory x = modify $ \c -> c { clcHistory = x : clcHistory c }
@@ -115,59 +146,39 @@ addHistory x = modify $ \c -> c { clcHistory = x : clcHistory c }
 --                             Simplification                             --
 ----------------------------------------------------------------------------
 
-simplify :: Monad m => Principle -> MidaEnv m Principle
-simplify = liftM concat . mapM f
+build :: Monad m => SyntaxTree -> MidaEnv m Principle
+build = liftM concat . mapM f
     where
       r                = return . return
-      fPair (c, x)     = liftM2 (,) (simplify c) (head `liftM` f x)
-      f x@(Value    _) = r x
-      f (Reference  x) = getPrin x >>= f . Section
-      f (Section   xs) = simplify xs >>= r . Section
+      fPair (c, x)     = liftM2 (,) (head `liftM` f c) (head `liftM` f x)
+      f (Value'     x) = r . Value $ x
+      f (Section'  xs) = build xs >>= r . Section
+      f (Multi'    xs) = build xs >>= r . Multi
+      f (CMulti'   xs) = mapM fPair xs >>= r . CMulti
+      f (Reference  x) = getPrin x >>= build
       f (Range    x y) = return $ Value <$> if x > y then [x,x-1..y] else [x..y]
-      f (Multi     xs) = simplify xs >>= r . Multi
-      f (CMulti    xs) = mapM fPair xs >>= r . CMulti
-      f (Product  x y) = liftM2 (adb $ liftE (*)) (f x) (f y)
-      f (Sum      x y) = liftM2 (adb $ liftE (+)) (f x) (f y)
-      f (Loop     x y) = liftM2 (adb   loop     ) (f x) (f y)
-      f (Rotation x y) = liftM2 (adb   rotate   ) (f x) (f y)
-      f (Reverse    x) = liftM  (adu   reverse' ) (f x)
-      adb _ [] []      = []
+      f (Product  x y) = liftM2 (adb (\a b -> [(*) <$> a <*> b])) (f x) (f y)
+      f (Sum      x y) = liftM2 (adb (\a b -> [(+) <$> a <*> b])) (f x) (f y)
+      f (Loop     x y) = liftM2 (adb loop) (f x) (f y)
+      f (Reverse    x) = liftM  (adu reverse') (f x)
+      adb _ [] _       = []
       adb _ xs []      = xs
-      adb _ [] ys      = ys
-      adb g xs (y:ys)  = init xs ++ [g (last xs) y] ++ ys
+      adb g xs (y:ys)  = init xs ++ g (last xs) y ++ ys
       adu _ []         = []
       adu g (x:xs)     = g x : xs
 
-liftE :: (Int -> Int -> Int) -> Element -> Element -> Element
-liftE f  (Value   x) (Value   y) = Value   $ f x y
-liftE f  (Multi   x) y           = Multi   $ map (flip (liftE f) y) x
-liftE f  x           (Multi   y) = Multi   $ map (liftE f x) y
-liftE f x@(CMulti _) y           = mapCond (flip (liftE f) y) x
-liftE f  x          y@(CMulti _) = mapCond (liftE f x) y
-liftE f  (Section x) (Section y) = Section $ zipWith (liftE f) x (cycle y)
-liftE f  (Section x) y           = Section $ map (flip (liftE f) y) x
-liftE f  x           (Section y) = Section $ map (liftE f x) y
+loop :: Elt -> Elt -> Principle
+loop x           (Value   y) = replicate y x
+loop x           (Multi   y) = [Multi $ map (Section . loop x) y]
+loop (Section x) (Section y) = [Section $ concat $ zipWith loop x (cycle y)]
+loop x           (Section y) = [Section $ concat $ map (loop x) y]
+loop x          y@(CMulti _) = [mapCond (Section . loop x) y]
 
-loop :: Element -> Element -> Element
-loop (Section x) (Value   y) = Section $ take (length x * y) (cycle x)
-loop x           (Value   y) = Section $ replicate y x
-loop x           (Multi   y) = Multi   $ map (loop x) y
-loop (Section x) (Section y) = Section $ zipWith loop x (cycle y)
-loop x           (Section y) = Section $ map (loop x) y
-loop x         y@(CMulti  _) = mapCond (loop x) y
-
-rotate :: Element -> Element -> Element
-rotate  (Section  x)  (Value   y) = Section $ zipWith const (drop y (cycle x)) x
-rotate x@(Section _)  (Multi   y) = Multi   $ map (rotate x) y
-rotate  (Section  x)  (Section y) = Section $ zipWith rotate x (cycle y)
-rotate x@(Section _) y@(CMulti _) = mapCond (rotate x) y
-rotate  x             _           = x
-
-reverse' :: Element -> Element
-reverse' x@(Value _)  = x
-reverse' (Multi x)    = Multi   $ map reverse' x
-reverse' (Section x)  = Section $ reverse $ map reverse' x
+reverse' :: Elt -> Elt
+reverse' x@(Value  _) = x
+reverse' (Multi    x) = Multi   $ map reverse' x
+reverse' (Section  x) = Section $ reverse $ map reverse' x
 reverse' x@(CMulti _) = mapCond reverse' x
 
-mapCond :: (Element -> Element) -> Element -> Element
-mapCond f (CMulti xs) = CMulti $ map ((,) <$> (map f . fst) <*> (f . snd)) xs
+mapCond :: (Elt -> Elt) -> Elt -> Elt
+mapCond f (CMulti xs) = CMulti $ map ((,) <$> (f . fst) <*> (f . snd)) xs

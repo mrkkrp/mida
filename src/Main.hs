@@ -42,7 +42,7 @@ data Opts = Opts Bool Int Int Int String String
 ----------------------------------------------------------------------------
 
 dfltPrevLen = 16 :: Int
-dfltSrcFile = "bar.da"
+dfltSrcFile = "foo.da"
 dfltPrompt  = "? "
 dfltVerbose = False
 notice      =
