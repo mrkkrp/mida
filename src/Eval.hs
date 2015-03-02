@@ -158,7 +158,9 @@ build = liftM concat . mapM f
       f (Reference  x) = getPrin x >>= build
       f (Range    x y) = return $ Value <$> if x > y then [x,x-1..y] else [x..y]
       f (Product  x y) = liftM2 (adb (\a b -> [(*) <$> a <*> b])) (f x) (f y)
+      f (Division x y) = liftM2 (adb (\a b -> [sdiv <$> a <*> b])) (f x) (f y)
       f (Sum      x y) = liftM2 (adb (\a b -> [(+) <$> a <*> b])) (f x) (f y)
+      f (Diff     x y) = liftM2 (adb (\a b -> [sdif <$> a <*> b])) (f x) (f y)
       f (Loop     x y) = liftM2 (adb loop) (f x) (f y)
       f (Rotation x y) = liftM2 (adb (\a b -> [rotate a b])) (f x) (f y)
       f (Reverse    x) = liftM  (adu reverse') (f x)
@@ -167,6 +169,15 @@ build = liftM concat . mapM f
       adb g xs (y:ys)  = init xs ++ g (last xs) y ++ ys
       adu _ []         = []
       adu g (x:xs)     = g x : xs
+
+sdiv :: Int -> Int -> Int
+sdiv x 0 = x
+sdiv x y = x `div` y
+
+sdif :: Int -> Int -> Int
+sdif x y
+    | x < y     = 0
+    | otherwise = x - y
 
 loop :: Elt -> Elt -> Principle
 loop x           (Value   y) = replicate y x

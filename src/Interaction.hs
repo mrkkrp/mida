@@ -209,7 +209,7 @@ cmdMake s q b f = do
 cmdProg :: String -> MidaIO ()
 cmdProg arg = do
   prog <- getProg
-  setProg $ parseInt (head $ words arg) prog
+  setProg $ parseInt (trim arg) prog
 
 cmdPrv :: String -> MidaIO ()
 cmdPrv arg = do
@@ -252,7 +252,7 @@ cmdSave given = do
 cmdTempo :: String -> MidaIO ()
 cmdTempo arg = do
   tempo <- getTempo
-  setTempo $ parseInt (head $ words arg) tempo
+  setTempo $ parseInt (trim arg) tempo
 
 ----------------------------------------------------------------------------
 --                                  Misc                                  --

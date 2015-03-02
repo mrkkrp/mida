@@ -52,7 +52,9 @@ data Elt'
     | Reference String
     | Range     Int Int
     | Product   Elt' Elt'
+    | Division  Elt' Elt'
     | Sum       Elt' Elt'
+    | Diff      Elt' Elt'
     | Loop      Elt' Elt'
     | Rotation  Elt' Elt'
     | Reverse   Elt'
@@ -68,14 +70,18 @@ langCommentStart = "/*"
 langCommentEnd   = "*/"
 langCommentLine  = "//"
 langProductOp    = "*"
+langDivisionOp   = "/"
 langSumOp        = "+"
+langDiffOp       = "-"
 langLoopOp       = "$"
 langRotationOp   = "^"
 langReverseOp    = "@"
 langRangeOp      = ".."
 langDefinitionOp = "="
 langOps          = [ langProductOp
+                   , langDivisionOp
                    , langSumOp
+                   , langDiffOp
                    , langLoopOp
                    , langRotationOp
                    , langReverseOp
@@ -209,7 +215,9 @@ pExpression = buildExpressionParser pOperators (parens pExpression <|> pElement)
 pOperators :: [[Operator Char st Elt']]
 pOperators =
     [[ Prefix (reservedOp langReverseOp >> return Reverse ) ]
-     , [ Infix  (reservedOp langProductOp  >> return Product ) AssocLeft
-       , Infix  (reservedOp langSumOp      >> return Sum     ) AssocLeft
-       , Infix  (reservedOp langLoopOp     >> return Loop    ) AssocLeft
-       , Infix  (reservedOp langRotationOp >> return Rotation) AssocLeft ]]
+     , [ Infix (reservedOp langProductOp  >> return Product ) AssocLeft
+       , Infix (reservedOp langDivisionOp >> return Division) AssocLeft
+       , Infix (reservedOp langSumOp      >> return Sum     ) AssocLeft
+       , Infix (reservedOp langDiffOp     >> return Diff    ) AssocLeft
+       , Infix (reservedOp langLoopOp     >> return Loop    ) AssocLeft
+       , Infix (reservedOp langRotationOp >> return Rotation) AssocLeft ]]
