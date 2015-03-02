@@ -54,17 +54,6 @@ data Element a
     | CMulti    [(Element a, Element a)]
       deriving (Show)
 
-data CalcState = CalcState
-    { clcRandGen :: PureMT
-    , clcHistory :: [Int] }
-
-newtype Calc a = Calc
-    { unCalc :: State CalcState a }
-    deriving ( Functor
-             , Applicative
-             , Monad
-             , MonadState CalcState)
-
 instance Functor Element where
     fmap f (Value   x) = Value   $ f x
     fmap f (Section x) = Section $ (f <$>) <$> x
@@ -87,6 +76,17 @@ instance F.Foldable Element where
     foldMap f (CMulti  x) = mconcat $
                             (mappend <$> F.foldMap f . fst
                                          <*> F.foldMap f . snd) <$> x
+
+data CalcState = CalcState
+    { clcRandGen :: PureMT
+    , clcHistory :: [Int] }
+
+newtype Calc a = Calc
+    { unCalc :: State CalcState a }
+    deriving ( Functor
+             , Applicative
+             , Monad
+             , MonadState CalcState)
 
 ----------------------------------------------------------------------------
 --                               Evaluation                               --
@@ -160,6 +160,7 @@ build = liftM concat . mapM f
       f (Product  x y) = liftM2 (adb (\a b -> [(*) <$> a <*> b])) (f x) (f y)
       f (Sum      x y) = liftM2 (adb (\a b -> [(+) <$> a <*> b])) (f x) (f y)
       f (Loop     x y) = liftM2 (adb loop) (f x) (f y)
+      f (Rotation x y) = liftM2 (adb (\a b -> [rotate a b])) (f x) (f y)
       f (Reverse    x) = liftM  (adu reverse') (f x)
       adb _ [] _       = []
       adb _ xs []      = xs
@@ -170,9 +171,14 @@ build = liftM concat . mapM f
 loop :: Elt -> Elt -> Principle
 loop x           (Value   y) = replicate y x
 loop x           (Multi   y) = [Multi $ map (Section . loop x) y]
-loop (Section x) (Section y) = [Section $ concat $ zipWith loop x (cycle y)]
-loop x           (Section y) = [Section $ concat $ map (loop x) y]
-loop x          y@(CMulti _) = [mapCond (Section . loop x) y]
+loop (Section x) (Section y) = [Section . concat $ zipWith loop x (cycle y)]
+loop x           _           = [x]
+
+rotate :: Elt -> Elt -> Elt
+rotate (Section   x) (Value   y) = Section $ zipWith const (drop y (cycle x)) x
+rotate x@(Section _) (Multi   y) = Multi $ map (rotate x) y
+rotate (Section   x) (Section y) = Section $ zipWith rotate x (cycle y)
+rotate x             _           = x
 
 reverse' :: Elt -> Elt
 reverse' x@(Value  _) = x

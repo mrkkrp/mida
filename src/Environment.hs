@@ -156,6 +156,7 @@ tDefs name defs = maybe [] (cm . fst) $ M.lookup name defs
           f (Product   x y) = f x ++ f y
           f (Sum       x y) = f x ++ f y
           f (Loop      x y) = f x ++ f y
+          f (Rotation  x y) = f x ++ f y
           f (Reverse   x  ) = f x
 
 purgeEnv :: Monad m => [String] -> MidaEnv m ()

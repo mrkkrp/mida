@@ -54,6 +54,7 @@ data Elt'
     | Product   Elt' Elt'
     | Sum       Elt' Elt'
     | Loop      Elt' Elt'
+    | Rotation  Elt' Elt'
     | Reverse   Elt'
       deriving (Show)
 
@@ -69,12 +70,14 @@ langCommentLine  = "//"
 langProductOp    = "*"
 langSumOp        = "+"
 langLoopOp       = "$"
+langRotationOp   = "^"
 langReverseOp    = "@"
 langRangeOp      = ".."
 langDefinitionOp = "="
 langOps          = [ langProductOp
                    , langSumOp
                    , langLoopOp
+                   , langRotationOp
                    , langReverseOp
                    , langRangeOp
                    , langDefinitionOp ]
@@ -208,4 +211,5 @@ pOperators =
     [[ Prefix (reservedOp langReverseOp >> return Reverse ) ]
      , [ Infix  (reservedOp langProductOp  >> return Product ) AssocLeft
        , Infix  (reservedOp langSumOp      >> return Sum     ) AssocLeft
-       , Infix  (reservedOp langLoopOp     >> return Loop    ) AssocLeft ]]
+       , Infix  (reservedOp langLoopOp     >> return Loop    ) AssocLeft
+       , Infix  (reservedOp langRotationOp >> return Rotation) AssocLeft ]]
