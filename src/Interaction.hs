@@ -36,10 +36,11 @@ import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Char (isDigit, isSpace)
 import Data.List
-import System.Directory (getHomeDirectory, doesFileExist)
+import System.Directory (getHomeDirectory, doesFileExist, getTemporaryDirectory)
 import System.Exit
 import System.FilePath
 import System.IO
+import System.Process (shell, createProcess, waitForProcess, delegate_ctlc)
 import Text.Printf (printf)
 
 import Codec.Midi (exportFile)
@@ -137,10 +138,13 @@ commands =
     , ("license", cmdLicense, "Show license."                        )
     , ("load",    cmdLoad,    "Load definitions from given file."    )
     , ("make",    cmdMake',   "Generate and save MIDI file."         )
+    , ("prog",    cmdProg,    "Set program for preview."             )
+    , ("prv",     cmdPrv,     "Play the score with external program.")
     , ("prvlen",  cmdLength,  "Set length of displayed results."     )
     , ("purge",   cmdPurge,   "Remove redundant definitions."        )
     , ("quit",    cmdQuit,    "Quit the interactive environment."    )
-    , ("save",    cmdSave,    "Save current environment in file."    ) ]
+    , ("save",    cmdSave,    "Save current environment in file."    )
+    , ("tempo",   cmdTempo,   "Set tempo for preview."               ) ]
 
 cmdClear :: String -> MidaIO ()
 cmdClear _ = clearDefs >> (liftIO $ printf "Environment cleared.\n")
@@ -202,6 +206,30 @@ cmdMake s q b f = do
     Right _ -> liftIO $ printf "MIDI file saved as \"%s\".\n" file
     Left  e -> spitExc e
 
+cmdProg :: String -> MidaIO ()
+cmdProg arg = do
+  prog <- getProg
+  setProg $ parseInt (head $ words arg) prog
+
+cmdPrv :: String -> MidaIO ()
+cmdPrv arg = do
+  prvcmd  <- getPrvCmd
+  progOp  <- getProgOp
+  prog    <- show <$> getProg
+  tempoOp <- getTempoOp
+  tempo   <- show <$> getTempo
+  temp <- liftIO $ getTemporaryDirectory
+  f    <- output "" "mid"
+  let (s:q:b:_) = words arg ++ repeat ""
+      file      = combine temp (takeFileName f)
+      cmd       = intercalate " " [prvcmd,progOp,prog,tempoOp,tempo,file]
+  cmdMake (parseInt s dfltSeed)
+          (parseInt q dfltQuarter)
+          (parseInt b dfltBeats)
+          file
+  (_, _, _, ph) <- liftIO $ createProcess (shell cmd) { delegate_ctlc = True }
+  liftIO . void $ waitForProcess ph
+
 cmdLength :: String -> MidaIO ()
 cmdLength x = getPrevLen >>= setPrevLen . parseInt x
 
@@ -220,6 +248,11 @@ cmdSave given = do
     Right _ -> setSrcFile file >>
                (liftIO $ printf "Environment saved as \"%s\".\n" file)
     Left  e -> spitExc e
+
+cmdTempo :: String -> MidaIO ()
+cmdTempo arg = do
+  tempo <- getTempo
+  setTempo $ parseInt (head $ words arg) tempo
 
 ----------------------------------------------------------------------------
 --                                  Misc                                  --

@@ -33,8 +33,15 @@ module Environment
     , setPrevLen
     , getSrcFile
     , setSrcFile
+    , getProg
+    , setProg
+    , getTempo
+    , setTempo
     , getPrompt
     , getVerbose
+    , getPrvCmd
+    , getProgOp
+    , getTempoOp
     , addDef
     , remDef
     , getPrin
@@ -63,13 +70,18 @@ data MidaState = MidaState
     { stDefs    :: Defs
     , stRandGen :: PureMT
     , stPrevLen :: Int
-    , stSrcFile :: String }
+    , stSrcFile :: String
+    , stProg    :: Int
+    , stTempo   :: Int }
 
 type Defs = M.Map String (SyntaxTree, String)
 
 data MidaConfig = MidaConfig
     { cfgPrompt  :: String
-    , cfgVerbose :: Bool }
+    , cfgVerbose :: Bool
+    , cfgPrvCmd  :: String
+    , cfgProgOp  :: String
+    , cfgTempoOp :: String }
 
 newtype MidaEnv m a = MidaEnv
     { unMidaEnv :: StateT MidaState (ReaderT MidaConfig m) a }
@@ -120,11 +132,32 @@ getSrcFile = stSrcFile `liftM` get
 setSrcFile :: Monad m => String -> MidaEnv m ()
 setSrcFile x = modify $ \e -> e { stSrcFile = x }
 
+getProg :: Monad m => MidaEnv m Int
+getProg = stProg `liftM` get
+
+setProg :: Monad m => Int -> MidaEnv m ()
+setProg x = modify $ \e -> e { stProg = x }
+
+getTempo :: Monad m => MidaEnv m Int
+getTempo = stTempo `liftM` get
+
+setTempo :: Monad m => Int -> MidaEnv m ()
+setTempo x = modify $ \e -> e { stTempo = x }
+
 getPrompt :: Monad m => MidaEnv m String
 getPrompt = cfgPrompt `liftM` ask
 
 getVerbose :: Monad m => MidaEnv m Bool
 getVerbose = cfgVerbose `liftM` ask
+
+getPrvCmd :: Monad m => MidaEnv m String
+getPrvCmd = cfgPrvCmd `liftM` ask
+
+getProgOp :: Monad m => MidaEnv m String
+getProgOp = cfgProgOp `liftM` ask
+
+getTempoOp :: Monad m => MidaEnv m String
+getTempoOp = cfgTempoOp `liftM` ask
 
 addDef :: Monad m => String -> SyntaxTree -> String -> MidaEnv m ()
 addDef name img src = M.insert name (img, src) `liftM` getDefs >>= setDefs

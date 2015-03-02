@@ -41,10 +41,15 @@ data Opts = Opts Bool Int Int Int String String
 --                               Constants                                --
 ----------------------------------------------------------------------------
 
-dfltPrevLen = 16 :: Int
+dfltPrevLen = 16
 dfltSrcFile = "foo.da"
+dfltProg    = 0
+dfltTempo   = 120
 dfltPrompt  = "? "
 dfltVerbose = False
+dfltPrvCmd  = "timidity"
+dfltProgOp  = "--force-program"
+dfltTempoOp = "--adjust-tempo"
 notice      =
     "MIDA Copyright (c) 2014, 2015 Mark Karpov\n\n\
     \This program comes with ABSOLUTELY NO WARRANTY. This is free software,\n\
@@ -71,9 +76,14 @@ runMida e = do
        MidaState { stDefs    = M.empty
                  , stRandGen = pureMT 0
                  , stPrevLen = lookupCfg params "prvlen" dfltPrevLen
-                 , stSrcFile = lookupCfg params "src"    dfltSrcFile }
+                 , stSrcFile = lookupCfg params "src"    dfltSrcFile
+                 , stProg    = lookupCfg params "prog"   dfltProg
+                 , stTempo   = lookupCfg params "tempo"  dfltTempo }
        MidaConfig { cfgPrompt  = lookupCfg params "prompt"  dfltPrompt
-                  , cfgVerbose = lookupCfg params "verbose" dfltVerbose }
+                  , cfgVerbose = lookupCfg params "verbose" dfltVerbose
+                  , cfgPrvCmd  = lookupCfg params "prvcmd"  dfltPrvCmd
+                  , cfgProgOp  = lookupCfg params "progop"  dfltProgOp
+                  , cfgTempoOp = lookupCfg params "tempop"  dfltTempoOp }
 
 loadConfig :: IO Params
 loadConfig = do
