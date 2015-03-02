@@ -1,6 +1,6 @@
 # History of changes
 
-## MIDA 0.3.1
+## MIDA 0.4.0
 
 * fixed bug in batch mode;
 
@@ -17,7 +17,9 @@
 * more intuitive logic of evaluation in some corner cases;
 
 * optional displaying of simplified principles (for debug and educational
-  purposes).
+  purposes);
+
+* ability to set tempo and program for preview.
 
 ## MIDA 0.3.0
 
