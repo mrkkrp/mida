@@ -168,8 +168,8 @@ remDef name = M.delete name `liftM` getDefs >>= setDefs
 getPrin :: Monad m => String -> MidaEnv m SyntaxTree
 getPrin name = (maybe [] fst . M.lookup name) `liftM` getDefs
 
-getSrc :: Monad m => String -> MidaEnv m String
-getSrc name = (maybe "no definition\n" snd . M.lookup name) `liftM` getDefs
+getSrc :: Monad m => String -> MidaEnv m (Maybe String)
+getSrc name = (\x -> snd <$> M.lookup name x) `liftM` getDefs
 
 fullSrc :: Monad m => MidaEnv m String
 fullSrc = (concat . filter (not . null) . map snd . M.elems) `liftM` getDefs

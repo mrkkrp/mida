@@ -150,7 +150,8 @@ cmdClear :: String -> MidaIO ()
 cmdClear _ = clearDefs >> (liftIO $ printf "Environment cleared.\n")
 
 cmdDef :: String -> MidaIO ()
-cmdDef name = getSrc name >>= liftIO . putStr
+cmdDef name = getSrc name >>=
+              liftIO . putStr . maybe "No such definition.\n" id
 
 cmdHelp :: String -> MidaIO ()
 cmdHelp _ = (liftIO $ printf "Available commands:\n") >> mapM_ f commands
