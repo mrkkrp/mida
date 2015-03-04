@@ -144,7 +144,8 @@ commands =
     , ("purge",   cmdPurge,   "Remove redundant definitions."        )
     , ("quit",    cmdQuit,    "Quit the interactive environment."    )
     , ("save",    cmdSave,    "Save current environment in file."    )
-    , ("tempo",   cmdTempo,   "Set tempo for preview."               ) ]
+    , ("tempo",   cmdTempo,   "Set tempo for preview."               )
+    , ("udef",    cmdUdef,    "Remove definition of given symbol."   ) ]
 
 cmdClear :: String -> MidaIO ()
 cmdClear _ = clearDefs >> (liftIO $ printf "Environment cleared.\n")
@@ -255,6 +256,10 @@ cmdTempo arg = do
   tempo <- getTempo
   setTempo $ parseInt (trim arg) tempo
 
+cmdUdef :: String -> MidaIO ()
+cmdUdef arg = remDef arg >>
+              (liftIO $ printf "Definition for '%s' removed.\n" arg)
+
 ----------------------------------------------------------------------------
 --                                  Misc                                  --
 ----------------------------------------------------------------------------
@@ -279,7 +284,8 @@ cmdCompletion =
     [ ("def",  Names)
     , ("load", Files)
     , ("make", Files)
-    , ("save", Files) ]
+    , ("save", Files)
+    , ("udef", Names) ]
 
 getCompletions :: String -> String -> MidaIO [L.Completion]
 getCompletions prev word = do
