@@ -36,7 +36,7 @@ import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Char (isDigit, isSpace)
 import Data.List
-import System.Directory (getHomeDirectory, doesFileExist, getTemporaryDirectory)
+import System.Directory
 import System.Exit
 import System.FilePath
 import System.IO
@@ -132,7 +132,8 @@ processExpr expr = do
 ----------------------------------------------------------------------------
 
 commands =
-    [ ("clear",   cmdClear,   "Restore default state of environment.")
+    [ ("cd",      cmdCd,      "Change working directory."            )
+    , ("clear",   cmdClear,   "Restore default state of environment.")
     , ("def",     cmdDef,     "Print definition of given symbol."    )
     , ("help",    cmdHelp,    "Show this help text."                 )
     , ("license", cmdLicense, "Show license."                        )
@@ -142,10 +143,21 @@ commands =
     , ("prv",     cmdPrv,     "Play the score with external program.")
     , ("prvlen",  cmdLength,  "Set length of displayed results."     )
     , ("purge",   cmdPurge,   "Remove redundant definitions."        )
+    , ("pwd",     cmdPwd,     "Print working directory."             )
     , ("quit",    cmdQuit,    "Quit the interactive environment."    )
     , ("save",    cmdSave,    "Save current environment in file."    )
     , ("tempo",   cmdTempo,   "Set tempo for preview."               )
     , ("udef",    cmdUdef,    "Remove definition of given symbol."   ) ]
+
+cmdCd :: String -> MidaIO ()
+cmdCd path = liftIO $ do
+  new     <- addTrailingPathSeparator . (</> path) <$> getCurrentDirectory
+  present <- doesDirectoryExist new
+  if present
+  then do corrected <- canonicalizePath new
+          setCurrentDirectory corrected
+          printf "Changed to \"%s\".\n" corrected
+  else printf "Cannot cd to \"%s\".\n" new
 
 cmdClear :: String -> MidaIO ()
 cmdClear _ = clearDefs >> (liftIO $ printf "Environment cleared.\n")
@@ -184,7 +196,7 @@ cmdLoad given = do
   then do contents <- liftIO $ readFile file
           case parseMida (takeFileName file) contents of
             Right x -> do mapM_ f x
-                          setSrcFile file
+                          setFileName file
                           liftIO $ printf "\"%s\" loaded successfully.\n" file
             Left  x -> liftIO $ printf "Parse error in %s.\n" x
   else liftIO $ printf "Could not find \"%s\".\n" file
@@ -238,6 +250,9 @@ cmdLength x = getPrevLen >>= setPrevLen . parseInt x
 cmdPurge :: String -> MidaIO ()
 cmdPurge _ = purgeEnv topDefs >> (liftIO $ printf "Environment purged.\n")
 
+cmdPwd :: String -> MidaIO ()
+cmdPwd _ = liftIO $ (getCurrentDirectory >>= putStrLn)
+
 cmdQuit :: String -> MidaIO ()
 cmdQuit _ = (liftIO $ printf "Goodbye.\n") >> (liftIO $ exitSuccess)
 
@@ -247,7 +262,7 @@ cmdSave given = do
   src    <- fullSrc
   result <- liftIO (try (writeFile file src) :: IO (Either SomeException ()))
   case result of
-    Right _ -> setSrcFile file >>
+    Right _ -> setFileName file >>
                (liftIO $ printf "Environment saved as \"%s\".\n" file)
     Left  e -> spitExc e
 
@@ -282,7 +297,8 @@ completionFunc :: L.CompletionFunc MidaIO
 completionFunc = L.completeWordWithPrev Nothing " " getCompletions
 
 cmdCompletion =
-    [ ("def",  Names)
+    [ ("cd",   Files)
+    , ("def",  Names)
     , ("load", Files)
     , ("make", Files)
     , ("save", Files)
@@ -312,6 +328,9 @@ output given ext = do
       g = joinPath . map f . splitDirectories $ given
       f x = if x == "~" then home else x
   return $ if null given then a else g
+
+setFileName :: FilePath -> MidaIO ()
+setFileName path = (</> path) <$> (liftIO getCurrentDirectory) >>= setSrcFile
 
 trim :: String -> String
 trim = f . f
