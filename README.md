@@ -21,7 +21,7 @@ Currently MIDA can be used to translate source files into @samp{.mid}
 files, and also in interactive mode that will help you to understand
 how MIDA language works.
 
-See [MIDA Manual](http://mrkkrp.github.io/mida/) for more information.
+See [MIDA Manual](https://mrkkrp.github.io/mida/) for more information.
 
 For installation instructions see `INSTALL.md`.
 
