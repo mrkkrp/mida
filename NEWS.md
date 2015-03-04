@@ -19,7 +19,9 @@
 * optional displaying of simplified principles (for debug and educational
   purposes);
 
-* ability to set tempo and program for preview.
+* ability to set tempo and program for preview;
+
+* improved documentation.
 
 ## MIDA 0.3.0
 
