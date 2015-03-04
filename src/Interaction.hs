@@ -164,7 +164,7 @@ cmdClear _ = clearDefs >> (liftIO $ printf "Environment cleared.\n")
 
 cmdDef :: String -> MidaIO ()
 cmdDef arg = mapM_ f (words arg)
-    where f name = getSrc name >>= liftIO . putStr . maybe "" id
+    where f name = getSrc name >>= liftIO . putStrLn . maybe "" id
 
 cmdHelp :: String -> MidaIO ()
 cmdHelp _ = (liftIO $ printf "Available commands:\n") >> mapM_ f commands
