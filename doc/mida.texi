@@ -751,7 +751,7 @@ Substitute @samp{_} with index of desired voice, valid values are from
 @code{0} to @code{15}.
 
 Let's create some music (or ``music'', creation of real music is left
-as an exercise to the reader):
+as an exercise for the reader):
 
 @example
 ? dur0 = 24 vel0 = 70 pch0 = c5 d5 e5 f5 g5 a5 b5
