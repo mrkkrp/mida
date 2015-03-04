@@ -151,8 +151,8 @@ cmdClear :: String -> MidaIO ()
 cmdClear _ = clearDefs >> (liftIO $ printf "Environment cleared.\n")
 
 cmdDef :: String -> MidaIO ()
-cmdDef name = getSrc name >>=
-              liftIO . putStr . maybe "No such definition.\n" id
+cmdDef arg = mapM_ f (words arg)
+    where f name = getSrc name >>= liftIO . putStr . maybe "" id
 
 cmdHelp :: String -> MidaIO ()
 cmdHelp _ = (liftIO $ printf "Available commands:\n") >> mapM_ f commands
@@ -257,8 +257,9 @@ cmdTempo arg = do
   setTempo $ parseInt (trim arg) tempo
 
 cmdUdef :: String -> MidaIO ()
-cmdUdef arg = remDef arg >>
-              (liftIO $ printf "Definition for '%s' removed.\n" arg)
+cmdUdef arg = mapM_ f (words arg)
+    where f name = remDef name >>
+                   (liftIO $ printf "Definition for '%s' removed.\n" name)
 
 ----------------------------------------------------------------------------
 --                                  Misc                                  --
@@ -266,8 +267,8 @@ cmdUdef arg = remDef arg >>
 
 processDef :: String -> SyntaxTree -> String -> MidaIO ()
 processDef n e s = do
-  b <- checkRecur n e
-  if b
+  recursive <- checkRecur n e
+  if recursive
   then liftIO $ printf "Rejected recursive definition for '%s'.\n" n
   else addDef n e s >> (liftIO $ printf "Defined '%s'.\n" n)
 
