@@ -21,7 +21,7 @@ module Main (main) where
 
 import Control.Monad
 import Options.Applicative
-import System.Directory (getHomeDirectory, doesFileExist)
+import System.Directory (getHomeDirectory, doesFileExist, getCurrentDirectory)
 import System.FilePath
 import qualified Data.Map as M
 
@@ -72,11 +72,12 @@ main = putStrLn notice >> execParser opts >>= f
 runMida :: MidaEnv IO () -> IO ()
 runMida e = do
   params <- loadConfig
+  wdir   <- getCurrentDirectory
   void $ runMidaEnv e
        MidaState { stDefs    = M.empty
                  , stRandGen = pureMT 0
                  , stPrevLen = lookupCfg params "prvlen" dfltPrevLen
-                 , stSrcFile = lookupCfg params "src"    dfltSrcFile
+                 , stSrcFile = lookupCfg params "src"    wdir </> dfltSrcFile
                  , stProg    = lookupCfg params "prog"   dfltProg
                  , stTempo   = lookupCfg params "tempo"  dfltTempo }
        MidaConfig { cfgPrompt  = lookupCfg params "prompt"  dfltPrompt
