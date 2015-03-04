@@ -17,9 +17,9 @@ The core concept of MIDA is building systems with complex behaviors
 from very basic and easy-to-understand elements and powerful means of
 their composition.
 
-Currently MIDA can be used to translate source files into @samp{.mid}
-files, and also in interactive mode that will help you to understand
-how MIDA language works.
+Currently MIDA can be used to translate source files into `.mid` files, and
+also in interactive mode that will help you to understand how MIDA language
+works.
 
 See [MIDA Manual](https://mrkkrp.github.io/mida/) for more information.
 
