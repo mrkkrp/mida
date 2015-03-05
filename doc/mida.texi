@@ -98,7 +98,7 @@ how MIDA language works.
 
 It's possible to use MIDA on any platform on which
 @uref{https://www.haskell.org/platform/,Haskell Platform} is
-supported. Here we will describe how to compile and install MIDA on
+supported. Here we describe how to compile and install MIDA on
 Posix-compatible systems.
 
 @enumerate
@@ -350,7 +350,7 @@ a beat is not always equal to quarter note). Default value is
 The last parameter is file name of MIDI file. If it's not supplied,
 system will try to guess the name. Guessing algorithm is the same as
 for @samp{:save} command but extension will be replaced with
-@file{.mid}.
+@samp{.mid}.
 
 See the stuff in action:
 @example
@@ -427,7 +427,7 @@ command. This command takes an optional argument -- file name. If you
 don't supply the file name, the system will try to guess it. It will
 be file name of loaded source file, last used file name, or default
 value (it can be specified in configuration file (@pxref{Configuration
-File}). I recommend @file{.da} as file name extension for MIDA source
+File}). I recommend @samp{.da} as file name extension for MIDA source
 files.
 @cindex tempo
 @item :tempo
