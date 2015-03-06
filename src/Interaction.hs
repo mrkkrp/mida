@@ -31,6 +31,7 @@ module Interaction
 where
 
 import Control.Applicative ((<$>), (<*>))
+import Control.Arrow ((***), (>>>))
 import Control.Exception (SomeException, try)
 import Control.Monad.Reader
 import Control.Monad.State.Strict
@@ -355,6 +356,6 @@ spitPrin = liftIO . putStrLn . ("= "++) . cm "" "" f
           f (Value   x) = show x
           f (Section x) = cm "[" "]" f x
           f (Multi   x) = cm "{" "}" f x
-          f (CMulti  x) = cm "{" "}" ((++) <$> (c . fst) <*> (v . snd)) x
+          f (CMulti  x) = cm "{" "}" (c *** v >>> uncurry (++)) x
           c (Multi   x) = cm "<" "> " f x
           v (Multi   x) = cm "" "" f x

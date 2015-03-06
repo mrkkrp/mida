@@ -53,6 +53,7 @@ module Environment
 where
 
 import Control.Applicative (Applicative, (<$>), (<*>))
+import Control.Arrow ((***), (>>>))
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.List
@@ -183,7 +184,7 @@ tDefs name defs = maybe [] (cm . fst) $ M.lookup name defs
           f (Value'    _  ) = []
           f (Section'  xs ) = cm xs
           f (Multi'    xs ) = cm xs
-          f (CMulti'   xs ) = concatMap ((++) <$> f . fst <*> f . snd) xs
+          f (CMulti'   xs ) = concatMap (f *** f >>> uncurry (++)) xs
           f (Reference x  ) = x : tDefs x defs
           f (Range     _ _) = []
           f (Product   x y) = f x ++ f y

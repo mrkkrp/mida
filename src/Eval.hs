@@ -29,6 +29,7 @@ module Eval
 where
 
 import Control.Applicative (Applicative, pure, (<$>), (<*>))
+import Control.Arrow ((***), (>>>))
 import Control.Monad.State.Lazy
 import Data.List
 import Data.Maybe
@@ -58,24 +59,21 @@ instance Functor Element where
     fmap f (Value   x) = Value   $ f x
     fmap f (Section x) = Section $ (f <$>) <$> x
     fmap f (Multi   x) = Multi   $ (f <$>) <$> x
-    fmap f (CMulti  x) = CMulti  $
-                         ((,) <$> (f <$>) . fst <*> (f <$>) . snd) <$> x
+    fmap f (CMulti  x) = CMulti  $ ((f <$>) *** (f <$>)) <$> x
 
 instance Applicative Element where
     pure = Value
     (Value   f) <*> x = f <$> x
     (Section f) <*> x = Section $ (<*> x) <$> f
     (Multi   f) <*> x = Multi   $ (<*> x) <$> f
-    (CMulti  f) <*> x = CMulti  $
-                        ((,) <$> (<*> x) . fst <*> (<*> x) . snd) <$> f
+    (CMulti  f) <*> x = CMulti  $ ((<*> x) *** (<*> x)) <$> f
 
 instance F.Foldable Element where
     foldMap f (Value   x) = f x
     foldMap f (Section x) = mconcat $ (F.foldMap f) <$> x
     foldMap f (Multi   x) = mconcat $ (F.foldMap f) <$> x
-    foldMap f (CMulti  x) = mconcat $
-                            (mappend <$> F.foldMap f . fst
-                                         <*> F.foldMap f . snd) <$> x
+    foldMap f (CMulti  x) = mconcat $ (F.foldMap f *** F.foldMap f >>>
+                                        uncurry mappend) <$> x
 
 data CalcState = CalcState
     { clcRandGen :: PureMT
@@ -181,21 +179,21 @@ sdif x y
 
 loop :: Elt -> Elt -> Principle
 loop x           (Value   y) = replicate y x
-loop x           (Multi   y) = [Multi $ map (Section . loop x) y]
+loop x           (Multi   y) = [Multi $ Section . loop x <$> y]
 loop (Section x) (Section y) = [Section . concat $ zipWith loop x (cycle y)]
 loop x           _           = [x]
 
 rotate :: Elt -> Elt -> Elt
 rotate (Section   x) (Value   y) = Section $ zipWith const (drop y (cycle x)) x
-rotate x@(Section _) (Multi   y) = Multi $ map (rotate x) y
+rotate x@(Section _) (Multi   y) = Multi $ rotate x <$> y
 rotate (Section   x) (Section y) = Section $ zipWith rotate x (cycle y)
 rotate x             _           = x
 
 reverse' :: Elt -> Elt
 reverse' x@(Value  _) = x
-reverse' (Multi    x) = Multi   $ map reverse' x
-reverse' (Section  x) = Section $ reverse $ map reverse' x
+reverse' (Multi    x) = Multi   $ reverse' <$> x
+reverse' (Section  x) = Section $ reverse $ reverse' <$> x
 reverse' x@(CMulti _) = mapCond reverse' x
 
 mapCond :: (Elt -> Elt) -> Elt -> Elt
-mapCond f (CMulti xs) = CMulti $ map ((,) <$> (f . fst) <*> (f . snd)) xs
+mapCond f (CMulti xs) = CMulti $ (f *** f) <$> xs
