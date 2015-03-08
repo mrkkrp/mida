@@ -1,7 +1,5 @@
 # MIDA
 
-## Description
-
 MIDA is a minimalistic language for algorithmic generation of MIDI
 files. MIDA is not interactive in sense that you cannot control result
 of its activity in real time, it is intended for producers and should
@@ -23,10 +21,12 @@ works.
 
 See [MIDA Manual](https://mrkkrp.github.io/mida/) for more information.
 
-For installation instructions see `INSTALL.md`.
-
 MIDA is a
 [member of Linux Audio consortium](http://linuxaudio.org/members.html).
+
+## Installation
+
+For installation instructions see `INSTALL.md`.
 
 ## License
 
