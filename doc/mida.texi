@@ -664,7 +664,7 @@ In the next section we will see other roles of @code{none}.
 
 @node Definitions
 @section Definitions
-@cindex definitions
+@cindex definition
 
 I said that it's quite hard to write an incorrect statement in
 MIDA. Let's prove it. Here's my attempt:
@@ -689,7 +689,7 @@ really complex principles. Keep in mind that names of the definitions
 are case-sensitive.
 
 Definitions are created by putting definition name on the left side of
-equation sign @samp{=} and a principle on the right of the sigh. Let's
+equation sign @samp{=} and a principle on the right of the sign. Let's
 give it a go:
 
 @example
@@ -701,9 +701,9 @@ Defined 'foo'.
 1 2 3 5 1 2 3 5 1 2 3 5 1 2 3 5...
 @end example
 
-Remember that definitions are something like recipes how to create a
-principle, not static values. So we can change a definition and all
-other definitions which use it will change accordingly:
+Remember that definitions are like recipes how to create a principle,
+not static values. So we can change a definition and all other
+definitions which use it will change accordingly:
 
 @example
 ? foo = 5 boo = 6 baz = foo boo
