@@ -37,6 +37,7 @@ executable mida
   other-modules:       Parser, Environment, Eval, Translator, Interaction,
                        Config, Main
   -- other-extensions:
+  ghc-options:         -Wall -threaded -rtsopts -O2
   build-depends:       base                   >= 4.7 && <4.8,
                        parsec                 >= 3.1.7,
                        HCodecs                >= 0.5,
