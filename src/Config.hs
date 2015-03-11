@@ -60,19 +60,27 @@ instance Parsable Bool where
 --                          Language and Lexemes                          --
 ----------------------------------------------------------------------------
 
+lang :: LanguageDef st
 lang = emptyDef { Token.commentLine     = "#"
                 , Token.identStart      = letter
                 , Token.identLetter     = alphaNum
                 , Token.reservedOpNames = ["="]
                 , Token.caseSensitive   = True }
 
+lexer :: Token.TokenParser st
 lexer = Token.makeTokenParser lang
 
-identifier = Token.identifier    lexer
-natural    = Token.natural       lexer
-pstring    = Token.stringLiteral lexer
-reservedOp = Token.reservedOp    lexer
-whiteSpace = Token.whiteSpace    lexer
+identifier :: Parser String
+identifier = Token.identifier lexer
+
+pstring :: Parser String
+pstring = Token.stringLiteral lexer
+
+reservedOp :: String -> Parser ()
+reservedOp = Token.reservedOp lexer
+
+whiteSpace :: Parser ()
+whiteSpace = Token.whiteSpace lexer
 
 ----------------------------------------------------------------------------
 --                                Parsing                                 --

@@ -20,6 +20,7 @@
 
 {-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# OPTIONS  -fno-warn-orphans          #-}
 
 module Interaction
     ( cmdLoad
@@ -66,11 +67,20 @@ data CompletionScheme = Files | Names deriving (Eq, Show)
 --                               Constants                                --
 ----------------------------------------------------------------------------
 
-version     = "0.4.0"
-cmdPrefix   = ":"
-dfltSeed    = 0  :: Int
-dfltQuarter = 24 :: Int
-dfltBeats   = 16 :: Int
+version :: String
+version = "0.4.0"
+
+cmdPrefix :: String
+cmdPrefix = ":"
+
+dfltSeed :: Int
+dfltSeed = 0
+
+dfltQuarter :: Int
+dfltQuarter = 24
+
+dfltBeats :: Int
+dfltBeats = 16
 
 ----------------------------------------------------------------------------
 --                         Top Level Interaction                          --
@@ -121,17 +131,18 @@ processExpr expr = do
     Right x -> mapM_ f x
     Left  x -> liftIO $ printf "Parse error in %s.\n" x
     where f (Definition n e s) = processDef n e s
-          f (Exposition e) = do length  <- getPrevLen
+          f (Exposition e) = do len     <- getPrevLen
                                 verbose <- getVerbose
                                 result  <- eval e
                                 built   <- build e
                                 when verbose $ spitPrin built
-                                spitList $ take length result
+                                spitList $ take len result
 
 ----------------------------------------------------------------------------
 --                                Commands                                --
 ----------------------------------------------------------------------------
 
+commands :: [(String, (String -> MidaIO ()), String)]
 commands =
     [ ("cd",      cmdCd,      "Change working directory."            )
     , ("clear",   cmdClear,   "Restore default state of environment.")
@@ -293,10 +304,12 @@ incompleteInput arg = or [isSuffixOf "," s, f "[]", f "{}", f "<>", f "()"]
     where s       = trim arg
           g x     = length $ filter (== x) s
           f [x,y] = ((&&) <$> (> 0) <*> (/= g y)) (g x)
+          f _     = False
 
 completionFunc :: L.CompletionFunc MidaIO
 completionFunc = L.completeWordWithPrev Nothing " " getCompletions
 
+cmdCompletion :: [(String, CompletionScheme)]
 cmdCompletion =
     [ ("cd",   Files)
     , ("def",  Names)
@@ -358,4 +371,6 @@ spitPrin = liftIO . putStrLn . ("= "++) . cm "" "" f
           f (Multi   x) = cm "{" "}" f x
           f (CMulti  x) = cm "{" "}" (c *** v >>> uncurry (++)) x
           c (Multi   x) = cm "<" "> " f x
+          c _           = "???"
           v (Multi   x) = cm "" "" f x
+          v _           = "???"

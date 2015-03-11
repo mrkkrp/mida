@@ -52,7 +52,7 @@ module Environment
     , checkRecur )
 where
 
-import Control.Applicative (Applicative, (<$>), (<*>))
+import Control.Applicative (Applicative, (<$>))
 import Control.Arrow ((***), (>>>))
 import Control.Monad.Reader
 import Control.Monad.State.Strict

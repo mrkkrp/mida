@@ -41,16 +41,35 @@ data Opts = Opts Bool Int Int Int String String
 --                               Constants                                --
 ----------------------------------------------------------------------------
 
+dfltPrevLen :: Int
 dfltPrevLen = 16
+
+dfltSrcFile :: String
 dfltSrcFile = "foo.da"
-dfltProg    = 0
-dfltTempo   = 120
+
+dfltProg :: Int
+dfltProg = 0
+
+dfltTempo :: Int
+dfltTempo = 120
+
+dfltPrompt :: String
 dfltPrompt  = "? "
+
+dfltVerbose :: Bool
 dfltVerbose = False
+
+dfltPrvCmd :: String
 dfltPrvCmd  = "timidity"
+
+dfltProgOp :: String
 dfltProgOp  = "--force-program"
+
+dfltTempoOp :: String
 dfltTempoOp = "--adjust-tempo"
-notice      =
+
+notice :: String
+notice =
     "MIDA Copyright (c) 2014, 2015 Mark Karpov\n\n\
     \This program comes with ABSOLUTELY NO WARRANTY. This is free software,\n\
     \and you are welcome to redistribute it under certain conditions; see\n\

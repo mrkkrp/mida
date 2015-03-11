@@ -64,35 +64,66 @@ data Elt'
 --                               Constants                                --
 ----------------------------------------------------------------------------
 
+noteAlias :: [String]
 noteAlias = [n ++ show i | i <- [0..9] :: [Int],
              n <- ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]]
+
+langCommentStart :: String
 langCommentStart = "/*"
-langCommentEnd   = "*/"
-langCommentLine  = "//"
-langProductOp    = "*"
-langDivisionOp   = "/"
-langSumOp        = "+"
-langDiffOp       = "-"
-langLoopOp       = "$"
-langRotationOp   = "^"
-langReverseOp    = "@"
-langRangeOp      = ".."
+
+langCommentEnd :: String
+langCommentEnd = "*/"
+
+langCommentLine :: String
+langCommentLine = "//"
+
+langProductOp :: String
+langProductOp = "*"
+
+langDivisionOp :: String
+langDivisionOp = "/"
+
+langSumOp :: String
+langSumOp = "+"
+
+langDiffOp :: String
+langDiffOp = "-"
+
+langLoopOp :: String
+langLoopOp = "$"
+
+langRotationOp :: String
+langRotationOp = "^"
+
+langReverseOp :: String
+langReverseOp = "@"
+
+langRangeOp :: String
+langRangeOp = ".."
+
+langDefinitionOp :: String
 langDefinitionOp = "="
-langOps          = [ langProductOp
-                   , langDivisionOp
-                   , langSumOp
-                   , langDiffOp
-                   , langLoopOp
-                   , langRotationOp
-                   , langReverseOp
-                   , langRangeOp
-                   , langDefinitionOp ]
-langFigures      = ["/\\","\\/","/","\\"]
+
+langOps :: [String]
+langOps =
+    [ langProductOp
+    , langDivisionOp
+    , langSumOp
+    , langDiffOp
+    , langLoopOp
+    , langRotationOp
+    , langReverseOp
+    , langRangeOp
+    , langDefinitionOp ]
+
+langFigures :: [String]
+langFigures = ["/\\","\\/","/","\\"]
 
 ----------------------------------------------------------------------------
 --                          Language and Lexemes                          --
 ----------------------------------------------------------------------------
 
+lang :: LanguageDef st
 lang = emptyDef
        { Token.commentStart    = langCommentStart
        , Token.commentEnd      = langCommentEnd
@@ -104,17 +135,34 @@ lang = emptyDef
        , Token.reservedOpNames = langOps
        , Token.caseSensitive   = True }
 
+lexer :: Token.TokenParser st
 lexer = Token.makeTokenParser lang
 
-angles     = Token.angles     lexer
-braces     = Token.braces     lexer
-brackets   = Token.brackets   lexer
-comma      = Token.comma      lexer
+angles :: Parser a -> Parser a
+angles = Token.angles lexer
+
+braces :: Parser a -> Parser a
+braces = Token.braces lexer
+
+brackets :: Parser a -> Parser a
+brackets = Token.brackets lexer
+
+comma :: Parser String
+comma = Token.comma lexer
+
+identifier :: Parser String
 identifier = Token.identifier lexer
-natural    = Token.natural    lexer
-parens     = Token.parens     lexer
-reserved   = Token.reserved   lexer
+
+natural :: Parser Integer
+natural = Token.natural lexer
+
+parens :: Parser a -> Parser a
+parens = Token.parens lexer
+
+reservedOp :: String -> Parser ()
 reservedOp = Token.reservedOp lexer
+
+whiteSpace :: Parser ()
 whiteSpace = Token.whiteSpace lexer
 
 ----------------------------------------------------------------------------
@@ -212,7 +260,7 @@ pExpression :: Parser Elt'
 pExpression = buildExpressionParser pOperators (parens pExpression <|> pElement)
               <?> "expression"
 
-pOperators :: [[Operator Char st Elt']]
+pOperators :: [[Operator Char () Elt']]
 pOperators =
     [[ Prefix (reservedOp langReverseOp >> return Reverse ) ]
      , [ Infix (reservedOp langProductOp  >> return Product ) AssocLeft

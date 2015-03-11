@@ -23,6 +23,7 @@ module Translator
     , topDefs )
 where
 
+import Prelude hiding (mod)
 import Control.Applicative ((<$>))
 import Control.Monad.State.Strict
 import Data.List
@@ -37,26 +38,43 @@ import Eval
 ----------------------------------------------------------------------------
 
 data Batch = Batch
-    { btDur :: [Int]
-    , btVel :: [Int]
-    , btPch :: [Int]
-    , btMod :: [Int]
-    , btBth :: [Int]
-    , btAft :: [Int]
-    , btBnd :: [Int] }
+    { btDur  :: [Int]
+    , btVel  :: [Int]
+    , btPch  :: [Int]
+    , _btMod :: [Int]
+    , _btBth :: [Int]
+    , _btAft :: [Int]
+    , _btBnd :: [Int] }
 
 ----------------------------------------------------------------------------
 --                               Constants                                --
 ----------------------------------------------------------------------------
 
-mvIndex = 15 :: Int
+mvIndex :: Int
+mvIndex = 15
+
+defDur :: String
 defDur  = "dur"
+
+defVel :: String
 defVel  = "vel"
+
+defPch :: String
 defPch  = "pch"
+
+defMod :: String
 defMod  = "mod"
+
+defBth :: String
 defBth  = "bth"
+
+defAft :: String
 defAft  = "aft"
+
+defBnd :: String
 defBnd  = "bnd"
+
+topDefs :: [String]
 topDefs = [x ++ show n |
            x <- [defDur,defVel,defPch,defMod,defBth,defAft,defBnd],
            n <- [0..mvIndex]]
@@ -144,4 +162,4 @@ figLin x (n, d) q = f <$> [0..q]
     where f c = n + (c * (d - n) * x) `gdiv` (127 * q)
 
 gdiv :: Int -> Int -> Int
-gdiv x y = round $ fromIntegral x / fromIntegral y
+gdiv x y = round $ (fromIntegral x / fromIntegral y :: Double)

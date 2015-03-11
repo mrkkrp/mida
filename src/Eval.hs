@@ -193,7 +193,4 @@ reverse' :: Elt -> Elt
 reverse' x@(Value  _) = x
 reverse' (Multi    x) = Multi   $ reverse' <$> x
 reverse' (Section  x) = Section $ reverse $ reverse' <$> x
-reverse' x@(CMulti _) = mapCond reverse' x
-
-mapCond :: (Elt -> Elt) -> Elt -> Elt
-mapCond f (CMulti xs) = CMulti $ (f *** f) <$> xs
+reverse' (CMulti   x) = CMulti $ (reverse' *** reverse') <$> x
