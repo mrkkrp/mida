@@ -372,7 +372,7 @@ and has command line interface. Default choice is
 @code{timidity}. This is a useful program for this sort of job because
 it provides some console output and playing can be ceased with
 @kbd{Ctrl-C} command (on Posix-systems). Also, you can use
-@samp{:prog} and @samp{tempo} commands to set program (timbre) and
+@samp{:prog} and @samp{:tempo} commands to set program (timbre) and
 tempo respectively.
 
 The @samp{:prv} command itself takes up to three arguments, similar to
@@ -494,7 +494,9 @@ velocity;
 @item
 pitch;
 @item
-controller events;
+modulation;
+@item
+breath;
 @item
 aftertouch;
 @item
@@ -823,10 +825,10 @@ elements by given number. How? Keep reading!
 @section Multivalues
 @cindex multivalue
 
-So far, we worked only with literal values. But MIDA knows one more
-kind of element: @dfn{multivalue}. Multivalue is such an element that
-has many values at the same time. You know, just like electron exists
-in different positions around atomic nucleus. Realization of
+So far, we have worked only with literal values. But MIDA knows one
+more kind of element: @dfn{multivalue}. Multivalue is such an element
+that has many values at the same time. You know, just like electron
+exists in different positions around atomic nucleus. Realization of
 multivalue is a pseudo-random value chosen from all possible variants.
 
 Multivalue is written as collection of possible values inside
@@ -917,7 +919,7 @@ have value @code{2} or @code{3}. If the last element has value
 and so on.
 
 Conditions are checked from left to right, first matched condition
-triggers realization of one of corresponding elements.
+selects realization of one of corresponding elements.
 
 It's also possible to use multiple conditional elements:
 
@@ -1107,7 +1109,8 @@ sense applied to sections.
 @cindex reverse operator
 
 Reverse is the single unary operator in MIDA. It has the highest
-precedence, it means that it is evaluated before all other operators:
+precedence, this means that it is evaluated before all other
+operators:
 
 @example
 ? @@[1..3]
