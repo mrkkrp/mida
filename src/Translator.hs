@@ -112,7 +112,9 @@ slice :: Int -> Batch -> Batch
 slice t (Batch dur vel pch mod bth aft bnd) =
     Batch (take n dur) (take n vel) (take n pch)
           (take n mod) (take n bth) (take n aft) (take n bnd)
-    where n = maybe (length dur) length $ find ((>= t) . sum) (inits dur)
+    where n = f 0 0 dur
+          f i _ [] = i
+          f i a (x:xs) = if x + a >= t then succ i else f (succ i) (x + a) xs
 
 toTrack :: Batch -> Int -> Track Int
 toTrack (Batch dur vel pch mod bth aft bnd) i =
