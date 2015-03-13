@@ -18,8 +18,8 @@
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
 name:                Mida
-version:             0.4.0
-synopsis:            scripting language for midi files generation
+version:             0.4.1
+synopsis:            language for algorithmic generation of MIDI files
 -- description:
 homepage:            https://github.com/mrkkrp/mida
 license:             GPL-3

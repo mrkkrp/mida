@@ -68,7 +68,7 @@ data CompletionScheme = Files | Names deriving (Eq, Show)
 ----------------------------------------------------------------------------
 
 version :: String
-version = "0.4.0"
+version = "0.4.1"
 
 cmdPrefix :: String
 cmdPrefix = ":"

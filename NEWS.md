@@ -1,5 +1,9 @@
 # History of changes
 
+## MIDA 0.4.1
+
+* considerably improved efficiency.
+
 ## MIDA 0.4.0
 
 * fixed bug in batch mode;
