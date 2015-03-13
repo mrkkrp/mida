@@ -749,7 +749,7 @@ The names are as following:
 @code{bnd_} -- pitch bend.
 @end itemize
 
-Substitute @samp{_} with index of desired voice, valid values are from
+Replace @samp{_} with index of desired voice, valid values are from
 @code{0} to @code{15}.
 
 Let's create some music (or ``music'', creation of real music is left
