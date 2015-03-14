@@ -18,7 +18,7 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
-module Translator
+module Mida.Translator
     ( genMidi
     , topDefs )
 where
@@ -30,8 +30,8 @@ import Data.List
 
 import Codec.Midi
 
-import Environment
-import Eval
+import Mida.Environment
+import Mida.Eval
 
 ----------------------------------------------------------------------------
 --                               Data Types                               --

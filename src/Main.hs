@@ -27,9 +27,9 @@ import qualified Data.Map as M
 
 import System.Random.Mersenne.Pure64
 
-import Config
-import Environment
-import Interaction
+import Mida.Config
+import Mida.Environment
+import Mida.Interaction
 
 ----------------------------------------------------------------------------
 --                               Data Types                               --

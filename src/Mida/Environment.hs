@@ -21,7 +21,7 @@
 
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Environment
+module Mida.Environment
     ( MidaState  (..)
     , MidaConfig (..)
     , MidaEnv    (..)
@@ -61,7 +61,7 @@ import qualified Data.Map as M
 
 import System.Random.Mersenne.Pure64
 
-import Parser
+import Mida.Parser
 
 ----------------------------------------------------------------------------
 --                               Data Types                               --

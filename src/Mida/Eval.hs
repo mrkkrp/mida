@@ -19,7 +19,7 @@
 
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Eval
+module Mida.Eval
     ( Principle
     , Elt
     , Element (..)
@@ -38,8 +38,8 @@ import qualified Data.Foldable as F
 
 import System.Random.Mersenne.Pure64
 
-import Environment
-import Parser
+import Mida.Environment
+import Mida.Parser
 
 ----------------------------------------------------------------------------
 --                               Data Types                               --

@@ -22,7 +22,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# OPTIONS  -fno-warn-orphans          #-}
 
-module Interaction
+module Mida.Interaction
     ( cmdLoad
     , cmdMake
     , interaction
@@ -48,10 +48,10 @@ import Text.Printf (printf)
 import Codec.Midi (exportFile)
 import qualified System.Console.Haskeline as L
 
-import Environment
-import Eval
-import Parser
-import Translator
+import Mida.Environment
+import Mida.Eval
+import Mida.Parser
+import Mida.Translator
 
 ----------------------------------------------------------------------------
 --                               Data Types                               --

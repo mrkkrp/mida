@@ -20,7 +20,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances    #-}
 
-module Config
+module Mida.Config
     ( Params
     , parseConfig
     , lookupCfg )
