@@ -25,59 +25,10 @@ import System.Directory (getHomeDirectory, doesFileExist, getCurrentDirectory)
 import System.FilePath
 import qualified Data.Map as M
 
-import System.Random.Mersenne.Pure64
-
-import Mida.Config
-import Mida.Environment
+import Mida.Configuration
 import Mida.Interaction
 
-----------------------------------------------------------------------------
---                               Data Types                               --
-----------------------------------------------------------------------------
-
 data Opts = Opts Bool Int Int Int String String
-
-----------------------------------------------------------------------------
---                               Constants                                --
-----------------------------------------------------------------------------
-
-dfltPrevLen :: Int
-dfltPrevLen = 16
-
-dfltSrcFile :: String
-dfltSrcFile = "foo.da"
-
-dfltProg :: Int
-dfltProg = 0
-
-dfltTempo :: Int
-dfltTempo = 120
-
-dfltPrompt :: String
-dfltPrompt  = "? "
-
-dfltVerbose :: Bool
-dfltVerbose = False
-
-dfltPrvCmd :: String
-dfltPrvCmd  = "timidity"
-
-dfltProgOp :: String
-dfltProgOp  = "--force-program"
-
-dfltTempoOp :: String
-dfltTempoOp = "--adjust-tempo"
-
-notice :: String
-notice =
-    "MIDA Copyright (c) 2014, 2015 Mark Karpov\n\n\
-    \This program comes with ABSOLUTELY NO WARRANTY. This is free software,\n\
-    \and you are welcome to redistribute it under certain conditions; see\n\
-    \GNU General Public License for details.\n"
-
-----------------------------------------------------------------------------
---                         Top Level (Invocation)                         --
-----------------------------------------------------------------------------
 
 main :: IO ()
 main = putStrLn notice >> execParser opts >>= f
@@ -88,22 +39,27 @@ main = putStrLn notice >> execParser opts >>= f
           f (Opts False s q b out name) =
               runMida $ cmdLoad name >> cmdMake s q b out
 
-runMida :: MidaEnv IO () -> IO ()
+notice :: String
+notice =
+    "MIDA Copyright (c) 2014, 2015 Mark Karpov\n\n\
+    \This program comes with ABSOLUTELY NO WARRANTY. This is free software,\n\
+    \and you are welcome to redistribute it under certain conditions; see\n\
+    \GNU General Public License for details.\n"
+
+runMida :: MidaIO () -> IO ()
 runMida e = do
   params <- loadConfig
   wdir   <- getCurrentDirectory
-  void $ runMidaEnv e
-       MidaState { stDefs    = M.empty
-                 , stRandGen = pureMT 0
-                 , stPrevLen = lookupCfg params "prvlen" dfltPrevLen
-                 , stSrcFile = lookupCfg params "src"    wdir </> dfltSrcFile
-                 , stProg    = lookupCfg params "prog"   dfltProg
-                 , stTempo   = lookupCfg params "tempo"  dfltTempo }
-       MidaConfig { cfgPrompt  = lookupCfg params "prompt"  dfltPrompt
-                  , cfgVerbose = lookupCfg params "verbose" dfltVerbose
-                  , cfgPrvCmd  = lookupCfg params "prvcmd"  dfltPrvCmd
-                  , cfgProgOp  = lookupCfg params "progop"  dfltProgOp
-                  , cfgTempoOp = lookupCfg params "tempop"  dfltTempoOp }
+  void $ runMidaInt e
+       MidaSt { stPrevLen = lookupCfg params "prvlen" 16
+              , stSrcFile = lookupCfg params "src"    wdir </> "foo.da"
+              , stProg    = lookupCfg params "prog"   0
+              , stTempo   = lookupCfg params "tempo"  120 }
+       MidaCfg { cfgPrompt  = lookupCfg params "prompt"  "? "
+               , cfgVerbose = lookupCfg params "verbose" False
+               , cfgPrvCmd  = lookupCfg params "prvcmd"  "timidity"
+               , cfgProgOp  = lookupCfg params "progop"  "--force-program"
+               , cfgTempoOp = lookupCfg params "tempop"  "--adjust-tempo" }
 
 loadConfig :: IO Params
 loadConfig = do
@@ -117,47 +73,42 @@ loadConfig = do
             Left  _ -> return M.empty
   else return M.empty
 
-----------------------------------------------------------------------------
---                        Command Line Processing                         --
-----------------------------------------------------------------------------
-
 opts :: ParserInfo Opts
-opts =  info (helper <*> bar)
+opts =  info (helper <*> options)
       ( fullDesc
      <> progDesc "starts MIDA interpreter or translates source into MIDI file"
      <> header "mida - interpreter for MIDA language" )
-    where bar =  Opts
-             <$> switch
-               ( long    "interactive"
-              <> short   'i'
-              <> help    "Start MIDA in interactive mode" )
-             <*> option  auto
-               ( long    "seed"
-              <> short   's'
-              <> metavar "SEED"
-              <> value   dfltSeed
-              <> help    ("Set seed for MIDI generation, default is "
-                          ++ show dfltSeed))
-             <*> option  auto
-               ( long    "quarter"
-              <> short   'q'
-              <> metavar "TICKS"
-              <> value   dfltQuarter
-              <> help    ("Set ticks per quarter note, default is "
-                          ++ show dfltQuarter))
-             <*> option  auto
-               ( long    "beats"
-              <> short   'b'
-              <> metavar "BEATS"
-              <> value   dfltBeats
-              <> help    ("Set total time in quarter notes, default is "
-                          ++ show dfltBeats))
-             <*> strOption
-               ( long    "output"
-              <> short   'o'
-              <> metavar "OUT"
-              <> value   ""
-              <> help    "Set name of output file" )
-             <*> argument str
-               ( metavar "FILE"
-              <> value   "" )
+
+options :: Parser Opts
+options = Opts
+  <$> switch
+  ( long "interactive"
+  <> short 'i'
+  <> help "Start MIDA in interactive mode" )
+  <*> option auto
+  ( long "seed"
+  <> short 's'
+  <> metavar "SEED"
+  <> value dfltSeed
+  <> help ("Set seed for MIDI generation, default is " ++ show dfltSeed) )
+  <*> option auto
+  ( long "quarter"
+  <> short 'q'
+  <> metavar "TICKS"
+  <> value dfltQuarter
+  <> help ("Set ticks per quarter note, default is " ++ show dfltQuarter) )
+  <*> option auto
+  ( long "beats"
+  <> short 'b'
+  <> metavar "BEATS"
+  <> value dfltBeats
+  <> help ("Set total time in quarter notes, default is " ++ show dfltBeats) )
+  <*> strOption
+  ( long "output"
+  <> short 'o'
+  <> metavar "OUT"
+  <> value ""
+  <> help "Set name of output file" )
+  <*> argument str
+  ( metavar "FILE"
+  <> value "" )

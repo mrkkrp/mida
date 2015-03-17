@@ -1,7 +1,6 @@
 -- -*- Mode: Haskell; -*-
 --
--- Translator converts series of numbers into data structure that represent
--- MIDI file.
+-- This module describes how to create MIDI file from MIDA environment.
 --
 -- Copyright (c) 2014, 2015 Mark Karpov
 --
@@ -18,24 +17,19 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
-module Mida.Translator
+module Mida.Midi
     ( genMidi
     , topDefs )
 where
 
-import Prelude hiding (mod)
 import Control.Applicative ((<$>))
 import Control.Monad.State.Strict
 import Data.List
+import Prelude hiding (mod)
 
 import Codec.Midi
 
-import Mida.Environment
-import Mida.Eval
-
-----------------------------------------------------------------------------
---                               Data Types                               --
-----------------------------------------------------------------------------
+import Mida.Language
 
 data Batch = Batch
     { btDur  :: [Int]
@@ -45,43 +39,6 @@ data Batch = Batch
     , _btBth :: [Int]
     , _btAft :: [Int]
     , _btBnd :: [Int] }
-
-----------------------------------------------------------------------------
---                               Constants                                --
-----------------------------------------------------------------------------
-
-mvIndex :: Int
-mvIndex = 15
-
-defDur :: String
-defDur  = "dur"
-
-defVel :: String
-defVel  = "vel"
-
-defPch :: String
-defPch  = "pch"
-
-defMod :: String
-defMod  = "mod"
-
-defBth :: String
-defBth  = "bth"
-
-defAft :: String
-defAft  = "aft"
-
-defBnd :: String
-defBnd  = "bnd"
-
-topDefs :: [String]
-topDefs = [x ++ show n |
-           x <- [defDur,defVel,defPch,defMod,defBth,defAft,defBnd],
-           n <- [0..mvIndex]]
-
-----------------------------------------------------------------------------
---                              Translation                               --
-----------------------------------------------------------------------------
 
 genMidi :: Monad m => Int -> Int -> Int -> MidaEnv m Midi
 genMidi s q beats = do
@@ -165,3 +122,32 @@ figLin x (n, d) q = f <$> [0..q]
 
 gdiv :: Int -> Int -> Int
 gdiv x y = round $ (fromIntegral x / fromIntegral y :: Double)
+
+topDefs :: [String]
+topDefs = [x ++ show n |
+           x <- [defDur,defVel,defPch,defMod,defBth,defAft,defBnd],
+           n <- [0..mvIndex]]
+
+mvIndex :: Int
+mvIndex = 15
+
+defDur :: String
+defDur  = "dur"
+
+defVel :: String
+defVel  = "vel"
+
+defPch :: String
+defPch  = "pch"
+
+defMod :: String
+defMod  = "mod"
+
+defBth :: String
+defBth  = "bth"
+
+defAft :: String
+defAft  = "aft"
+
+defBnd :: String
+defBnd  = "bnd"

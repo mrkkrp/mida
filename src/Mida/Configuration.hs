@@ -1,6 +1,6 @@
 -- -*- Mode: Haskell; -*-
 --
--- Config module helps parse Unix-style configuration files.
+-- This module describes how to parse Unix-style configuration files.
 --
 -- Copyright (c) 2014, 2015 Mark Karpov
 --
@@ -20,7 +20,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances    #-}
 
-module Mida.Config
+module Mida.Configuration
     ( Params
     , parseConfig
     , lookupCfg )
@@ -32,10 +32,6 @@ import qualified Data.Map as M
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as Token
-
-----------------------------------------------------------------------------
---                               Data Types                               --
-----------------------------------------------------------------------------
 
 type Params = M.Map String String
 
@@ -56,41 +52,8 @@ instance Parsable Bool where
     parseValue "false" = Just False
     parseValue _       = Nothing
 
-----------------------------------------------------------------------------
---                          Language and Lexemes                          --
-----------------------------------------------------------------------------
-
-lang :: LanguageDef st
-lang = emptyDef { Token.commentLine     = "#"
-                , Token.identStart      = letter
-                , Token.identLetter     = alphaNum
-                , Token.reservedOpNames = ["="]
-                , Token.caseSensitive   = True }
-
-lexer :: Token.TokenParser st
-lexer = Token.makeTokenParser lang
-
-identifier :: Parser String
-identifier = Token.identifier lexer
-
-pstring :: Parser String
-pstring = Token.stringLiteral lexer
-
-reservedOp :: String -> Parser ()
-reservedOp = Token.reservedOp lexer
-
-whiteSpace :: Parser ()
-whiteSpace = Token.whiteSpace lexer
-
-----------------------------------------------------------------------------
---                                Parsing                                 --
-----------------------------------------------------------------------------
-
 parseConfig :: String -> String -> Either String Params
-parseConfig file str =
-    case parse pConfig file str of
-      Right x -> Right x
-      Left  x -> Left $ show x
+parseConfig file = either (Left . show) Right . parse pConfig file
 
 pConfig :: Parser Params
 pConfig = do
@@ -108,3 +71,26 @@ pItem = do
 
 lookupCfg :: Parsable a => Params -> String -> a -> a
 lookupCfg cfg v d = maybe d id $ M.lookup v cfg >>= parseValue
+
+lang :: LanguageDef st
+lang = emptyDef
+       { Token.commentLine     = "#"
+       , Token.identStart      = letter
+       , Token.identLetter     = alphaNum
+       , Token.reservedOpNames = ["="]
+       , Token.caseSensitive   = True }
+
+lexer :: Token.TokenParser st
+lexer = Token.makeTokenParser lang
+
+identifier :: Parser String
+identifier = Token.identifier lexer
+
+pstring :: Parser String
+pstring = Token.stringLiteral lexer
+
+reservedOp :: String -> Parser ()
+reservedOp = Token.reservedOp lexer
+
+whiteSpace :: Parser ()
+whiteSpace = Token.whiteSpace lexer
