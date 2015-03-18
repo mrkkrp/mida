@@ -25,7 +25,7 @@ import System.Directory (getHomeDirectory, doesFileExist, getCurrentDirectory)
 import System.FilePath
 import qualified Data.Map as M
 
-import Mida.Configuration (Params, parseConfig, lookupCfg)
+import Mida.Configuration
 import Mida.Interaction
 
 data Opts = Opts Bool Int Int Int String String

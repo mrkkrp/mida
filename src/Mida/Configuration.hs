@@ -29,9 +29,10 @@ where
 import Data.Char (isDigit, isSpace)
 import qualified Data.Map as M
 
-import Text.ParserCombinators.Parsec
-import Text.ParserCombinators.Parsec.Language
-import qualified Text.ParserCombinators.Parsec.Token as Token
+import Text.Parsec
+import Text.Parsec.Language
+import Text.Parsec.String
+import qualified Text.Parsec.Token as Token
 
 type Params = M.Map String String
 
