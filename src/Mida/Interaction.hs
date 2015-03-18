@@ -45,8 +45,8 @@ import Mida.Interaction.Commands
 import Mida.Language
 import Mida.Representation
 
-interaction :: MidaIO ()
-interaction = do
+interaction :: String -> MidaIO ()
+interaction version = do
   liftIO $ hSetBuffering stdin LineBuffering
   liftIO $ printf "MIDA Interactive Environment %s\n" version
   L.runInputT (L.setComplete completionFunc L.defaultSettings) midaRepl
@@ -91,6 +91,3 @@ processExpr expr = do
 spitList :: Show a => [a] -> MidaIO ()
 spitList [] = liftIO $ printf "none\n"
 spitList xs = liftIO $ printf "%s...\n" $ intercalate " " (show <$> xs)
-
-version :: String
-version = "0.4.1"

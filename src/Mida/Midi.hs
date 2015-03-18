@@ -29,7 +29,7 @@ import Prelude hiding (mod)
 
 import Codec.Midi
 
-import Mida.Language
+import Mida.Language (MidaEnv, setRandGen, evalDef)
 
 data Batch = Batch
     { btDur  :: [Int]

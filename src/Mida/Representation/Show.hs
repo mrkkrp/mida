@@ -26,8 +26,7 @@ where
 import Control.Arrow ((***), (>>>))
 import Data.List (intercalate)
 
-import Mida.Language.SyntaxTree (SyntaxTree, Sel (..))
-import Mida.Language.Element (Principle, Element (..))
+import Mida.Language (SyntaxTree, Sel (..), Principle, Element (..))
 import qualified Mida.Representation.Base as B
 
 showSyntaxTree :: SyntaxTree -> String

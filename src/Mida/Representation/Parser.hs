@@ -36,7 +36,7 @@ import Text.Parsec.Language
 import Text.Parsec.String
 import qualified Text.Parsec.Token as Token
 
-import Mida.Language.SyntaxTree
+import Mida.Language (SyntaxTree, Sel (..))
 import qualified Mida.Representation.Base as B
 
 data Statement
