@@ -31,7 +31,7 @@ import Control.Exception (SomeException, try)
 import Control.Monad (void)
 import Control.Monad.IO.Class
 import Data.Char (isDigit, isSpace)
-import Data.List (find, isPrefixOf, intercalate)
+import Data.List (find, isPrefixOf)
 import System.Directory
     ( canonicalizePath
     , doesDirectoryExist
@@ -109,7 +109,7 @@ getCompletions prev word = do
       g None  = []
       g Files = files
       g Names = f names
-  return $ case (words . reverse $ prev) of
+  return $ case words . reverse $ prev of
              []    -> f $ cmds ++ names
              (c:_) -> if c `elem` cmds
                       then maybe [] (g . cmdComp) $
@@ -128,14 +128,14 @@ cmdCd path = liftIO $ do
   else printf "Cannot cd to \"%s\".\n" new
 
 cmdClear :: String -> MidaIO ()
-cmdClear _ = liftEnv clearDefs >> (liftIO $ printf "Environment cleared.\n")
+cmdClear _ = liftEnv clearDefs >> liftIO (printf "Environment cleared.\n")
 
 cmdDef :: String -> MidaIO ()
 cmdDef arg = mapM_ f (words arg)
-    where f name = (liftEnv $ getSrc name) >>= liftIO . putStrLn . maybe "" trim
+    where f name = liftEnv (getSrc name) >>= liftIO . putStrLn . maybe "" trim
 
 cmdHelp :: String -> MidaIO ()
-cmdHelp _ = (liftIO $ printf "Available commands:\n") >> mapM_ f commands
+cmdHelp _ = liftIO (printf "Available commands:\n") >> mapM_ f commands
     where f Cmd { cmdName = c, cmdDesc = d } =
               liftIO $ printf "  %s%-24s%s\n" cmdPrefix c d
 
@@ -182,12 +182,12 @@ cmdMake' arg =
 
 cmdMake :: Int -> Int -> Int -> String -> MidaIO ()
 cmdMake s q b f = do
-  file   <- output f "mid"
-  midi   <- liftEnv $ genMidi s q b
+  file <- output f "mid"
+  midi <- liftEnv $ genMidi s q b
   result <- liftIO $ try (Midi.exportFile file midi)
-  case result  of
+  case result of
     Right _ -> liftIO $ printf "MIDI file saved as \"%s\".\n" file
-    Left  e -> spitExc e
+    Left e -> spitExc e
 
 cmdProg :: String -> MidaIO ()
 cmdProg arg = do
@@ -201,11 +201,11 @@ cmdPrv arg = do
   prog    <- show <$> getProg
   tempoOp <- getTempoOp
   tempo   <- show <$> getTempo
-  temp <- liftIO $ getTemporaryDirectory
+  temp <- liftIO getTemporaryDirectory
   f    <- output "" "mid"
   let (s:q:b:_) = words arg ++ repeat ""
-      file      = temp </> (takeFileName f)
-      cmd       = intercalate " " [prvcmd,progOp,prog,tempoOp,tempo,file]
+      file      = temp </> takeFileName f
+      cmd       = unwords [prvcmd, progOp, prog, tempoOp, tempo, file]
   cmdMake (parseInt s dfltSeed)
           (parseInt q dfltQuarter)
           (parseInt b dfltBeats)
@@ -222,10 +222,10 @@ cmdPurge _ = do
   liftIO $ printf "Environment purged.\n"
 
 cmdPwd :: String -> MidaIO ()
-cmdPwd _ = liftIO $ (getCurrentDirectory >>= putStrLn)
+cmdPwd _ = liftIO (getCurrentDirectory >>= putStrLn)
 
 cmdQuit :: String -> MidaIO ()
-cmdQuit _ = (liftIO $ printf "Goodbye.\n") >> (liftIO $ exitSuccess)
+cmdQuit _ = liftIO (printf "Goodbye.\n") >> liftIO exitSuccess
 
 cmdSave :: String -> MidaIO ()
 cmdSave given = do
@@ -234,7 +234,7 @@ cmdSave given = do
   result <- liftIO (try (writeFile file src) :: IO (Either SomeException ()))
   case result of
     Right _ -> setFileName file >>
-               (liftIO $ printf "Environment saved as \"%s\".\n" file)
+               liftIO (printf "Environment saved as \"%s\".\n" file)
     Left  e -> spitExc e
 
 cmdTempo :: String -> MidaIO ()
@@ -244,8 +244,8 @@ cmdTempo arg = do
 
 cmdUdef :: String -> MidaIO ()
 cmdUdef arg = mapM_ f (words arg)
-    where f name = (liftEnv $ remDef name) >>
-                   (liftIO $ printf "Definition for '%s' removed.\n" name)
+    where f name = liftEnv (remDef name) >>
+                   liftIO (printf "Definition for '%s' removed.\n" name)
 
 parseInt :: String -> Int -> Int
 parseInt s x
@@ -263,7 +263,7 @@ output given ext = do
   return $ if null given then a else g
 
 setFileName :: FilePath -> MidaIO ()
-setFileName path = (</> path) <$> (liftIO getCurrentDirectory) >>= setSrcFile
+setFileName path = (</> path) <$> liftIO getCurrentDirectory >>= setSrcFile
 
 dropCmdPrefix :: String -> String
 dropCmdPrefix arg

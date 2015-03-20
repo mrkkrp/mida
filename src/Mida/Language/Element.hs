@@ -54,7 +54,7 @@ instance Applicative Element where
 
 instance F.Foldable Element where
     foldMap f (Val  x) = f x
-    foldMap f (Sec  x) = mconcat $ (F.foldMap f) <$> x
-    foldMap f (Mul  x) = mconcat $ (F.foldMap f) <$> x
+    foldMap f (Sec  x) = mconcat $ F.foldMap f <$> x
+    foldMap f (Mul  x) = mconcat $ F.foldMap f <$> x
     foldMap f (CMul x) = mconcat $ (F.foldMap f *** F.foldMap f >>>
                                     uncurry mappend) <$> x

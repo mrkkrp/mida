@@ -28,15 +28,21 @@ import qualified Data.Map as M
 import Mida.Configuration
 import Mida.Interaction
 
-data Opts = Opts Bool Int Int Int String String
+data Opts = Opts
+    { opInteractive :: Bool
+    , _opSeed       :: Int
+    , _opQuarter    :: Int
+    , _opBeats      :: Int
+    , _opOutput     :: String
+    , opMidaFile    :: String }
 
 main :: IO ()
 main = putStrLn notice >> execParser opts >>= f
-    where f (Opts _ _ _ _ _ "") =
+    where f Opts { opMidaFile = "" } =
               runMida $ interaction version
-          f (Opts True  _ _ _ _ name) =
+          f Opts { opInteractive = True, opMidaFile = name } =
               runMida $ cmdLoad name >> interaction version
-          f (Opts False s q b out name) =
+          f (Opts _ s q b out name) =
               runMida $ cmdLoad name >> cmdMake s q b out
           version = "0.4.1"
 
@@ -68,7 +74,7 @@ loadConfig = do
   let file = home </> ".mida"
   exist <- doesFileExist file
   if exist
-  then do params <- parseConfig file <$> (readFile file)
+  then do params <- parseConfig file <$> readFile file
           case params of
             Right x -> return x
             Left  _ -> return M.empty

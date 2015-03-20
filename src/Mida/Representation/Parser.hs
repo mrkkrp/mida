@@ -45,7 +45,7 @@ data Statement
       deriving (Show)
 
 probeMida :: String -> Bool
-probeMida arg = not $ or [isSuffixOf "," s, f "[]", f "{}", f "<>", f "()"]
+probeMida arg = not $ or ["," `isSuffixOf` s, f "[]", f "{}", f "<>", f "()"]
     where s       = reverse . dropWhile isSpace . reverse $ arg
           g x     = length $ filter (== x) s
           f [x,y] = ((&&) <$> (> 0) <*> (/= g y)) (g x)
@@ -75,7 +75,7 @@ pDefinition = do
   return $ Definition n p $ take (length x - length y) x
 
 pExposition :: Parser [Statement]
-pExposition = whiteSpace >> pPrinciple >>= return . return . Exposition
+pExposition = (return . Exposition) <$> (whiteSpace >> pPrinciple)
 
 pPrinciple :: Parser SyntaxTree
 pPrinciple = do
@@ -105,7 +105,7 @@ pValue :: Parser Sel
 pValue = pNatural <|> pNote <|> pFigure <?> "literal value"
 
 pNatural :: Parser Sel
-pNatural = natural >>= return . Value . fromIntegral
+pNatural = (Value . fromIntegral) <$> natural
 
 pNote :: Parser Sel
 pNote = do
@@ -126,13 +126,13 @@ pReference = do
   return $ Reference n
 
 pSection :: Parser Sel
-pSection = brackets pPrinciple >>= return . Section
+pSection = Section <$> brackets pPrinciple
 
 pMulti :: Parser Sel
-pMulti = braces pPrinciple >>= return . Multi
+pMulti = Multi <$> braces pPrinciple
 
 pCMulti :: Parser Sel
-pCMulti = braces (many f) >>= return . CMulti
+pCMulti = CMulti <$> braces (many f)
     where f = do
             c <- angles pPrinciple
             r <- pPrinciple

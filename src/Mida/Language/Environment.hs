@@ -62,8 +62,10 @@ newtype MidaEnv m a = MidaEnv
              , MonadTrans
              , MonadIO )
 
-runMidaEnv :: Monad m => MidaEnv m a -> MidaEnvSt -> m a
-runMidaEnv e st = evalStateT (unMidaEnv e) st
+runMidaEnv :: Monad m => MidaEnv m a -> m a
+runMidaEnv e = evalStateT (unMidaEnv e) MidaEnvSt
+               { stDefs = M.empty
+               , stRandGen = pureMT 0 }
 
 getDefs :: Monad m => MidaEnv m Defs
 getDefs = stDefs `liftM` get

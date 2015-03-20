@@ -23,15 +23,15 @@ module Mida.Representation.Show
     , showPrinciple )
 where
 
+import Control.Applicative ((<$>))
 import Control.Arrow ((***), (>>>))
-import Data.List (intercalate)
 
 import Mida.Language (SyntaxTree, Sel (..), Principle, Element (..))
 import qualified Mida.Representation.Base as B
 
 showSyntaxTree :: SyntaxTree -> String
 showSyntaxTree = cm f
-    where cm g xs = intercalate " " $ map g xs
+    where cm g xs = unwords $ g <$> xs
           f (Value      x) = show x
           f (Section    x) = "[" ++ cm f x ++ "]"
           f (Multi      x) = "{" ++ cm f x ++ "}"

@@ -55,7 +55,7 @@ midaRepl :: L.InputT MidaIO ()
 midaRepl = do
   input <- getMultiline ""
   case input of
-    Just x  -> do if cmdPrefix `isPrefixOf` (trim x)
+    Just x  -> do if cmdPrefix `isPrefixOf` trim x
                   then lift $ processCmd x
                   else lift $ processExpr x
                   midaRepl
@@ -90,4 +90,4 @@ processExpr expr = do
 
 spitList :: Show a => [a] -> MidaIO ()
 spitList [] = liftIO $ printf "none\n"
-spitList xs = liftIO $ printf "%s...\n" $ intercalate " " (show <$> xs)
+spitList xs = liftIO $ printf "%s...\n" $ unwords (show <$> xs)

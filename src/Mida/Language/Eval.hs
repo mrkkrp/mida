@@ -86,7 +86,7 @@ condMatch :: [Int] -> Elt -> Bool
 condMatch []    _        = False
 condMatch (h:_) (Val  x) = h == x
 condMatch hs    (Sec  x) = and $ zipWith condMatch (tails hs) (reverse x)
-condMatch hs    (Mul  x) = or  $ zipWith condMatch (repeat hs) x
+condMatch hs    (Mul  x) = or  $ condMatch hs <$> x
 condMatch hs    (CMul x) = condMatch hs (Mul $ map snd x)
 
 matchHistory :: Elt -> Calc Bool

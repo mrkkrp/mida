@@ -27,6 +27,7 @@ module Mida.Configuration
 where
 
 import Data.Char (isDigit, isSpace)
+import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
 
 import Text.Parsec
@@ -66,12 +67,12 @@ pItem :: Parser (String, String)
 pItem = do
   var <- identifier
   reservedOp "="
-  val <- try pstring <|> (many $ satisfy (not . isSpace))
+  val <- try pstring <|> many (satisfy (not . isSpace))
   whiteSpace
   return (var, val)
 
 lookupCfg :: Parsable a => Params -> String -> a -> a
-lookupCfg cfg v d = maybe d id $ M.lookup v cfg >>= parseValue
+lookupCfg cfg v d = fromMaybe d $ M.lookup v cfg >>= parseValue
 
 lang :: LanguageDef st
 lang = emptyDef

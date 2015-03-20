@@ -46,8 +46,8 @@ genMidi s q beats = do
   voices <- filter defined `liftM` mapM request [0..mvIndex]
   let xs = zipWith (toTrack . slice (beats * q)) voices [0..]
   return Midi { fileType = MultiTrack
-              , timeDiv  = TicksPerBeat q
-              , tracks   = xs }
+              , timeDiv = TicksPerBeat q
+              , tracks = xs }
 
 request :: Monad m => Int -> MidaEnv m Batch
 request n = do
@@ -75,7 +75,7 @@ slice t (Batch dur vel pch mod bth aft bnd) =
 
 toTrack :: Batch -> Int -> Track Int
 toTrack (Batch dur vel pch mod bth aft bnd) i =
-    (concat $ zipWith7 f dur vel pch mod bth aft bnd) ++ [(0, TrackEnd)]
+    concat (zipWith7 f dur vel pch mod bth aft bnd) ++ [(0, TrackEnd)]
     where f d v p m t a b =
               mixEvents
               [ figure m (0, 127, 127, 0)       d (ControlChange i 1)
@@ -85,7 +85,7 @@ toTrack (Batch dur vel pch mod bth aft bnd) i =
               , [(0, NoteOn i p v), (d, NoteOn i p 0)] ]
 
 mixEvents :: [[(Int, Message)]] -> [(Int, Message)]
-mixEvents xs = foldl1' mixPair xs
+mixEvents = foldl1' mixPair
 
 mixPair :: [(Int, Message)] -> [(Int, Message)] -> [(Int, Message)]
 mixPair [] xs = xs
@@ -102,10 +102,10 @@ figure (-1) _ _ _ = []
 figure _    _ 0 _ = []
 figure x (n0, d0, n1, d1) q f
     | x < 128   = [(0, f $ figStatic x (n0, d0))]
-    | x < 256   = zipWith (,) r (map f $ figRtn (x - 128) (n0, d0) q)
-    | x < 384   = zipWith (,) r (map f $ figRtn (x - 256) (n1, d1) q)
-    | x < 512   = zipWith (,) r (map f $ figLin (x - 384) (n0, d0) q)
-    | otherwise = zipWith (,) r (map f $ figLin (x - 512) (n1, d1) q)
+    | x < 256   = zip r (map f $ figRtn (x - 128) (n0, d0) q)
+    | x < 384   = zip r (map f $ figRtn (x - 256) (n1, d1) q)
+    | x < 512   = zip r (map f $ figLin (x - 384) (n0, d0) q)
+    | otherwise = zip r (map f $ figLin (x - 512) (n1, d1) q)
     where r = 0 : repeat 1
 
 figStatic :: Int -> (Int, Int) -> Int
@@ -121,7 +121,7 @@ figLin x (n, d) q = f <$> [0..q]
     where f c = n + (c * (d - n) * x) `gdiv` (127 * q)
 
 gdiv :: Int -> Int -> Int
-gdiv x y = round $ (fromIntegral x / fromIntegral y :: Double)
+gdiv x y = round (fromIntegral x / fromIntegral y :: Double)
 
 topDefs :: [String]
 topDefs = [x ++ show n |

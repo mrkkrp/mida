@@ -28,6 +28,7 @@ module Mida.Interaction.Base
     , runMidaInt
     , MidaSt (..)
     , MidaCfg (..)
+    , lift
     , liftEnv
     , getPrevLen
     , setPrevLen
@@ -54,9 +55,7 @@ import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Char (isSpace)
 import Text.Printf (printf)
-import qualified Data.Map as M
 
-import System.Random.Mersenne.Pure64
 import qualified System.Console.Haskeline as L
 
 import Mida.Language
@@ -97,8 +96,6 @@ data MidaCfg = MidaCfg
 runMidaInt :: Monad m => MidaInt m a -> MidaSt -> MidaCfg -> m a
 runMidaInt m st cfg =
     runMidaEnv (runReaderT (evalStateT (unMidaInt m) st) cfg)
-               MidaEnvSt { stDefs    = M.empty
-                         , stRandGen = pureMT 0 }
 
 getPrevLen :: MidaIO Int
 getPrevLen = stPrevLen `liftM` get
@@ -153,7 +150,7 @@ processDef n e s = do
   recursive <- liftEnv $ checkRecur n e
   if recursive
   then liftIO $ printf "Rejected recursive definition for '%s'.\n" n
-  else (liftEnv $ addDef n e s) >> (liftIO $ printf "Defined '%s'.\n" n)
+  else liftEnv (addDef n e s) >> liftIO (printf "Defined '%s'.\n" n)
 
 trim :: String -> String
 trim = f . f
