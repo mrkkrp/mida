@@ -44,6 +44,11 @@ data Statement
     | Exposition SyntaxTree
       deriving (Show)
 
+instance Eq Statement where
+    (Exposition t0)      == (Exposition t1)      = t0 == t1
+    (Definition n0 t0 _) == (Definition n1 t1 _) = n0 == n1 && t0 == t1
+    _                    == _                    = False
+
 probeMida :: String -> Bool
 probeMida arg = not $ or ["," `isSuffixOf` s, f "[]", f "{}", f "<>", f "()"]
     where s       = reverse . dropWhile isSpace . reverse $ arg
@@ -132,11 +137,7 @@ pMulti :: Parser Sel
 pMulti = Multi <$> braces pPrinciple
 
 pCMulti :: Parser Sel
-pCMulti = CMulti <$> braces (many f)
-    where f = do
-            c <- angles pPrinciple
-            r <- pPrinciple
-            return (Multi c, Multi r)
+pCMulti = CMulti <$> braces (many $ (,) <$> angles pPrinciple <*> pPrinciple)
 
 pExpression :: Parser Sel
 pExpression = buildExpressionParser pOperators (parens pExpression <|> pElement)

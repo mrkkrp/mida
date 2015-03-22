@@ -19,7 +19,8 @@
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module Mida.Representation.Show
-    ( showSyntaxTree
+    ( showStatement
+    , showSyntaxTree
     , showPrinciple )
 where
 
@@ -27,7 +28,12 @@ import Control.Applicative ((<$>))
 import Control.Arrow ((***), (>>>))
 
 import Mida.Language (SyntaxTree, Sel (..), Principle, Element (..))
+import Mida.Representation.Parser (Statement (..))
 import qualified Mida.Representation.Base as B
+
+showStatement :: Statement -> String
+showStatement (Definition n t _) = n ++ B.definitionOp ++ showSyntaxTree t
+showStatement (Exposition t)     = showSyntaxTree t
 
 showSyntaxTree :: SyntaxTree -> String
 showSyntaxTree = cm f
@@ -38,17 +44,15 @@ showSyntaxTree = cm f
           f (CMulti     x) = "{" ++ cm (c *** v >>> uncurry (++)) x ++ "}"
           f (Reference  x) = x
           f (Range    x y) = show x ++ B.rangeOp ++ show y
-          f (Product  x y) = f x ++ B.productOp ++ show y
-          f (Division x y) = f x ++ B.divisionOp ++ show y
-          f (Sum      x y) = f x ++ B.sumOp ++ show y
-          f (Diff     x y) = f x ++ B.diffOp ++ show y
-          f (Loop     x y) = f x ++ B.loopOp ++ show y
-          f (Rotation x y) = f x ++ B.rotationOp ++ show y
-          f (Reverse    x) = B.reverseOp ++ show x
-          c (Multi      x) = "<" ++ cm f x ++ "> "
-          c _              = "???"
-          v (Multi      x) = cm f x
-          v _              = "???"
+          f (Product  x y) = f x ++ B.productOp ++ f y
+          f (Division x y) = f x ++ B.divisionOp ++ f y
+          f (Sum      x y) = f x ++ B.sumOp ++ f y
+          f (Diff     x y) = f x ++ B.diffOp ++ f y
+          f (Loop     x y) = f x ++ B.loopOp ++ f y
+          f (Rotation x y) = f x ++ B.rotationOp ++ f y
+          f (Reverse    x) = B.reverseOp ++ f x
+          c xs             = "<" ++ cm f xs ++ "> "
+          v                = cm f
 
 showPrinciple :: Principle -> String
 showPrinciple = showSyntaxTree . toSyntaxTree
@@ -56,6 +60,6 @@ showPrinciple = showSyntaxTree . toSyntaxTree
 toSyntaxTree :: Principle -> SyntaxTree
 toSyntaxTree = map f
     where f (Val  x) = Value x
-          f (Sec  x) = Section $ map f x
-          f (Mul  x) = Multi $ map f x
-          f (CMul x) = CMulti $ map (f *** f) x
+          f (Sec  x) = Section $ f <$> x
+          f (Mul  x) = Multi   $ f <$> x
+          f (CMul x) = CMulti  $ (toSyntaxTree *** toSyntaxTree) <$> x

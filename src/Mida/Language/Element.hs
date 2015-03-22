@@ -36,25 +36,25 @@ data Element a
     = Val  a
     | Sec  [Element a]
     | Mul  [Element a]
-    | CMul [(Element a, Element a)]
-      deriving (Show)
+    | CMul [([Element a], [Element a])]
+      deriving (Eq, Show)
 
 instance Functor Element where
     f `fmap` (Val  x) = Val  $ f x
     f `fmap` (Sec  x) = Sec  $ (f <$>) <$> x
     f `fmap` (Mul  x) = Mul  $ (f <$>) <$> x
-    f `fmap` (CMul x) = CMul $ ((f <$>) *** (f <$>)) <$> x
+    f `fmap` (CMul x) = CMul $ (((f <$>) <$>) *** ((f <$>) <$>)) <$> x
 
 instance Applicative Element where
     pure = Val
     (Val  f) <*> x = f <$> x
     (Sec  f) <*> x = Sec  $ (<*> x) <$> f
     (Mul  f) <*> x = Mul  $ (<*> x) <$> f
-    (CMul f) <*> x = CMul $ ((<*> x) *** (<*> x)) <$> f
+    (CMul f) <*> x = CMul $ (((<*> x) <$>) *** ((<*> x) <$>)) <$> f
 
 instance F.Foldable Element where
     foldMap f (Val  x) = f x
     foldMap f (Sec  x) = mconcat $ F.foldMap f <$> x
     foldMap f (Mul  x) = mconcat $ F.foldMap f <$> x
-    foldMap f (CMul x) = mconcat $ (F.foldMap f *** F.foldMap f >>>
-                                    uncurry mappend) <$> x
+    foldMap f (CMul x) = mconcat $ (g *** g >>> uncurry mappend) <$> x
+        where g = mconcat . (F.foldMap f <$>)

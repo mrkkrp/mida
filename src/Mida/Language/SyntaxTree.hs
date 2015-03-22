@@ -28,7 +28,7 @@ data Sel -- syntactic element
     = Value     Int
     | Section   [Sel]
     | Multi     [Sel]
-    | CMulti    [(Sel, Sel)]
+    | CMulti    [([Sel], [Sel])]
     | Reference String
     | Range     Int Int
     | Product   Sel Sel
@@ -38,4 +38,4 @@ data Sel -- syntactic element
     | Loop      Sel Sel
     | Rotation  Sel Sel
     | Reverse   Sel
-      deriving (Show)
+      deriving (Eq, Show)

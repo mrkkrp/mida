@@ -22,6 +22,7 @@ module Mida.Representation
     ( Statement (..)
     , probeMida
     , parseMida
+    , showStatement
     , showSyntaxTree
     , showPrinciple )
 where

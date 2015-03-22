@@ -68,7 +68,7 @@ resolve xs = concat <$> mapM f xs
           f (Sec  x) = resolve x
           f (Mul  x) = choice x >>= maybe (return []) f
           f (CMul x) = listToMaybe <$> filterM (matchHistory . fst) x
-                       >>= maybe (f . Mul . map snd $ x) (f . snd)
+                       >>= maybe (f . Mul . concatMap snd $ x) (resolve . snd)
 
 runCalc :: Calc a -> PureMT -> a
 runCalc clc gen = evalState (unCalc clc)
@@ -87,12 +87,12 @@ condMatch []    _        = False
 condMatch (h:_) (Val  x) = h == x
 condMatch hs    (Sec  x) = and $ zipWith condMatch (tails hs) (reverse x)
 condMatch hs    (Mul  x) = or  $ condMatch hs <$> x
-condMatch hs    (CMul x) = condMatch hs (Mul $ map snd x)
+condMatch hs    (CMul x) = condMatch hs (Mul $ concatMap snd x)
 
-matchHistory :: Elt -> Calc Bool
+matchHistory :: [Elt] -> Calc Bool
 matchHistory x = do
   hs <- clcHistory <$> get
-  return $ condMatch hs x
+  return . or $ condMatch hs <$> x
 
 addHistory :: Int -> Calc ()
 addHistory x = modify $ \c -> c { clcHistory = x : clcHistory c }
@@ -101,7 +101,7 @@ toPrin :: Monad m => SyntaxTree -> MidaEnv m Principle
 toPrin = liftM concat . mapM f
     where
       r                = return . return
-      fPair (c, x)     = liftM2 (,) (head `liftM` f c) (head `liftM` f x)
+      fPair (c, x)     = liftM2 (,) (toPrin c) (toPrin x)
       f (Value      x) = r . Val $ x
       f (Section   xs) = toPrin xs >>= r . Sec
       f (Multi     xs) = toPrin xs >>= r . Mul
@@ -146,4 +146,4 @@ reverse' :: Elt -> Elt
 reverse' x@(Val _) = x
 reverse' (Mul   x) = Mul  $ reverse' <$> x
 reverse' (Sec   x) = Sec  $ reverse $ reverse' <$> x
-reverse' (CMul  x) = CMul $ (reverse' *** reverse') <$> x
+reverse' (CMul  x) = CMul $ ((reverse' <$>) *** (reverse' <$>)) <$> x
