@@ -23,7 +23,6 @@ module Mida.Language
     , Principle
     , Elt
     , Element (..)
-    , MidaEnvSt (..)
     , MidaEnv (..)
     , runMidaEnv
     , addDef

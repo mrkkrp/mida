@@ -21,8 +21,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Mida.Language.Environment
-    ( MidaEnvSt (..)
-    , MidaEnv (..)
+    ( MidaEnv (..)
     , runMidaEnv
     , addDef
     , remDef
