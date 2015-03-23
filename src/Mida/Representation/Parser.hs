@@ -27,8 +27,7 @@ where
 import Control.Applicative ((<$>), (<*>))
 import Data.Char (isSpace)
 import Data.Functor.Identity
-import Data.List (elemIndex, isInfixOf, isSuffixOf)
-import Data.Maybe (fromJust)
+import Data.List (isInfixOf, isSuffixOf)
 
 import Text.Parsec
 import Text.Parsec.Expr
@@ -107,22 +106,7 @@ pRange = do
   return $ Range x y
 
 pValue :: Parser Sel
-pValue = pNatural <|> pNote <|> pFigure <?> "literal value"
-
-pNatural :: Parser Sel
-pNatural = (Value . fromIntegral) <$> natural
-
-pNote :: Parser Sel
-pNote = do
-  note <- choice $ map (try . string) B.noteAlias
-  whiteSpace
-  return . Value . fromJust $ note `elemIndex` B.noteAlias
-
-pFigure :: Parser Sel
-pFigure = do
-  figure <- choice $ map (try . string) B.figures
-  whiteSpace
-  return . Value . (* 128) . succ . fromJust $ figure `elemIndex` B.figures
+pValue = (Value . fromIntegral) <$> natural <?> "literal value"
 
 pReference :: Parser Sel
 pReference = do
@@ -155,13 +139,12 @@ pOperators =
 
 lang :: LanguageDef st
 lang = emptyDef
-       { Token.commentStart    = B.commentStart
-       , Token.commentEnd      = B.commentEnd
+       { Token.commentStart    = ""
+       , Token.commentEnd      = ""
        , Token.commentLine     = B.commentLine
        , Token.nestedComments  = True
-       , Token.identStart      = letter
-       , Token.identLetter     = alphaNum
-       , Token.reservedNames   = B.noteAlias
+       , Token.identStart      = letter <|> char '_'
+       , Token.identLetter     = alphaNum <|> char '_'
        , Token.reservedOpNames = langOps
        , Token.caseSensitive   = True }
 

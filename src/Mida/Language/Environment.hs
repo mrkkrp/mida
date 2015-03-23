@@ -45,6 +45,7 @@ import qualified Data.Map as M
 import System.Random.Mersenne.Pure64
 
 import Mida.Language.SyntaxTree
+import Mida.Representation.Base (noteAlias, figures)
 
 data MidaEnvSt = MidaEnvSt
     { stDefs    :: Defs
@@ -63,8 +64,12 @@ newtype MidaEnv m a = MidaEnv
 
 runMidaEnv :: Monad m => MidaEnv m a -> m a
 runMidaEnv e = evalStateT (unMidaEnv e) MidaEnvSt
-               { stDefs = M.empty
+               { stDefs    = defaultDefs
                , stRandGen = pureMT 0 }
+    where defaultDefs = M.fromList $
+                        zip noteAlias (makeS <$> [0..]) ++
+                        zip figures   (makeS <$> [128,256..])
+          makeS x = ([Value x], "")
 
 getDefs :: Monad m => MidaEnv m Defs
 getDefs = stDefs `liftM` get

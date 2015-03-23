@@ -19,8 +19,6 @@
 
 module Mida.Representation.Base
     ( noteAlias
-    , commentStart
-    , commentEnd
     , commentLine
     , productOp
     , divisionOp
@@ -35,17 +33,12 @@ module Mida.Representation.Base
 where
 
 noteAlias :: [String]
-noteAlias = [n ++ [i] | i <- ['0'..'9'],
-             n <- ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]]
-
-commentStart :: String
-commentStart = "/*"
-
-commentEnd :: String
-commentEnd = "*/"
+noteAlias = zipWith f names ([0..127] :: [Int])
+    where f n i = n ++ show (i `div` 12)
+          names = cycle ["c","cs","d","ds","e","f","fs","g","gs","a","as","b"]
 
 commentLine :: String
-commentLine = "//"
+commentLine = "#"
 
 productOp :: String
 productOp = "*"
@@ -75,4 +68,4 @@ definitionOp :: String
 definitionOp = "="
 
 figures :: [String]
-figures = ["/\\","\\/","/","\\"]
+figures = ["_ud","_du","_u","_d"]
