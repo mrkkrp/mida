@@ -4,9 +4,9 @@
 @settitle MIDA Manual
 @set EDITION 0.4.1
 @set VERSION 0.4.1
-@set UPDATED 13 March 2015
+@set UPDATED 24 March 2015
 @set UPDATED-MONTH March 2015
-@set LASTCHANGE Fri March 13 22:40:13 EST 2015
+@set LASTCHANGE Tue March 24 22:40:13 EST 2015
 
 @comment %**end of header (This is for running Texinfo on a region.)
 @synindex vr fn
@@ -139,7 +139,7 @@ default. Otherwise, one should use command line options to start MIDA
 in interactive mode.
 
 @example
-mida [-i|--interactive] [-s|--seed SEED] [-q|--quarter TICKS] [-b|--beats BEATS] [-o|--output OUT] [FILE]
+mida [-i|--interactive] [-s|--seed SEED] [-q|--quarter TICKS] [-b|--beats BEATS] [-o|--output OUT] [FILES]
 @end example
 
 Here's the complete list of command line options:
@@ -177,14 +177,14 @@ file @file{C:\Users\username\.mida}.
 
 @cindex configuration file variables
 
-The configuration file uses Unix-style syntax. That is, you can use
-@code{#} for line comments, and @code{=} to assign new values (spaces
-before and after @code{=} are ignored). Currently, all variables must
-be strings, integers, or Boolean values. If a string should contain
-space, enclose it into double quotes: @samp{"}. Inside the quotes you
-can escape characters with backslash @samp{\}. Integers must be
-written as decimal numbers. Boolean values can only have values of
-@samp{true} or @samp{false}. Everything is case-sensitive.
+The configuration file uses syntax similar to that of Unix shell. That
+is, you can use @code{#} for line comments, and @code{=} to assign new
+values (spaces before and after @code{=} are ignored). Currently, all
+variables must be strings, integers, or Boolean values. If a string
+should contain space, enclose it into double quotes: @samp{"}. Inside
+the quotes you can escape characters with backslash @samp{\}. Integers
+must be written as decimal numbers. Boolean values can only have
+values of @samp{true} or @samp{false}. Everything is case-sensitive.
 
 The following table describes all variables that can be assigned in
 the configuration file.
@@ -310,8 +310,8 @@ Available commands:
 @item :license
 Show license.
 @item :load
-Load definition from specified source file. When something is defined,
-you usually get some helpful feedback:
+Load definition from specified source files. When something is
+defined, you usually get some helpful feedback:
 @example
 ? :load projects/music/tst1.da
 Defined 'pch0'.
@@ -325,6 +325,11 @@ Defined 'dur2'.
 Defined 'vel2'.
 "/home/mark/projects/music/tst1.da" loaded successfully.
 @end example
+Note that you can specify as many source files as you wish, they will
+be loaded successively and all definitions from those files will be
+available in the interactive environment. Nevertheless, remember that
+definitions from one file may be silently redefined by definitions
+from another file if they have the same names.
 @item :make
 One of the most common commands is @samp{:make}. It produces MIDI file
 based on current state of MIDA environment. This command takes up to
@@ -405,6 +410,7 @@ baz = 13
 ? :purge
 Environment purged.
 ? :def baz
+baz =
 ? :def bar
 bar = 12
 @end example
@@ -439,8 +445,8 @@ File}).
 Remove definition of given symbol. Although standard way to remove
 definition is @samp{ definition_name =}, i.e. assigning empty
 principle to it, you may find @samp{:udef} command more convenient,
-because it takes any number of arguments and it also frees memory that
-was allocated to specified definitions.
+because it takes arbitrary number of arguments and it also frees
+memory that was allocated for specified definitions.
 @end table
 
 @node MIDA Tutorial
@@ -563,7 +569,8 @@ where octaves start from @code{0}. So @code{c0} corresponds to
 Please note that there is no standard way to number octaves in
 MIDI. The MIDI standard only says that note with index @code{60} must
 be @dfn{Middle C}. We've chosen zero-based system for reasons that I
-described earlier, some software starts numeration from @code{-2}.
+have described earlier, some software starts numeration from
+@code{-2}.
 
 Enter any alias into MIDA and see for yourself that it's just like
 entering corresponding MIDI code (note that all alias are
@@ -596,27 +603,27 @@ signifies intensity of such modulation.
 This table describes forms of modulation that exist in MIDA:
 
 @table @samp
-@item /
+@item _u
 Ascending change for whole duration of note.
-@item \
+@item _d
 Condescending change for whole duration of note.
-@item /\
+@item _ud
 Ascending change for first half of note's duration and condescending
 change for the second half.
-@item \/
+@item _du
 Condescending change for first half of note's duration and ascending
 change for the second half.
 @end table
 
-So, for example, the command @samp{/\ + 127} represents ascending
+So, for example, the command @samp{_ud + 127} represents ascending
 change of some parameter for half duration of given note and
 condescending change back to initial value for another
 half. @code{127} signifies maximal possible intensity of this
 modulation.
 
-Symbols @samp{/}, @samp{\}, @samp{\/}, and @samp{/\} represent plain
-numbers, you can check it in your REPL, but don't use 'magic numbers',
-because they may be changed in future versions of MIDA.
+Symbols @samp{_u}, @samp{_d}, @samp{_du}, and @samp{_ud} represent
+plain numbers, you can check it in your REPL, but don't use ``magic
+numbers'', because they may be changed in future versions of MIDA.
 
 @node Principles
 @section Principles
@@ -813,8 +820,6 @@ number to right-side number inclusively.
 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...
 ? 5..2
 5 4 3 2 5 4 3 2 5 4 3 2 5 4 3 2...
-? c5..e5
-60 61 62 63 64 60 61 62 63 64 60 61 62 63 64 60...
 @end example
 
 Although you cannot specify step between resulting elements, you can
@@ -825,10 +830,10 @@ elements by given number. How? Keep reading!
 @section Multivalues
 @cindex multivalue
 
-So far, we have worked only with literal values. But MIDA knows one
-more kind of element: @dfn{multivalue}. Multivalue is such an element
-that has many values at the same time. You know, just like electron
-exists in different positions around atomic nucleus. Realization of
+So far, we worked only with literal values. But MIDA knows one more
+kind of element: @dfn{multivalue}. Multivalue is such an element that
+has many values at the same time. You know, just like electron exists
+in different positions around atomic nucleus. Realization of
 multivalue is a pseudo-random value chosen from all possible variants.
 
 Multivalue is written as collection of possible values inside
@@ -850,7 +855,7 @@ but you can change it with help of repetition:
 => 1 1 1 1 1 2 1 1 1 1 2 1 3 1 1 1...
 @end example
 
-Basic operations work together! (@samp{$} operator will be considered
+Basic operators work together! (@samp{$} operator will be considered
 later, @pxref{Repetition}.) You can put a multivalue into another
 multivalue too:
 
@@ -871,7 +876,7 @@ result probabilities look like: @code{1} -- 50%, @code{2} -- 25%,
 @dfn{Section} is another kind of element. Section is collection of
 elements that can be manipulated as one element.
 
-Sections are represented as a principle inside of square brackets
+Sections are written as a principle inside of square brackets
 (@samp{[} and @samp{]}):
 
 @example
@@ -1035,7 +1040,7 @@ of elements will produce different effects:
 ? @{<1> 2 <2> 1@} + 5
 = @{<6> 7 <7> 6@}
 6 7 6 7 6 7 6 7 6 7 6 7 6 7 6 7...
-? @{/, \, /\, \/@} + 127
+? @{_u, _d, _ud, _du@} + 127
 = @{511 639 255 383@}
 511 255 383 639 383 639 383 639 255 639 383 383 511 511 639 639...
 @end example
