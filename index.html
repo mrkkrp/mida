@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <!-- This manual describes MIDA language and its realization (version
-0.4.0, 04 March 2015).
+0.4.1, 24 March 2015).
 
 Copyright (C) 2015 Mark Karpov
 
@@ -14,7 +14,7 @@ Documentation License".
 
 
  -->
-<!-- Created on March 13, 2015 by texi2html 5.0
+<!-- Created on March 24, 2015 by texi2html 5.0
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -64,13 +64,13 @@ ul.no-bullet {list-style: none}
 <body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
 
 <h1>MIDA Manual</h1>
-<h3 align="right">Edition 0.4.0, for <code>MIDA</code> Version 0.4.0.</h3>
+<h3 align="right">Edition 0.4.1, for <code>MIDA</code> Version 0.4.1.</h3>
 <h3 align="right">March 2015</h3>
 <strong>Mark Karpov</strong><br>
 
 
 <p>This manual describes MIDA language and its realization (version
-0.4.0, 04 March 2015).
+0.4.1, 24 March 2015).
 </p>
 <p>Copyright &copy; 2015 Mark Karpov
 </p>
@@ -244,7 +244,7 @@ default. Otherwise, one should use command line options to start MIDA
 in interactive mode.
 </p>
 <div class="example">
-<pre class="example">mida [-i|--interactive] [-s|--seed SEED] [-q|--quarter TICKS] [-b|--beats BEATS] [-o|--output OUT] [FILE]
+<pre class="example">mida [-i|--interactive] [-s|--seed SEED] [-q|--quarter TICKS] [-b|--beats BEATS] [-o|--output OUT] [FILES]
 </pre></div>
 
 <p>Here&rsquo;s the complete list of command line options:
@@ -305,14 +305,14 @@ file &lsquo;<tt>C:\Users\username\.mida</tt>&rsquo;.
 </p>
 <a name="index-configuration-file-variables"></a>
 
-<p>The configuration file uses Unix-style syntax. That is, you can use
-<code>#</code> for line comments, and <code>=</code> to assign new values (spaces
-before and after <code>=</code> are ignored). Currently, all variables must
-be strings, integers, or Boolean values. If a string should contain
-space, enclose it into double quotes: &lsquo;<samp>&quot;</samp>&rsquo;. Inside the quotes you
-can escape characters with backslash &lsquo;<samp>\</samp>&rsquo;. Integers must be
-written as decimal numbers. Boolean values can only have values of
-&lsquo;<samp>true</samp>&rsquo; or &lsquo;<samp>false</samp>&rsquo;. Everything is case-sensitive.
+<p>The configuration file uses syntax similar to that of Unix shell. That
+is, you can use <code>#</code> for line comments, and <code>=</code> to assign new
+values (spaces before and after <code>=</code> are ignored). Currently, all
+variables must be strings, integers, or Boolean values. If a string
+should contain space, enclose it into double quotes: &lsquo;<samp>&quot;</samp>&rsquo;. Inside
+the quotes you can escape characters with backslash &lsquo;<samp>\</samp>&rsquo;. Integers
+must be written as decimal numbers. Boolean values can only have
+values of &lsquo;<samp>true</samp>&rsquo; or &lsquo;<samp>false</samp>&rsquo;. Everything is case-sensitive.
 </p>
 <p>The following table describes all variables that can be assigned in
 the configuration file.
@@ -469,8 +469,8 @@ Available commands:
 <dd><p>Show license.
 </p></dd>
 <dt>&lsquo;<samp>:load</samp>&rsquo;</dt>
-<dd><p>Load definition from specified source file. When something is defined,
-you usually get some helpful feedback:
+<dd><p>Load definition from specified source files. When something is
+defined, you usually get some helpful feedback:
 </p><div class="example">
 <pre class="example">? :load projects/music/tst1.da
 Defined 'pch0'.
@@ -484,7 +484,12 @@ Defined 'dur2'.
 Defined 'vel2'.
 &quot;/home/mark/projects/music/tst1.da&quot; loaded successfully.
 </pre></div>
-</dd>
+<p>Note that you can specify as many source files as you wish, they will
+be loaded successively and all definitions from those files will be
+available in the interactive environment. Nevertheless, remember that
+definitions from one file may be silently redefined by definitions
+from another file if they have the same names.
+</p></dd>
 <dt>&lsquo;<samp>:make</samp>&rsquo;</dt>
 <dd><p>One of the most common commands is &lsquo;<samp>:make</samp>&rsquo;. It produces MIDI file
 based on current state of MIDA environment. This command takes up to
@@ -569,6 +574,7 @@ baz = 13
 ? :purge
 Environment purged.
 ? :def baz
+baz =
 ? :def bar
 bar = 12
 </pre></div>
@@ -606,8 +612,8 @@ different default value via configuration file (see section <a href="#Configurat
 <dd><p>Remove definition of given symbol. Although standard way to remove
 definition is &lsquo;<samp> definition_name =</samp>&rsquo;, i.e. assigning empty
 principle to it, you may find &lsquo;<samp>:udef</samp>&rsquo; command more convenient,
-because it takes any number of arguments and it also frees memory that
-was allocated to specified definitions.
+because it takes arbitrary number of arguments and it also frees
+memory that was allocated for specified definitions.
 </p></dd>
 </dl>
 
@@ -689,7 +695,7 @@ This program comes with ABSOLUTELY NO WARRANTY. This is free software,
 and you are welcome to redistribute it under certain conditions; see
 GNU General Public License for details.
 
-MIDA Interactive Environment 0.4.0
+MIDA Interactive Environment 0.4.1
 ?
 </pre></div>
 
@@ -828,7 +834,8 @@ where octaves start from <code>0</code>. So <code>c0</code> corresponds to
 <p>Please note that there is no standard way to number octaves in
 MIDI. The MIDI standard only says that note with index <code>60</code> must
 be <em>Middle C</em>. We&rsquo;ve chosen zero-based system for reasons that I
-described earlier, some software starts numeration from <code>-2</code>.
+have described earlier, some software starts numeration from
+<code>-2</code>.
 </p>
 <p>Enter any alias into MIDA and see for yourself that it&rsquo;s just like
 entering corresponding MIDI code (note that all alias are
@@ -878,31 +885,31 @@ signifies intensity of such modulation.
 <p>This table describes forms of modulation that exist in MIDA:
 </p>
 <dl compact="compact">
-<dt>&lsquo;<samp>/</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>_u</samp>&rsquo;</dt>
 <dd><p>Ascending change for whole duration of note.
 </p></dd>
-<dt>&lsquo;<samp>\</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>_d</samp>&rsquo;</dt>
 <dd><p>Condescending change for whole duration of note.
 </p></dd>
-<dt>&lsquo;<samp>/\</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>_ud</samp>&rsquo;</dt>
 <dd><p>Ascending change for first half of note&rsquo;s duration and condescending
 change for the second half.
 </p></dd>
-<dt>&lsquo;<samp>\/</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>_du</samp>&rsquo;</dt>
 <dd><p>Condescending change for first half of note&rsquo;s duration and ascending
 change for the second half.
 </p></dd>
 </dl>
 
-<p>So, for example, the command &lsquo;<samp>/\ + 127</samp>&rsquo; represents ascending
+<p>So, for example, the command &lsquo;<samp>_ud + 127</samp>&rsquo; represents ascending
 change of some parameter for half duration of given note and
 condescending change back to initial value for another
 half. <code>127</code> signifies maximal possible intensity of this
 modulation.
 </p>
-<p>Symbols &lsquo;<samp>/</samp>&rsquo;, &lsquo;<samp>\</samp>&rsquo;, &lsquo;<samp>\/</samp>&rsquo;, and &lsquo;<samp>/\</samp>&rsquo; represent plain
-numbers, you can check it in your REPL, but don&rsquo;t use &rsquo;magic numbers&rsquo;,
-because they may be changed in future versions of MIDA.
+<p>Symbols &lsquo;<samp>_u</samp>&rsquo;, &lsquo;<samp>_d</samp>&rsquo;, &lsquo;<samp>_du</samp>&rsquo;, and &lsquo;<samp>_ud</samp>&rsquo; represent
+plain numbers, you can check it in your REPL, but don&rsquo;t use &ldquo;magic
+numbers&rdquo;, because they may be changed in future versions of MIDA.
 </p>
 <hr>
 <a name="Principles"></a>
@@ -1149,8 +1156,6 @@ number to right-side number inclusively.
 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...
 ? 5..2
 5 4 3 2 5 4 3 2 5 4 3 2 5 4 3 2...
-? c5..e5
-60 61 62 63 64 60 61 62 63 64 60 61 62 63 64 60...
 </pre></div>
 
 <p>Although you cannot specify step between resulting elements, you can
@@ -1178,10 +1183,10 @@ elements by given number. How? Keep reading!
 <h2 class="section">6.5 Multivalues</h2>
 <a name="index-multivalue"></a>
 
-<p>So far, we have worked only with literal values. But MIDA knows one
-more kind of element: <em>multivalue</em>. Multivalue is such an element
-that has many values at the same time. You know, just like electron
-exists in different positions around atomic nucleus. Realization of
+<p>So far, we worked only with literal values. But MIDA knows one more
+kind of element: <em>multivalue</em>. Multivalue is such an element that
+has many values at the same time. You know, just like electron exists
+in different positions around atomic nucleus. Realization of
 multivalue is a pseudo-random value chosen from all possible variants.
 </p>
 <p>Multivalue is written as collection of possible values inside
@@ -1203,7 +1208,7 @@ but you can change it with help of repetition:
 =&gt; 1 1 1 1 1 2 1 1 1 1 2 1 3 1 1 1...
 </pre></div>
 
-<p>Basic operations work together! (&lsquo;<samp>$</samp>&rsquo; operator will be considered
+<p>Basic operators work together! (&lsquo;<samp>$</samp>&rsquo; operator will be considered
 later, see section <a href="#Repetition">Repetition</a>.) You can put a multivalue into another
 multivalue too:
 </p>
@@ -1241,7 +1246,7 @@ result probabilities look like: <code>1</code> &ndash; 50%, <code>2</code> &ndas
 <p><em>Section</em> is another kind of element. Section is collection of
 elements that can be manipulated as one element.
 </p>
-<p>Sections are represented as a principle inside of square brackets
+<p>Sections are written as a principle inside of square brackets
 (&lsquo;<samp>[</samp>&rsquo; and &lsquo;<samp>]</samp>&rsquo;):
 </p>
 <div class="example">
@@ -1460,7 +1465,7 @@ of elements will produce different effects:
 ? {&lt;1&gt; 2 &lt;2&gt; 1} + 5
 = {&lt;6&gt; 7 &lt;7&gt; 6}
 6 7 6 7 6 7 6 7 6 7 6 7 6 7 6 7...
-? {/, \, /\, \/} + 127
+? {_u, _d, _ud, _du} + 127
 = {511 639 255 383}
 511 255 383 639 383 639 383 639 255 639 383 383 511 511 639 639...
 </pre></div>
@@ -2317,7 +2322,7 @@ to permit their use in free software.
 <h1>About This Document</h1>
 
 <p>
-  This document was generated on <i>March 13, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>March 24, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
 </p>
 <p>
   The buttons in the navigation panels have the following meaning:
@@ -2419,7 +2424,7 @@ to permit their use in free software.
 <hr>
 <p>
  <font size="-1">
-  This document was generated on <i>March 13, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>March 24, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
  </font>
  <br>
 
