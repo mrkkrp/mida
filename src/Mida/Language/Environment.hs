@@ -40,6 +40,7 @@ import Control.Applicative (Applicative, (<$>))
 import Control.Arrow ((***), (>>>))
 import Control.Monad.State.Strict
 import Data.List ((\\), nub)
+import Data.Maybe (fromMaybe)
 import qualified Data.Map.Strict as M
 
 import System.Random.Mersenne.Pure64
@@ -90,7 +91,7 @@ clearDefs :: Monad m => MidaEnv m ()
 clearDefs = setDefs defaultDefs
 
 getPrin :: Monad m => String -> MidaEnv m SyntaxTree
-getPrin name = (maybe [] id . M.lookup name) `liftM` getDefs
+getPrin name = (fromMaybe [] . M.lookup name) `liftM` getDefs
 
 getSrc :: Monad m => String -> MidaEnv m String
 getSrc name = showDefinition name `liftM` getPrin name

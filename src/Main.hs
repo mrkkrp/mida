@@ -34,16 +34,16 @@ data Opts = Opts
     , _opQuarter    :: Int
     , _opBeats      :: Int
     , _opOutput     :: String
-    , opMidaFile    :: String }
+    , opMidaFiles   :: [String] }
 
 main :: IO ()
 main = putStrLn notice >> execParser opts >>= f
-    where f Opts { opMidaFile = "" } =
+    where f Opts { opMidaFiles = [] } =
               runMida $ interaction version
-          f Opts { opInteractive = True, opMidaFile = name } =
-              runMida $ cmdLoad name >> interaction version
-          f (Opts _ s q b out name) =
-              runMida $ cmdLoad name >> cmdMake s q b out
+          f Opts { opInteractive = True, opMidaFiles = names } =
+              runMida $ cmdLoad names >> interaction version
+          f (Opts _ s q b out names) =
+              runMida $ cmdLoad names >> cmdMake s q b out
           version = "0.4.1"
 
 notice :: String
@@ -116,6 +116,4 @@ options = Opts
   <> metavar "OUT"
   <> value ""
   <> help "Set name of output file" )
-  <*> argument str
-  ( metavar "FILE"
-  <> value "" )
+  <*> many (strArgument $ metavar "FILES")

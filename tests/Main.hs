@@ -29,13 +29,13 @@
 
 module Main (main) where
 
+import Control.Applicative ((<$>), (<*>))
 import Control.Arrow ((&&&), (>>>))
 import Data.Char (isLetter, isAlphaNum)
-import Control.Applicative ((<$>), (<*>))
 
-import Test.QuickCheck
 import Test.Framework (defaultMain, testGroup, Test)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
+import Test.QuickCheck
 
 import Mida.Language (Sel (..))
 import Mida.Representation

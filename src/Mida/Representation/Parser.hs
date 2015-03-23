@@ -120,10 +120,7 @@ optTable =
 
 lang :: LanguageDef st
 lang = emptyDef
-       { Token.commentStart    = ""
-       , Token.commentEnd      = ""
-       , Token.commentLine     = B.commentLine
-       , Token.nestedComments  = True
+       { Token.commentLine     = B.commentLine
        , Token.identStart      = letter <|> char '_'
        , Token.identLetter     = alphaNum <|> char '_'
        , Token.reservedOpNames = langOps

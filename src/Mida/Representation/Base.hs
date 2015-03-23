@@ -34,8 +34,8 @@ where
 
 noteAlias :: [String]
 noteAlias = zipWith f names ([0..127] :: [Int])
-    where f n i = n ++ show (i `div` 12)
-          names = cycle ["c","cs","d","ds","e","f","fs","g","gs","a","as","b"]
+    where names = cycle ["c","cs","d","ds","e","f","fs","g","gs","a","as","b"]
+          f n i = n ++ show (i `div` 12)
 
 commentLine :: String
 commentLine = "#"

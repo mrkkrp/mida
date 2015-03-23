@@ -26,6 +26,7 @@ module Mida.Configuration
     , lookupCfg )
 where
 
+import Control.Applicative ((<$>), (<*>), (<*), (*>))
 import Data.Char (isDigit, isSpace)
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
@@ -58,18 +59,13 @@ parseConfig :: String -> String -> Either String Params
 parseConfig file = either (Left . show) Right . parse pConfig file
 
 pConfig :: Parser Params
-pConfig = do
-  whiteSpace
-  items <- many pItem
-  return $ M.fromList items
+pConfig = M.fromList <$> (whiteSpace *> many pItem <* eof)
 
 pItem :: Parser (String, String)
-pItem = do
-  var <- identifier
-  reservedOp "="
-  val <- try pstring <|> many (satisfy (not . isSpace))
-  whiteSpace
-  return (var, val)
+pItem = (,) <$> identifier <* reservedOp "=" <*> (pString <|> pThing)
+
+pThing :: Parser String
+pThing = lexeme $ many (satisfy $ not . isSpace)
 
 lookupCfg :: Parsable a => Params -> String -> a -> a
 lookupCfg cfg v d = fromMaybe d $ M.lookup v cfg >>= parseValue
@@ -77,8 +73,9 @@ lookupCfg cfg v d = fromMaybe d $ M.lookup v cfg >>= parseValue
 lang :: LanguageDef st
 lang = emptyDef
        { Token.commentLine     = "#"
-       , Token.identStart      = letter
-       , Token.identLetter     = alphaNum
+       , Token.identStart      = letter <|> char '_'
+       , Token.identLetter     = alphaNum <|> char '_'
+       , Token.reservedNames   = ["true", "false"]
        , Token.reservedOpNames = ["="]
        , Token.caseSensitive   = True }
 
@@ -88,11 +85,14 @@ lexer = Token.makeTokenParser lang
 identifier :: Parser String
 identifier = Token.identifier lexer
 
-pstring :: Parser String
-pstring = Token.stringLiteral lexer
+pString :: Parser String
+pString = Token.stringLiteral lexer
 
 reservedOp :: String -> Parser ()
 reservedOp = Token.reservedOp lexer
+
+lexeme :: Parser a -> Parser a
+lexeme = Token.lexeme lexer
 
 whiteSpace :: Parser ()
 whiteSpace = Token.whiteSpace lexer

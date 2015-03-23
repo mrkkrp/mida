@@ -78,7 +78,7 @@ commands =
     , Cmd "def"     cmdDef     "Print definition of given symbol."     Names
     , Cmd "help"    cmdHelp    "Show this help text."                  None
     , Cmd "license" cmdLicense "Show license."                         None
-    , Cmd "load"    cmdLoad    "Load definitions from given file."     Files
+    , Cmd "load"    cmdLoad'   "Load definitions from given file."     Files
     , Cmd "make"    cmdMake'   "Generate and save MIDI file."          Files
     , Cmd "prog"    cmdProg    "Set program for preview."              None
     , Cmd "prv"     cmdPrv     "Play the score with external program." None
@@ -157,8 +157,14 @@ cmdLicense _ = liftIO $ putStr
     \You should have received a copy of the GNU General Public License along\n\
     \with this program. If not, see <http://www.gnu.org/licenses/>.\n"
 
-cmdLoad :: String -> MidaIO ()
-cmdLoad given = do
+cmdLoad' :: String -> MidaIO ()
+cmdLoad' = cmdLoad . words
+
+cmdLoad :: [String] -> MidaIO()
+cmdLoad = mapM_ loadOne
+
+loadOne :: String -> MidaIO ()
+loadOne given = do
   file <- output given ""
   b    <- liftIO $ doesFileExist file
   if b
@@ -182,12 +188,12 @@ cmdMake' arg =
 
 cmdMake :: Int -> Int -> Int -> String -> MidaIO ()
 cmdMake s q b f = do
-  file <- output f "mid"
-  midi <- liftEnv $ genMidi s q b
+  file   <- output f "mid"
+  midi   <- liftEnv $ genMidi s q b
   result <- liftIO $ try (Midi.exportFile file midi)
   case result of
     Right _ -> liftIO $ printf "MIDI file saved as \"%s\".\n" file
-    Left e -> spitExc e
+    Left  e -> spitExc e
 
 cmdProg :: String -> MidaIO ()
 cmdProg arg = do
@@ -201,8 +207,8 @@ cmdPrv arg = do
   prog    <- show <$> getProg
   tempoOp <- getTempoOp
   tempo   <- show <$> getTempo
-  temp <- liftIO getTemporaryDirectory
-  f    <- output "" "mid"
+  temp    <- liftIO getTemporaryDirectory
+  f       <- output "" "mid"
   let (s:q:b:_) = words arg ++ repeat ""
       file      = temp </> takeFileName f
       cmd       = unwords [prvcmd, progOp, prog, tempoOp, tempo, file]
@@ -225,7 +231,7 @@ cmdPwd :: String -> MidaIO ()
 cmdPwd _ = liftIO (getCurrentDirectory >>= putStrLn)
 
 cmdQuit :: String -> MidaIO ()
-cmdQuit _ = liftIO (printf "Goodbye.\n") >> liftIO exitSuccess
+cmdQuit _ = liftIO exitSuccess
 
 cmdSave :: String -> MidaIO ()
 cmdSave given = do
