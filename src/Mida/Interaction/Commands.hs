@@ -132,7 +132,7 @@ cmdClear _ = liftEnv clearDefs >> liftIO (printf "Environment cleared.\n")
 
 cmdDef :: String -> MidaIO ()
 cmdDef arg = mapM_ f (words arg)
-    where f name = liftEnv (getSrc name) >>= liftIO . putStrLn . maybe "" trim
+    where f name = liftEnv (getSrc name) >>= liftIO . putStr
 
 cmdHelp :: String -> MidaIO ()
 cmdHelp _ = liftIO (printf "Available commands:\n") >> mapM_ f commands
@@ -169,8 +169,8 @@ cmdLoad given = do
                           liftIO $ printf "\"%s\" loaded successfully.\n" file
             Left  x -> liftIO $ printf "Parse error in %s.\n" x
   else liftIO $ printf "Could not find \"%s\".\n" file
-    where f (Definition n e s) = processDef n e s
-          f (Exposition     _) = return ()
+    where f (Definition n t) = processDef n t
+          f (Exposition   _) = return ()
 
 cmdMake' :: String -> MidaIO ()
 cmdMake' arg =

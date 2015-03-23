@@ -1,7 +1,7 @@
 -- -*- Mode: Haskell; -*-
 --
 -- This module describes how to build syntax tree from textual
--- representation of MIDA source.
+-- representation of MIDA statements.
 --
 -- Copyright (c) 2014, 2015 Mark Karpov
 --
@@ -24,7 +24,7 @@ module Mida.Representation.Parser
     , parseMida )
 where
 
-import Control.Applicative ((<$>), (<*>))
+import Control.Applicative ((<$>), (<*>), (<*), (*>))
 import Data.Char (isSpace)
 import Data.Functor.Identity
 import Data.List (isInfixOf, isSuffixOf)
@@ -35,18 +35,13 @@ import Text.Parsec.Language
 import Text.Parsec.String
 import qualified Text.Parsec.Token as Token
 
-import Mida.Language (SyntaxTree, Sel (..))
+import Mida.Language.SyntaxTree (SyntaxTree, Sel (..))
 import qualified Mida.Representation.Base as B
 
 data Statement
-    = Definition String SyntaxTree String
+    = Definition String SyntaxTree
     | Exposition SyntaxTree
-      deriving (Show)
-
-instance Eq Statement where
-    (Exposition t0)      == (Exposition t1)      = t0 == t1
-    (Definition n0 t0 _) == (Definition n1 t1 _) = n0 == n1 && t0 == t1
-    _                    == _                    = False
+      deriving (Eq, Show)
 
 probeMida :: String -> Bool
 probeMida arg = not $ or ["," `isSuffixOf` s, f "[]", f "{}", f "<>", f "()"]
@@ -62,31 +57,21 @@ parseMida file str =
                  then Left $ "\"" ++ file ++ "\":\ninvalid definition syntax"
                  else Right x
       Left  x -> Left $ show x
-    where parser = if B.definitionOp `isInfixOf` str
+    where parser = if B.defOp `isInfixOf` str
                    then pSource
                    else pExposition
 
 pSource :: Parser [Statement]
-pSource = whiteSpace >> many pDefinition
+pSource = whiteSpace *> many pDefinition <* eof
 
 pDefinition :: Parser Statement
-pDefinition = do
-  x <- getInput
-  n <- identifier
-  reservedOp B.definitionOp
-  p <- pPrinciple
-  y <- getInput
-  return $ Definition n p $ take (length x - length y) x
+pDefinition = Definition <$> identifier <* reservedOp B.defOp <*> pPrinciple
 
 pExposition :: Parser [Statement]
-pExposition = (return . Exposition) <$> (whiteSpace >> pPrinciple)
+pExposition = (return . Exposition) <$> (whiteSpace *> pPrinciple <* eof)
 
 pPrinciple :: Parser SyntaxTree
-pPrinciple = do
-  result <- sepBy (pExpression <|> pElement) (optional comma)
-  optional . choice $ map f langOps
-  return result
-    where f x = reservedOp x >> unexpected ("\"" ++ x ++ "\"")
+pPrinciple = sepBy (pExpression <|> pElement) (optional comma)
 
 pElement :: Parser Sel
 pElement
@@ -99,20 +84,16 @@ pElement
    <?> "element"
 
 pRange :: Parser Sel
-pRange = do
-  Value x <- pValue
-  reservedOp B.rangeOp
-  Value y <- pValue
-  return $ Range x y
+pRange = Range <$> pNatural <* reservedOp B.rangeOp <*> pNatural
 
 pValue :: Parser Sel
-pValue = (Value . fromIntegral) <$> natural <?> "literal value"
+pValue = Value <$> pNatural
+
+pNatural :: Parser Int
+pNatural = fromIntegral <$> natural <?> "literal value"
 
 pReference :: Parser Sel
-pReference = do
-  n <- identifier
-  notFollowedBy $ reservedOp B.definitionOp
-  return $ Reference n
+pReference = Reference <$> identifier <* notFollowedBy (reservedOp B.defOp)
 
 pSection :: Parser Sel
 pSection = Section <$> brackets pPrinciple
@@ -124,11 +105,11 @@ pCMulti :: Parser Sel
 pCMulti = CMulti <$> braces (many $ (,) <$> angles pPrinciple <*> pPrinciple)
 
 pExpression :: Parser Sel
-pExpression = buildExpressionParser pOperators (parens pExpression <|> pElement)
+pExpression = buildExpressionParser optTable (parens pExpression <|> pElement)
               <?> "expression"
 
-pOperators :: [[Operator String () Data.Functor.Identity.Identity Sel]]
-pOperators =
+optTable :: [[Operator String () Data.Functor.Identity.Identity Sel]]
+optTable =
     [[ Prefix (reservedOp B.reverseOp >> return Reverse ) ]
      , [ Infix (reservedOp B.productOp  >> return Product ) AssocLeft
        , Infix (reservedOp B.divisionOp >> return Division) AssocLeft
@@ -158,7 +139,7 @@ langOps =
     , B.rotationOp
     , B.reverseOp
     , B.rangeOp
-    , B.definitionOp ]
+    , B.defOp ]
 
 lexer :: Token.TokenParser st
 lexer = Token.makeTokenParser lang

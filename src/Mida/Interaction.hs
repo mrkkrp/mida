@@ -79,13 +79,13 @@ processExpr expr = do
   case parseMida file expr of
     Right x -> mapM_ f x
     Left  x -> liftIO $ printf "Parse error in %s.\n" x
-    where f (Definition n e s) = processDef n e s
-          f (Exposition e) =
+    where f (Definition n t) = processDef n t
+          f (Exposition   t) =
               do len     <- getPrevLen
                  verbose <- getVerbose
-                 result  <- liftEnv $ eval e
-                 prin    <- liftEnv $ toPrin e
-                 liftIO $ when verbose (putStrLn $ "= " ++ showPrinciple prin)
+                 result  <- liftEnv $ eval t
+                 prin    <- liftEnv $ toPrin t
+                 liftIO $ when verbose (putStr $ "= " ++ showPrinciple prin)
                  spitList $ take len result
 
 spitList :: Show a => [a] -> MidaIO ()

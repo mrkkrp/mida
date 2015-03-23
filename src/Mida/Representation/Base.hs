@@ -28,7 +28,7 @@ module Mida.Representation.Base
     , rotationOp
     , reverseOp
     , rangeOp
-    , definitionOp
+    , defOp
     , figures )
 where
 
@@ -64,8 +64,8 @@ reverseOp = "@"
 rangeOp :: String
 rangeOp = ".."
 
-definitionOp :: String
-definitionOp = "="
+defOp :: String
+defOp = "="
 
 figures :: [String]
 figures = ["_ud","_du","_u","_d"]

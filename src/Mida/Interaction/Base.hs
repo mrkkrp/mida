@@ -145,12 +145,12 @@ dfltQuarter = 24
 dfltBeats :: Int
 dfltBeats = 16
 
-processDef :: String -> SyntaxTree -> String -> MidaIO ()
-processDef n e s = do
-  recursive <- liftEnv $ checkRecur n e
+processDef :: String -> SyntaxTree -> MidaIO ()
+processDef n t = do
+  recursive <- liftEnv $ checkRecur n t
   if recursive
   then liftIO $ printf "Rejected recursive definition for '%s'.\n" n
-  else liftEnv (addDef n e s) >> liftIO (printf "Defined '%s'.\n" n)
+  else liftEnv (addDef n t) >> liftIO (printf "Defined '%s'.\n" n)
 
 trim :: String -> String
 trim = f . f
