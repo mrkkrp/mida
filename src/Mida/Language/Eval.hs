@@ -68,7 +68,7 @@ resolve xs = concat <$> mapM f xs
           f (Sec  x) = resolve x
           f (Mul  x) = choice x >>= maybe (return []) f
           f (CMul x) = listToMaybe <$> filterM (matchHistory . fst) x
-                       >>= maybe (f . Mul . concatMap snd $ x) (resolve . snd)
+                       >>= maybe (f . Mul . concatMap snd $ x) (f . Mul . snd)
 
 runCalc :: Calc a -> PureMT -> a
 runCalc clc gen = evalState (unCalc clc)
