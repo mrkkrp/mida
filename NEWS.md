@@ -2,7 +2,29 @@
 
 ## MIDA 0.4.1
 
-* considerably improved efficiency.
+* dramatically improved efficiency, now very long compositions can be
+  quickly rendered;
+
+* lexer: changed style of comments, shell-like comments adopted;
+
+* changed alias of notes: dièse is written now as `s` not as `#`, so middle
+  octave is: `c5`, `cs5`, `d5`, `ds5`, `e5`, etc.;
+
+* now there are alias for all supported (in MIDI) pitches from 0 to 127,
+  that is: from `c0` to `g10` (alias `c10` -- `g10` added);
+
+* changed alias of modulation signs, reason for such change is purely
+  technical -- all alias now are predefined definitions, rather than
+  syntactic sugar, so all alias must be valid identifiers;
+
+* identifiers can contain underline sign (`_`);
+
+* arbitrary number of files can be specified for loading (from command line,
+  as well as from interactive REPL);
+
+* many purely technical changes that are difficult to explain concisely, but
+  they should be mentioned, most important being addition of test suite and
+  ability to generate source files from syntax trees.
 
 ## MIDA 0.4.0
 
