@@ -19,6 +19,7 @@
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TupleSections              #-}
 
 module Mida.Language.Environment
     ( MidaEnv (..)
@@ -39,7 +40,6 @@ where
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow ((***), (>>>))
 import Control.Monad.State.Strict
-import Data.List ((\\), nub)
 import Data.Maybe (fromMaybe)
 import qualified Data.Map.Strict as M
 
@@ -123,8 +123,9 @@ tDefs name defs = maybe [] cm $ M.lookup name defs
 
 purgeEnv :: Monad m => [String] -> MidaEnv m ()
 purgeEnv tops = f `liftM` getDefs >>= setDefs
-    where f defs = foldr M.delete defs $ M.keys defs \\ (musts defs ++ tops)
-          musts  = nub . concat . zipWith tDefs tops . repeat
+    where f defs = M.intersection defs $ M.unions [ts, ms defs, defaultDefs]
+          ms     = M.unions . map toDefs . zipWith tDefs tops . repeat
+          ts     = toDefs tops
 
 checkRecur :: Monad m => String -> SyntaxTree -> MidaEnv m Bool
 checkRecur name tree = check `liftM` getDefs
@@ -138,3 +139,6 @@ newRandGen = do
   (n, g) <- (randomWord64 . stRandGen) `liftM` get
   modify $ \e -> e { stRandGen = pureMT n }
   return . pureMT . fst . randomWord64 $ g
+
+toDefs :: [String] -> Defs
+toDefs = M.fromList . map (, [])
