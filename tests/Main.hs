@@ -71,21 +71,21 @@ instance Arbitrary Sel where
 
 arbitrarySel :: Int -> Gen Sel
 arbitrarySel 0 =
-    oneof [ Value <$> positive
+    oneof [ Value     <$> positive
           , Reference <$> alphaNumIdentifier
-          , Range <$> positive <*> positive ]
+          , Range     <$> positive <*> positive ]
     where positive = arbitrary `suchThat` (>= 0)
 arbitrarySel n =
-    oneof [ Section <$> listSel
-          , Multi <$> listSel
-          , CMulti <$> listCnd
-          , Product <$> leafSel <*> leafSel
+    oneof [ Section  <$> listSel
+          , Multi    <$> listSel
+          , CMulti   <$> listCnd
+          , Product  <$> leafSel <*> leafSel
           , Division <$> leafSel <*> leafSel
-          , Sum <$> leafSel <*> leafSel
-          , Diff <$> leafSel <*> leafSel
-          , Loop <$> leafSel <*> leafSel
+          , Sum      <$> leafSel <*> leafSel
+          , Diff     <$> leafSel <*> leafSel
+          , Loop     <$> leafSel <*> leafSel
           , Rotation <$> leafSel <*> leafSel
-          , Reverse <$> leafSel ]
+          , Reverse  <$> leafSel ]
     where cnSel d = arbitrarySel (n `div` d)
           vcSel d = arbitrarySizedIntegral `suchThat` (>= 0)
                     >>= \s -> vectorOf s (cnSel $ d * s)

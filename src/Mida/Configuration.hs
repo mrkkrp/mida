@@ -17,8 +17,8 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 module Mida.Configuration
     ( Params
@@ -28,12 +28,14 @@ where
 
 import Control.Applicative ((<$>), (<*>), (<*), (*>))
 import Data.Char (isDigit, isSpace)
+import Data.Functor.Identity
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
+import qualified Data.Text as T
 
 import Text.Parsec
 import Text.Parsec.Language
-import Text.Parsec.String
+import Text.Parsec.Text
 import qualified Text.Parsec.Token as Token
 
 type Params = M.Map String String
@@ -55,8 +57,9 @@ instance Parsable Bool where
     parseValue "false" = Just False
     parseValue _       = Nothing
 
-parseConfig :: String -> String -> Either String Params
-parseConfig file = either (Left . show) Right . parse pConfig file
+parseConfig :: String -> T.Text -> Either T.Text Params
+parseConfig file = either (Left . T.pack . show) Right .
+                   parse pConfig file
 
 pConfig :: Parser Params
 pConfig = M.fromList <$> (whiteSpace *> many pItem <* eof)
@@ -70,16 +73,21 @@ pThing = lexeme $ many (satisfy $ not . isSpace)
 lookupCfg :: Parsable a => Params -> String -> a -> a
 lookupCfg cfg v d = fromMaybe d $ M.lookup v cfg >>= parseValue
 
-lang :: LanguageDef st
-lang = emptyDef
-       { Token.commentLine     = "#"
+lang :: GenLanguageDef T.Text () Identity
+lang = Token.LanguageDef
+       { Token.commentStart    = ""
+       , Token.commentEnd      = ""
+       , Token.commentLine     = "#"
+       , Token.nestedComments  = True
        , Token.identStart      = letter <|> char '_'
        , Token.identLetter     = alphaNum <|> char '_'
+       , Token.opStart         = Token.opLetter lang
+       , Token.opLetter        = oneOf "="
        , Token.reservedNames   = ["true", "false"]
        , Token.reservedOpNames = ["="]
        , Token.caseSensitive   = True }
 
-lexer :: Token.TokenParser st
+lexer :: Token.GenTokenParser T.Text () Identity
 lexer = Token.makeTokenParser lang
 
 identifier :: Parser String

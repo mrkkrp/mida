@@ -42,11 +42,12 @@ import Control.Arrow ((***), (>>>))
 import Control.Monad.State.Strict
 import Data.Maybe (fromMaybe)
 import qualified Data.Map.Strict as M
+import qualified Data.Text as T
 
 import System.Random.Mersenne.Pure64
 
 import Mida.Language.SyntaxTree
-import Mida.Representation.Base (noteAlias, figures)
+import Mida.Representation.Base (noteAlias, modifiers)
 import Mida.Representation.Show (showDefinition)
 
 data MidaEnvSt = MidaEnvSt
@@ -72,7 +73,7 @@ runMidaEnv e = evalStateT (unMidaEnv e) MidaEnvSt
 defaultDefs :: Defs
 defaultDefs = M.fromList $
               zip noteAlias (makeS <$> [0..]) ++
-                  zip figures   (makeS <$> [128,256..])
+              zip modifiers (makeS <$> [128,256..])
     where makeS x = [Value x]
 
 getDefs :: Monad m => MidaEnv m Defs
@@ -93,11 +94,11 @@ clearDefs = setDefs defaultDefs
 getPrin :: Monad m => String -> MidaEnv m SyntaxTree
 getPrin name = (fromMaybe [] . M.lookup name) `liftM` getDefs
 
-getSrc :: Monad m => String -> MidaEnv m String
+getSrc :: Monad m => String -> MidaEnv m T.Text
 getSrc name = showDefinition name `liftM` getPrin name
 
-fullSrc :: Monad m => MidaEnv m String
-fullSrc = (M.foldr (++) ""             .
+fullSrc :: Monad m => MidaEnv m T.Text
+fullSrc = (M.foldr T.append T.empty    .
            M.mapWithKey showDefinition .
            flip M.difference defaultDefs) `liftM` getDefs
 

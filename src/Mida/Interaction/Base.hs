@@ -18,8 +18,9 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
-{-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE StandaloneDeriving         #-}
 {-# OPTIONS  -fno-warn-orphans          #-}
 
 module Mida.Interaction.Base
@@ -46,16 +47,14 @@ module Mida.Interaction.Base
     , dfltSeed
     , dfltQuarter
     , dfltBeats
-    , processDef
-    , trim )
+    , processDef )
 where
 
 import Control.Applicative (Applicative)
 import Control.Monad.Reader
 import Control.Monad.State.Strict
-import Data.Char (isSpace)
-import Text.Printf (printf)
 
+import qualified Data.Text.Format as F
 import qualified System.Console.Haskeline as L
 
 import Mida.Language
@@ -149,9 +148,5 @@ processDef :: String -> SyntaxTree -> MidaIO ()
 processDef n t = do
   recursive <- liftEnv $ checkRecur n t
   if recursive
-  then liftIO $ printf "Rejected recursive definition for '%s'.\n" n
-  else liftEnv (addDef n t) >> liftIO (printf "Defined '%s'.\n" n)
-
-trim :: String -> String
-trim = f . f
-    where f = reverse . dropWhile isSpace
+  then liftIO $ F.print "Rejected recursive definition for '{}'.\n" (F.Only n)
+  else liftEnv (addDef n t) >> liftIO (F.print "Defined '{}'.\n" (F.Only n))

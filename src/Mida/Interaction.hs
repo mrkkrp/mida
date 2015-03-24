@@ -18,6 +18,8 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Mida.Interaction
     ( MidaIO
     , MidaInt
@@ -34,11 +36,13 @@ where
 
 import Control.Applicative ((<$>))
 import Control.Monad.Reader
-import Data.List
 import System.IO
-import Text.Printf (printf)
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
 
+import qualified Data.Text.Format as F
 import qualified System.Console.Haskeline as L
+import qualified Text.Show.Text as T
 
 import Mida.Interaction.Base
 import Mida.Interaction.Commands
@@ -48,46 +52,47 @@ import Mida.Representation
 interaction :: String -> MidaIO ()
 interaction version = do
   liftIO $ hSetBuffering stdin LineBuffering
-  liftIO $ printf "MIDA Interactive Environment %s\n" version
+  liftIO $ F.print "MIDA Interactive Environment {}\n" (F.Only version)
   L.runInputT (L.setComplete completionFunc L.defaultSettings) midaRepl
 
 midaRepl :: L.InputT MidaIO ()
 midaRepl = do
   input <- getMultiline ""
   case input of
-    Just x  -> do if cmdPrefix `isPrefixOf` trim x
+    Just x  -> do if T.pack cmdPrefix `T.isPrefixOf` T.strip x
                   then lift $ processCmd x
                   else lift $ processExpr x
                   midaRepl
     Nothing -> return ()
 
-getMultiline :: String -> L.InputT MidaIO (Maybe String)
+getMultiline :: T.Text -> L.InputT MidaIO (Maybe T.Text)
 getMultiline prv = do
   prompt <- lift getPrompt
-  input  <- L.getInputLine $ if null prv
-                             then prompt
-                             else replicate (length prompt) ' '
-  case (prv ++) . (++ "\n") <$> input of
-    Just x -> if probeMida x
-              then return (Just x)
-              else getMultiline x
+  input  <- L.getInputLine $
+            if T.null prv then prompt else replicate (length prompt) ' '
+  case input of
+    Just x -> let r = prv `T.append` T.pack x `T.snoc` '\n'
+              in if probeMida r
+                 then return (Just r)
+                 else getMultiline r
     Nothing -> return Nothing
 
-processExpr :: String -> MidaInt IO ()
+processExpr :: T.Text -> MidaInt IO ()
 processExpr expr = do
   file <- getSrcFile
   case parseMida file expr of
     Right x -> mapM_ f x
-    Left  x -> liftIO $ printf "Parse error in %s.\n" x
+    Left  x -> liftIO $ F.print "Parse error in {}.\n" (F.Only x)
     where f (Definition n t) = processDef n t
           f (Exposition   t) =
               do len     <- getPrevLen
                  verbose <- getVerbose
                  result  <- liftEnv $ eval t
                  prin    <- liftEnv $ toPrin t
-                 liftIO $ when verbose (putStr $ "= " ++ showPrinciple prin)
+                 liftIO $ when verbose
+                            (F.print "= {}" (F.Only $ showPrinciple prin))
                  spitList $ take len result
 
-spitList :: Show a => [a] -> MidaIO ()
-spitList [] = liftIO $ printf "none\n"
-spitList xs = liftIO $ printf "%s...\n" $ unwords (show <$> xs)
+spitList :: [Int] -> MidaIO ()
+spitList [] = liftIO $ T.putStrLn "none"
+spitList xs = liftIO $ F.print "{}...\n" (F.Only $ T.unwords (T.show <$> xs))

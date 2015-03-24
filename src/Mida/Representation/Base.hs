@@ -29,7 +29,7 @@ module Mida.Representation.Base
     , reverseOp
     , rangeOp
     , defOp
-    , figures )
+    , modifiers )
 where
 
 noteAlias :: [String]
@@ -67,5 +67,5 @@ rangeOp = ".."
 defOp :: String
 defOp = "="
 
-figures :: [String]
-figures = ["_ud","_du","_u","_d"]
+modifiers :: [String]
+modifiers = ["_ud","_du","_u","_d"]

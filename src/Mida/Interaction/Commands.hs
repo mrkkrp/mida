@@ -18,6 +18,8 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Mida.Interaction.Commands
     ( processCmd
     , completionFunc
@@ -31,7 +33,7 @@ import Control.Exception (SomeException, try)
 import Control.Monad (void)
 import Control.Monad.IO.Class
 import Data.Char (isDigit, isSpace)
-import Data.List (find, isPrefixOf)
+import Data.List (elemIndex, find, isPrefixOf)
 import System.Directory
     ( canonicalizePath
     , doesDirectoryExist
@@ -53,9 +55,11 @@ import System.Process
     , createProcess
     , waitForProcess
     , delegate_ctlc )
-import Text.Printf (printf)
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
 
 import qualified Codec.Midi as Midi
+import qualified Data.Text.Format as F
 import qualified System.Console.Haskeline as L
 
 import Mida.Interaction.Base
@@ -66,7 +70,7 @@ import Mida.Representation
 data Cmd = Cmd
     { cmdName :: String
     , cmdFunc :: String -> MidaIO ()
-    , cmdDesc :: String
+    , cmdDesc :: T.Text
     , cmdComp :: CompletionScheme }
 
 data CompletionScheme = None | Files | Names deriving (Eq, Show)
@@ -90,13 +94,14 @@ commands =
     , Cmd "tempo"   cmdTempo   "Set tempo for preview."                None
     , Cmd "udef"    cmdUdef    "Remove definition of given symbol."    Names ]
 
-processCmd :: String -> MidaIO ()
-processCmd input =
+processCmd :: T.Text -> MidaIO ()
+processCmd txt =
     case find g commands of
-      Just Cmd { cmdFunc = f } -> f (trim args)
-      Nothing -> liftIO $ printf "Unknown command, try %shelp.\n" cmdPrefix
-    where g Cmd { cmdName = c } = c == dropCmdPrefix cmd
-          (cmd, args)           = break isSpace input
+      Just Cmd { cmdFunc = f } -> f . T.unpack . T.strip $ args
+      Nothing -> liftIO $ F.print "Unknown command, try {}help.\n"
+                         (F.Only cmdPrefix)
+    where g Cmd { cmdName = c } = c == dropCmdPrefix (T.unpack cmd)
+          (cmd, args)           = T.break isSpace txt
 
 completionFunc :: L.CompletionFunc MidaIO
 completionFunc = L.completeWordWithPrev Nothing " " getCompletions
@@ -105,16 +110,15 @@ getCompletions :: String -> String -> MidaIO [L.Completion]
 getCompletions prev word = do
   names <- liftEnv getRefs
   files <- L.listFiles word
-  let cmds  = (cmdPrefix ++) . cmdName <$> commands
+  let cmds    = (cmdPrefix ++) . cmdName <$> commands
       g None  = []
       g Files = files
       g Names = f names
   return $ case words . reverse $ prev of
              []    -> f $ cmds ++ names
-             (c:_) -> if c `elem` cmds
-                      then maybe [] (g . cmdComp) $
-                           find ((== dropCmdPrefix c) . cmdName) commands
-                      else f names
+             (c:_) -> case c `elemIndex` cmds of
+                        Just i  -> g . cmdComp $ commands !! i
+                        Nothing -> f names
     where f = map L.simpleCompletion . filter (word `isPrefixOf`)
 
 cmdCd :: String -> MidaIO ()
@@ -124,23 +128,23 @@ cmdCd path = liftIO $ do
   if present
   then do corrected <- canonicalizePath new
           setCurrentDirectory corrected
-          printf "Changed to \"%s\".\n" corrected
-  else printf "Cannot cd to \"%s\".\n" new
+          F.print "Changed to \"{}\".\n" (F.Only corrected)
+  else F.print "Cannot cd to \"{}\".\n" (F.Only new)
 
 cmdClear :: String -> MidaIO ()
-cmdClear _ = liftEnv clearDefs >> liftIO (printf "Environment cleared.\n")
+cmdClear _ = liftEnv clearDefs >> liftIO (T.putStrLn "Environment cleared.")
 
 cmdDef :: String -> MidaIO ()
 cmdDef arg = mapM_ f (words arg)
-    where f name = liftEnv (getSrc name) >>= liftIO . putStr
+    where f name = liftEnv (getSrc name) >>= liftIO . T.putStr
 
 cmdHelp :: String -> MidaIO ()
-cmdHelp _ = liftIO (printf "Available commands:\n") >> mapM_ f commands
+cmdHelp _ = liftIO (T.putStrLn "Available commands:") >> mapM_ f commands
     where f Cmd { cmdName = c, cmdDesc = d } =
-              liftIO $ printf "  %s%-24s%s\n" cmdPrefix c d
+              liftIO $ F.print "  {}{}{}\n" (cmdPrefix, F.right 24 ' ' c, d)
 
 cmdLicense :: String -> MidaIO ()
-cmdLicense _ = liftIO $ putStr
+cmdLicense _ = liftIO $ T.putStr
     "MIDA - realization of MIDA, language for generation of MIDI files.\n\
     \Copyright (c) 2014, 2015 Mark Karpov\n\
     \\n\
@@ -168,13 +172,14 @@ loadOne given = do
   file <- output given ""
   b    <- liftIO $ doesFileExist file
   if b
-  then do contents <- liftIO $ readFile file
+  then do contents <- liftIO $ T.readFile file
           case parseMida (takeFileName file) contents of
             Right x -> do mapM_ f x
                           setFileName file
-                          liftIO $ printf "\"%s\" loaded successfully.\n" file
-            Left  x -> liftIO $ printf "Parse error in %s.\n" x
-  else liftIO $ printf "Could not find \"%s\".\n" file
+                          liftIO $ F.print "\"{}\" loaded successfully.\n"
+                                 (F.Only file)
+            Left  x -> liftIO $ F.print "Parse error in {}.\n" (F.Only x)
+  else liftIO $ F.print "Could not find \"{}\".\n" (F.Only file)
     where f (Definition n t) = processDef n t
           f (Exposition   _) = return ()
 
@@ -192,7 +197,7 @@ cmdMake s q b f = do
   midi   <- liftEnv $ genMidi s q b
   result <- liftIO $ try (Midi.exportFile file midi)
   case result of
-    Right _ -> liftIO $ printf "MIDI file saved as \"%s\".\n" file
+    Right _ -> liftIO $ F.print "MIDI file saved as \"{}\".\n" (F.Only file)
     Left  e -> spitExc e
 
 cmdProg :: String -> MidaIO ()
@@ -225,7 +230,7 @@ cmdLength x = getPrevLen >>= setPrevLen . parseInt x
 cmdPurge :: String -> MidaIO ()
 cmdPurge _ = do
   liftEnv $ purgeEnv topDefs
-  liftIO $ printf "Environment purged.\n"
+  liftIO $ T.putStrLn "Environment purged."
 
 cmdPwd :: String -> MidaIO ()
 cmdPwd _ = liftIO (getCurrentDirectory >>= putStrLn)
@@ -237,10 +242,10 @@ cmdSave :: String -> MidaIO ()
 cmdSave given = do
   file   <- output given ""
   src    <- liftEnv fullSrc
-  result <- liftIO (try (writeFile file src) :: IO (Either SomeException ()))
+  result <- liftIO (try (T.writeFile file src) :: IO (Either SomeException ()))
   case result of
     Right _ -> setFileName file >>
-               liftIO (printf "Environment saved as \"%s\".\n" file)
+               liftIO (F.print "Environment saved as \"{}\".\n" (F.Only file))
     Left  e -> spitExc e
 
 cmdTempo :: String -> MidaIO ()
@@ -250,8 +255,9 @@ cmdTempo arg = do
 
 cmdUdef :: String -> MidaIO ()
 cmdUdef arg = mapM_ f (words arg)
-    where f name = liftEnv (remDef name) >>
-                   liftIO (printf "Definition for '%s' removed.\n" name)
+    where f name = do
+            liftEnv (remDef name)
+            liftIO (F.print "Definition for '{}' removed.\n" (F.Only name))
 
 parseInt :: String -> Int -> Int
 parseInt s x
@@ -274,10 +280,14 @@ setFileName path = (</> path) <$> liftIO getCurrentDirectory >>= setSrcFile
 dropCmdPrefix :: String -> String
 dropCmdPrefix arg
     | cmdPrefix `isPrefixOf` arg = drop (length cmdPrefix) arg
-    | otherwise                  = arg
+    | otherwise = arg
 
 cmdPrefix :: String
 cmdPrefix = ":"
 
 spitExc :: SomeException -> MidaIO ()
-spitExc = liftIO . putStrLn . printf "(!) %s." . show
+spitExc = liftIO . F.print "(!) {}.\n" . F.Only . show
+
+trim :: String -> String
+trim = f . f
+    where f = reverse . dropWhile isSpace

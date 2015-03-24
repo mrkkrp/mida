@@ -17,6 +17,8 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main (main) where
 
 import Control.Monad
@@ -24,6 +26,8 @@ import Options.Applicative
 import System.Directory (getHomeDirectory, doesFileExist, getCurrentDirectory)
 import System.FilePath
 import qualified Data.Map as M
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
 
 import Mida.Configuration
 import Mida.Interaction
@@ -37,7 +41,7 @@ data Opts = Opts
     , opMidaFiles   :: [String] }
 
 main :: IO ()
-main = putStrLn notice >> execParser opts >>= f
+main = T.putStrLn notice >> execParser opts >>= f
     where f Opts { opMidaFiles = [] } =
               runMida $ interaction version
           f Opts { opInteractive = True, opMidaFiles = names } =
@@ -46,7 +50,7 @@ main = putStrLn notice >> execParser opts >>= f
               runMida $ cmdLoad names >> cmdMake s q b out
           version = "0.4.1"
 
-notice :: String
+notice :: T.Text
 notice =
     "MIDA Copyright (c) 2014, 2015 Mark Karpov\n\n\
     \This program comes with ABSOLUTELY NO WARRANTY. This is free software,\n\
@@ -74,7 +78,7 @@ loadConfig = do
   let file = home </> ".mida"
   exist <- doesFileExist file
   if exist
-  then do params <- parseConfig file <$> readFile file
+  then do params <- parseConfig file <$> T.readFile file
           case params of
             Right x -> return x
             Left  _ -> return M.empty

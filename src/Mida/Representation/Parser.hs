@@ -18,6 +18,8 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Mida.Representation.Parser
     ( Statement (..)
     , probeMida
@@ -25,14 +27,15 @@ module Mida.Representation.Parser
 where
 
 import Control.Applicative ((<$>), (<*>), (<*), (*>))
-import Data.Char (isSpace)
+import Control.Monad (void)
 import Data.Functor.Identity
-import Data.List (isInfixOf, isSuffixOf)
+import Data.List (nub)
+import qualified Data.Text as T
 
 import Text.Parsec
 import Text.Parsec.Expr
 import Text.Parsec.Language
-import Text.Parsec.String
+import Text.Parsec.Text
 import qualified Text.Parsec.Token as Token
 
 import Mida.Language.SyntaxTree (SyntaxTree, Sel (..))
@@ -43,21 +46,25 @@ data Statement
     | Exposition SyntaxTree
       deriving (Eq, Show)
 
-probeMida :: String -> Bool
-probeMida arg = not $ or ["," `isSuffixOf` s, f "[]", f "{}", f "<>", f "()"]
-    where s       = reverse . dropWhile isSpace . reverse $ arg
-          g x     = length $ filter (== x) s
-          f [x,y] = ((&&) <$> (> 0) <*> (/= g y)) (g x)
-          f _     = False
+probeMida :: T.Text -> Bool
+probeMida txt = not $ or ["," `T.isSuffixOf` stripped
+                         , f ("[", "]")
+                         , f ("{", "}")
+                         , f ("<", ">")
+                         , f ("(", ")") ]
+    where stripped = T.strip txt
+          f (x, y) = (&&) <$> (> 0) <*> (/= g y) $ g x
+          g x      = T.count x stripped
 
-parseMida :: String -> String -> Either String [Statement]
-parseMida file str =
-    case parse parser file str of
+parseMida :: String -> T.Text -> Either T.Text [Statement]
+parseMida file txt =
+    case parse parser file txt of
       Right x -> if null x
-                 then Left $ "\"" ++ file ++ "\":\ninvalid definition syntax"
+                 then Left $ '\"' `T.cons` T.pack file `T.append`
+                          "\":\ninvalid definition syntax"
                  else Right x
-      Left  x -> Left $ show x
-    where parser = if B.defOp `isInfixOf` str
+      Left  x -> Left . T.pack . show $ x
+    where parser = if T.pack B.defOp `T.isInfixOf` txt
                    then pSource
                    else pExposition
 
@@ -108,7 +115,7 @@ pExpression :: Parser Sel
 pExpression = buildExpressionParser optTable (parens pExpression <|> pElement)
               <?> "expression"
 
-optTable :: [[Operator String () Data.Functor.Identity.Identity Sel]]
+optTable :: [[Operator T.Text () Identity Sel]]
 optTable =
     [[ Prefix (reservedOp B.reverseOp >> return Reverse ) ]
      , [ Infix (reservedOp B.productOp  >> return Product ) AssocLeft
@@ -118,12 +125,18 @@ optTable =
        , Infix (reservedOp B.loopOp     >> return Loop    ) AssocLeft
        , Infix (reservedOp B.rotationOp >> return Rotation) AssocLeft ]]
 
-lang :: LanguageDef st
-lang = emptyDef
-       { Token.commentLine     = B.commentLine
+lang :: GenLanguageDef T.Text () Identity
+lang = Token.LanguageDef
+       { Token.commentStart    = ""
+       , Token.commentEnd      = ""
+       , Token.commentLine     = B.commentLine
+       , Token.nestedComments  = True
        , Token.identStart      = letter <|> char '_'
        , Token.identLetter     = alphaNum <|> char '_'
+       , Token.opStart         = Token.opLetter lang
+       , Token.opLetter        = oneOf . nub . concat $ langOps
        , Token.reservedOpNames = langOps
+       , Token.reservedNames   = []
        , Token.caseSensitive   = True }
 
 langOps :: [String]
@@ -138,7 +151,7 @@ langOps =
     , B.rangeOp
     , B.defOp ]
 
-lexer :: Token.TokenParser st
+lexer :: Token.GenTokenParser T.Text () Identity
 lexer = Token.makeTokenParser lang
 
 angles :: Parser a -> Parser a
@@ -150,8 +163,8 @@ braces = Token.braces lexer
 brackets :: Parser a -> Parser a
 brackets = Token.brackets lexer
 
-comma :: Parser String
-comma = Token.comma lexer
+comma :: Parser ()
+comma = void $ Token.comma lexer
 
 identifier :: Parser String
 identifier = Token.identifier lexer
