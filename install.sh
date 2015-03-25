@@ -20,7 +20,6 @@
 ### constants
 
 I_DIRS="/usr/share/{licenses,doc}/mida"
-I_ITEMS="/usr/{bin/mida,share/man/man1/mida.1.gz,share/{licenses,doc}/mida}"
 
 ### functions
 
