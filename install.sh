@@ -46,7 +46,18 @@ echo -n 'searching for executable...'
 test -f dist/build/mida/mida || bad_exit
 echo 'ok'
 
-# 3. creating directories
+# 3. strip the executable is there is `strip' program and the executable is
+# not stripped already
+
+if which strip > /dev/null
+then echo -n 'stripping the binary...'
+     strip dist/build/mida/mida
+     test $(id -u) -gt 0 && bad_exit
+     echo 'ok'
+else echo 'cannot find strip utility!'
+fi
+
+# 4. creating directories
 
 echo 'creating directories...'
 eval install -vdm755 $I_DIRS
@@ -55,7 +66,7 @@ then echo 'creating directories: ok'
 else bad_exit
 fi
 
-# 4. copying new files
+# 5. copying new files
 
 echo 'copying new files...'
 install -vDm755 dist/build/mida/mida /usr/bin/
@@ -64,6 +75,6 @@ install -vDm644 doc/*.{texi,html}    /usr/share/doc/mida/
 install -vDm644 doc/mida.1.gz        /usr/share/man/man1/
 echo 'copying new files: ok'
 
-# 5. done
+# 6. done
 
 echo 'done.'
