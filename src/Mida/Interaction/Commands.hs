@@ -33,7 +33,9 @@ import Control.Exception (SomeException, try)
 import Control.Monad (void)
 import Control.Monad.IO.Class
 import Data.Char (isDigit, isSpace)
-import Data.List (elemIndex, find, isPrefixOf)
+import Data.Foldable
+import Data.List (elemIndex, isPrefixOf)
+import Prelude hiding (all, mapM_)
 import System.Directory
     ( canonicalizePath
     , doesDirectoryExist
@@ -55,8 +57,8 @@ import System.Process
     , createProcess
     , waitForProcess
     , delegate_ctlc )
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import qualified Data.Text.Lazy as T
+import qualified Data.Text.Lazy.IO as T
 
 import qualified Codec.Midi as Midi
 import qualified Data.Text.Format as F
@@ -119,7 +121,7 @@ getCompletions prev word = do
              (c:_) -> case c `elemIndex` cmds of
                         Just i  -> g . cmdComp $ commands !! i
                         Nothing -> f names
-    where f = map L.simpleCompletion . filter (word `isPrefixOf`)
+    where f = fmap L.simpleCompletion . filter (word `isPrefixOf`)
 
 cmdCd :: String -> MidaIO ()
 cmdCd path = liftIO $ do
@@ -270,7 +272,7 @@ output given ext = do
   actual <- getSrcFile
   home   <- liftIO getHomeDirectory
   let a = if null ext then actual else replaceExtension actual ext
-      g = joinPath . map f . splitDirectories $ given
+      g = joinPath . fmap f . splitDirectories $ given
       f x = if x == "~" then home else x
   return $ if null given then a else g
 

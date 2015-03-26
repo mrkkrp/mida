@@ -30,9 +30,11 @@ where
 import Control.Applicative (Applicative, (<$>), (<*>))
 import Control.Arrow ((***))
 import Control.Monad.State.Lazy
+import Data.Foldable
 import Data.List (tails)
 import Data.Maybe (listToMaybe)
-import qualified Data.Foldable as F
+import Data.Monoid (mempty, (<>))
+import Prelude hiding (concat, concatMap, and, or)
 
 import System.Random.Mersenne.Pure64
 
@@ -55,11 +57,8 @@ evalDef :: Monad m => String -> MidaEnv m [Int]
 evalDef name = getPrin name >>= eval
 
 eval :: Monad m => SyntaxTree -> MidaEnv m [Int]
-eval tree = do
-  p <- toPrin tree
-  g <- newRandGen
-  return $ runCalc (resolve $ if none p then [] else cycle p) g
-      where none = null . F.foldr (:) [] . Sec
+eval tree = liftM2 runCalc ((resolve . cycle') `liftM` toPrin tree) newRandGen
+    where cycle' p = if null $ foldMap return (Sec p) then [] else cycle p
 
 resolve :: Principle -> Calc [Int]
 resolve [] = return []
@@ -67,12 +66,12 @@ resolve xs = concat <$> mapM f xs
     where f (Val  x) = addHistory x >> return [x]
           f (Sec  x) = resolve x
           f (Mul  x) = choice x >>= maybe (return []) f
-          f (CMul x) = listToMaybe <$> filterM (matchHistory . fst) x
-                       >>= maybe (f . Mul . concatMap snd $ x) (f . Mul . snd)
+          f (CMul x) = listToMaybe <$> filterM (matchHistory . fst) x >>=
+                       maybe (f . toMul $ x) (f . Mul . snd)
 
 runCalc :: Calc a -> PureMT -> a
 runCalc clc gen = evalState (unCalc clc)
-                  CalcSt { clcHistory = []
+                  CalcSt { clcHistory = mempty
                          , clcRandGen = gen }
 
 choice :: [a] -> Calc (Maybe a)
@@ -87,7 +86,10 @@ condMatch []    _        = False
 condMatch (h:_) (Val  x) = h == x
 condMatch hs    (Sec  x) = and $ zipWith condMatch (tails hs) (reverse x)
 condMatch hs    (Mul  x) = or  $ condMatch hs <$> x
-condMatch hs    (CMul x) = condMatch hs (Mul $ concatMap snd x)
+condMatch hs    (CMul x) = condMatch hs (toMul x)
+
+toMul :: [([Elt], [Elt])] -> Elt
+toMul = Mul . concatMap snd
 
 matchHistory :: [Elt] -> Calc Bool
 matchHistory x = do
@@ -95,17 +97,16 @@ matchHistory x = do
   return . or $ condMatch hs <$> x
 
 addHistory :: Int -> Calc ()
-addHistory x = modify $ \c -> c { clcHistory = x : clcHistory c }
+addHistory x = modify $ \c -> c { clcHistory = return x <> clcHistory c }
 
 toPrin :: Monad m => SyntaxTree -> MidaEnv m Principle
 toPrin = liftM concat . mapM f
     where
-      r                = return . return
       fPair (c, x)     = liftM2 (,) (toPrin c) (toPrin x)
-      f (Value      x) = r . Val $ x
-      f (Section   xs) = toPrin xs >>= r . Sec
-      f (Multi     xs) = toPrin xs >>= r . Mul
-      f (CMulti    xs) = mapM fPair xs >>= r . CMul
+      f (Value      x) = (return . Val) `liftM` return x
+      f (Section   xs) = (return . Sec) `liftM` toPrin xs
+      f (Multi     xs) = (return . Mul) `liftM` toPrin xs
+      f (CMulti    xs) = (return . CMul) `liftM` mapM fPair xs
       f (Reference  x) = getPrin x >>= toPrin
       f (Range    x y) = return $ Val <$> if x > y then [x,x-1..y] else [x..y]
       f (Product  x y) = liftM2 (adb (\a b -> [(*) <$> a <*> b])) (f x) (f y)

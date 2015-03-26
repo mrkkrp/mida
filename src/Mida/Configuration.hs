@@ -28,14 +28,16 @@ where
 
 import Control.Applicative ((<$>), (<*>), (<*), (*>))
 import Data.Char (isDigit, isSpace)
+import Data.Foldable
 import Data.Functor.Identity
 import Data.Maybe (fromMaybe)
+import Prelude hiding (all)
 import qualified Data.Map as M
-import qualified Data.Text as T
+import qualified Data.Text.Lazy as T
 
 import Text.Parsec
 import Text.Parsec.Language
-import Text.Parsec.Text
+import Text.Parsec.Text.Lazy
 import qualified Text.Parsec.Token as Token
 
 type Params = M.Map String String
@@ -57,9 +59,8 @@ instance Parsable Bool where
     parseValue "false" = Just False
     parseValue _       = Nothing
 
-parseConfig :: String -> T.Text -> Either T.Text Params
-parseConfig file = either (Left . T.pack . show) Right .
-                   parse pConfig file
+parseConfig :: String -> T.Text -> Either String Params
+parseConfig file = either (Left . show) Right . parse pConfig file
 
 pConfig :: Parser Params
 pConfig = M.fromList <$> (whiteSpace *> many pItem <* eof)

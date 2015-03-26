@@ -28,14 +28,16 @@ where
 
 import Control.Applicative ((<$>), (<*>), (<*), (*>))
 import Control.Monad (void)
+import Data.Foldable
 import Data.Functor.Identity
 import Data.List (nub)
-import qualified Data.Text as T
+import Prelude hiding (concat, or)
+import qualified Data.Text.Lazy as T
 
 import Text.Parsec
 import Text.Parsec.Expr
 import Text.Parsec.Language
-import Text.Parsec.Text
+import Text.Parsec.Text.Lazy
 import qualified Text.Parsec.Token as Token
 
 import Mida.Language.SyntaxTree (SyntaxTree, Sel (..))
@@ -56,17 +58,16 @@ probeMida txt = not $ or ["," `T.isSuffixOf` stripped
           f (x, y) = (&&) <$> (> 0) <*> (/= g y) $ g x
           g x      = T.count x stripped
 
-parseMida :: String -> T.Text -> Either T.Text [Statement]
+parseMida :: String -> T.Text -> Either String [Statement]
 parseMida file txt =
     case parse parser file txt of
       Right x -> if null x
-                 then Left $ '\"' `T.cons` T.pack file `T.append`
-                          "\":\ninvalid definition syntax"
+                 then Left $ '\"' : file ++ "\":\ninvalid definition syntax"
                  else Right x
-      Left  x -> Left . T.pack . show $ x
+      Left  x -> Left . show $ x
     where parser = if T.pack B.defOp `T.isInfixOf` txt
                    then pSource
-                   else pExposition
+                   else return <$> pExposition
 
 pSource :: Parser [Statement]
 pSource = whiteSpace *> many pDefinition <* eof
@@ -74,8 +75,8 @@ pSource = whiteSpace *> many pDefinition <* eof
 pDefinition :: Parser Statement
 pDefinition = Definition <$> identifier <* reservedOp B.defOp <*> pPrinciple
 
-pExposition :: Parser [Statement]
-pExposition = (return . Exposition) <$> (whiteSpace *> pPrinciple <* eof)
+pExposition :: Parser Statement
+pExposition = Exposition <$> (whiteSpace *> pPrinciple <* eof)
 
 pPrinciple :: Parser SyntaxTree
 pPrinciple = sepBy (pExpression <|> pElement) (optional comma)
@@ -131,7 +132,7 @@ lang = Token.LanguageDef
        , Token.commentEnd      = ""
        , Token.commentLine     = B.commentLine
        , Token.nestedComments  = True
-       , Token.identStart      = letter <|> char '_'
+       , Token.identStart      = letter   <|> char '_'
        , Token.identLetter     = alphaNum <|> char '_'
        , Token.opStart         = Token.opLetter lang
        , Token.opLetter        = oneOf . nub . concat $ langOps

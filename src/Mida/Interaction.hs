@@ -36,13 +36,13 @@ where
 
 import Control.Applicative ((<$>))
 import Control.Monad.Reader
+import Prelude hiding (mapM_)
 import System.IO
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import qualified Data.Text.Lazy as T
+import qualified Data.Text.Lazy.IO as T
 
 import qualified Data.Text.Format as F
 import qualified System.Console.Haskeline as L
-import qualified Text.Show.Text as T
 
 import Mida.Interaction.Base
 import Mida.Interaction.Commands
@@ -71,7 +71,7 @@ getMultiline prv = do
   input  <- L.getInputLine $
             if T.null prv then prompt else replicate (length prompt) ' '
   case input of
-    Just x -> let r = prv `T.append` T.pack x `T.snoc` '\n'
+    Just x -> let r = prv `T.append` T.pack x `T.append` "\n"
               in if probeMida r
                  then return (Just r)
                  else getMultiline r
@@ -95,4 +95,4 @@ processExpr expr = do
 
 spitList :: [Int] -> MidaIO ()
 spitList [] = liftIO $ T.putStrLn "none"
-spitList xs = liftIO $ F.print "{}...\n" (F.Only $ T.unwords (T.show <$> xs))
+spitList xs = liftIO $ F.print "{}...\n" (F.Only $ unwords (show <$> xs))

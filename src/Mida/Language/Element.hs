@@ -18,6 +18,9 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
+{-# LANGUAGE DeriveFunctor  #-}
+{-# LANGUAGE DeriveFoldable #-}
+
 module Mida.Language.Element
     ( Principle
     , Elt
@@ -25,9 +28,8 @@ module Mida.Language.Element
 where
 
 import Control.Applicative (Applicative, pure, (<$>), (<*>))
-import Control.Arrow ((***), (>>>))
-import Data.Monoid (mappend, mconcat)
-import qualified Data.Foldable as F (Foldable, foldMap)
+import Control.Arrow ((***))
+import Data.Foldable
 
 type Principle = [Elt]
 type Elt       = Element Int
@@ -37,24 +39,11 @@ data Element a
     | Sec  [Element a]
     | Mul  [Element a]
     | CMul [([Element a], [Element a])]
-      deriving (Eq, Show)
-
-instance Functor Element where
-    f `fmap` (Val  x) = Val  $ f x
-    f `fmap` (Sec  x) = Sec  $ (f <$>) <$> x
-    f `fmap` (Mul  x) = Mul  $ (f <$>) <$> x
-    f `fmap` (CMul x) = CMul $ (((f <$>) <$>) *** ((f <$>) <$>)) <$> x
+      deriving (Eq, Show, Functor, Foldable)
 
 instance Applicative Element where
-    pure = Val
+    pure           = Val
     (Val  f) <*> x = f <$> x
     (Sec  f) <*> x = Sec  $ (<*> x) <$> f
     (Mul  f) <*> x = Mul  $ (<*> x) <$> f
     (CMul f) <*> x = CMul $ (((<*> x) <$>) *** ((<*> x) <$>)) <$> f
-
-instance F.Foldable Element where
-    foldMap f (Val  x) = f x
-    foldMap f (Sec  x) = mconcat $ F.foldMap f <$> x
-    foldMap f (Mul  x) = mconcat $ F.foldMap f <$> x
-    foldMap f (CMul x) = mconcat $ (g *** g >>> uncurry mappend) <$> x
-        where g = mconcat . (F.foldMap f <$>)

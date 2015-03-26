@@ -40,9 +40,12 @@ where
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow ((***), (>>>))
 import Control.Monad.State.Strict
+import Data.Foldable
 import Data.Maybe (fromMaybe)
+import Data.Monoid ((<>), mempty)
+import Prelude hiding (concatMap, elem)
 import qualified Data.Map.Strict as M
-import qualified Data.Text as T
+import qualified Data.Text.Lazy as T
 
 import System.Random.Mersenne.Pure64
 
@@ -71,10 +74,9 @@ runMidaEnv e = evalStateT (unMidaEnv e) MidaEnvSt
                , stRandGen = pureMT 0 }
 
 defaultDefs :: Defs
-defaultDefs = M.fromList $
-              zip noteAlias (makeS <$> [0..]) ++
-              zip modifiers (makeS <$> [128,256..])
-    where makeS x = [Value x]
+defaultDefs = M.fromList $ zip noteAlias (f <$> [0..])
+              <> zip modifiers (f <$> [128,256..])
+    where f = return . Value
 
 getDefs :: Monad m => MidaEnv m Defs
 getDefs = stDefs `liftM` get
@@ -98,34 +100,32 @@ getSrc :: Monad m => String -> MidaEnv m T.Text
 getSrc name = showDefinition name `liftM` getPrin name
 
 fullSrc :: Monad m => MidaEnv m T.Text
-fullSrc = (M.foldr T.append T.empty    .
-           M.mapWithKey showDefinition .
-           flip M.difference defaultDefs) `liftM` getDefs
+fullSrc = (M.foldMapWithKey showDefinition . (M.\\ defaultDefs)) `liftM` getDefs
 
 getRefs :: Monad m => MidaEnv m [String]
 getRefs = M.keys `liftM` getDefs
 
 tDefs :: String -> Defs -> [String]
-tDefs name defs = maybe [] cm $ M.lookup name defs
+tDefs name defs = maybe mzero cm $ name `M.lookup` defs
     where cm               = concatMap f
-          f (Value      _) = []
+          f (Value      _) = mempty
           f (Section    x) = cm x
           f (Multi      x) = cm x
-          f (CMulti     x) = concatMap (cm *** cm >>> uncurry (++)) x
-          f (Reference  x) = x : tDefs x defs
-          f (Range    _ _) = []
-          f (Product  x y) = f x ++ f y
-          f (Division x y) = f x ++ f y
-          f (Sum      x y) = f x ++ f y
-          f (Diff     x y) = f x ++ f y
-          f (Loop     x y) = f x ++ f y
-          f (Rotation x y) = f x ++ f y
+          f (CMulti     x) = concatMap (cm *** cm >>> uncurry (<>)) x
+          f (Reference  x) = return x <> tDefs x defs
+          f (Range    _ _) = mempty
+          f (Product  x y) = f x <> f y
+          f (Division x y) = f x <> f y
+          f (Sum      x y) = f x <> f y
+          f (Diff     x y) = f x <> f y
+          f (Loop     x y) = f x <> f y
+          f (Rotation x y) = f x <> f y
           f (Reverse    x) = f x
 
 purgeEnv :: Monad m => [String] -> MidaEnv m ()
 purgeEnv tops = f `liftM` getDefs >>= setDefs
     where f defs = M.intersection defs $ M.unions [ts, ms defs, defaultDefs]
-          ms     = M.unions . map toDefs . zipWith tDefs tops . repeat
+          ms     = M.unions . fmap toDefs . zipWith tDefs tops . repeat
           ts     = toDefs tops
 
 checkRecur :: Monad m => String -> SyntaxTree -> MidaEnv m Bool
@@ -142,4 +142,4 @@ newRandGen = do
   return . pureMT . fst . randomWord64 $ g
 
 toDefs :: [String] -> Defs
-toDefs = M.fromList . map (, [])
+toDefs = M.fromList . fmap (, [])
