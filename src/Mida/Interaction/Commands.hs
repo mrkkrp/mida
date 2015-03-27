@@ -83,7 +83,6 @@ commands =
     , Cmd "clear"   cmdClear   "Restore default state of environment." None
     , Cmd "def"     cmdDef     "Print definition of given symbol."     Names
     , Cmd "help"    cmdHelp    "Show this help text."                  None
-    , Cmd "license" cmdLicense "Show license."                         None
     , Cmd "load"    cmdLoad'   "Load definitions from given file."     Files
     , Cmd "make"    cmdMake'   "Generate and save MIDI file."          Files
     , Cmd "prog"    cmdProg    "Set program for preview."              None
@@ -144,24 +143,6 @@ cmdHelp :: String -> MidaIO ()
 cmdHelp _ = liftIO (T.putStrLn "Available commands:") >> mapM_ f commands
     where f Cmd { cmdName = c, cmdDesc = d } =
               liftIO $ F.print "  {}{}{}\n" (cmdPrefix, F.right 24 ' ' c, d)
-
-cmdLicense :: String -> MidaIO ()
-cmdLicense _ = liftIO $ T.putStr
-    "MIDA - realization of MIDA, language for generation of MIDI files.\n\
-    \Copyright (c) 2014, 2015 Mark Karpov\n\
-    \\n\
-    \MIDA is free software: you can redistribute it and/or modify it under the\n\
-    \terms of the GNU General Public License as published by the Free Software\n\
-    \Foundation, either version 3 of the License, or (at your option) any\n\
-    \later version.\n\
-    \\n\
-    \MIDA is distributed in the hope that it will be useful, but WITHOUT ANY\n\
-    \WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n\
-    \FOR A PARTICULAR PURPOSE. See the GNU General Public License for more\n\
-    \details.\n\
-    \\n\
-    \You should have received a copy of the GNU General Public License along\n\
-    \with this program. If not, see <http://www.gnu.org/licenses/>.\n"
 
 cmdLoad' :: String -> MidaIO ()
 cmdLoad' = cmdLoad . words

@@ -26,6 +26,7 @@ import Options.Applicative
 import System.Directory (getHomeDirectory, doesFileExist, getCurrentDirectory)
 import System.FilePath
 import qualified Data.Map as M
+import qualified Data.Text.Format as F
 import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.IO as T
 
@@ -33,21 +34,28 @@ import Mida.Configuration
 import Mida.Interaction
 
 data Opts = Opts
-    { opInteractive :: Bool
-    , _opSeed       :: Int
-    , _opQuarter    :: Int
-    , _opBeats      :: Int
-    , _opOutput     :: String
-    , opMidaFiles   :: [String] }
+    { opInterac :: Bool
+    , opSeed    :: Int
+    , opQuarter :: Int
+    , opBeats   :: Int
+    , opOutput  :: String
+    , opLicense :: Bool
+    , opVersion :: Bool
+    , opFiles   :: [String] }
 
 main :: IO ()
-main = T.putStrLn notice >> execParser opts >>= f
-    where f Opts { opMidaFiles = [] } =
-              runMida $ interaction version
-          f Opts { opInteractive = True, opMidaFiles = names } =
-              runMida $ cmdLoad names >> interaction version
-          f (Opts _ s q b out names) =
-              runMida $ cmdLoad names >> cmdMake s q b out
+main = execParser opts >>= f
+    where f Opts { opLicense = True } = T.putStr license
+          f Opts { opVersion = True } = F.print "MIDA {}\n" (F.Only version)
+          f Opts { opFiles   = []   } = g $ interaction version
+          f Opts { opInterac = True
+                 , opFiles   = ns   } = g $ cmdLoad ns >> interaction version
+          f Opts { opSeed    = s
+                 , opQuarter = q
+                 , opBeats   = b
+                 , opOutput  = out
+                 , opFiles   = ns   } = g $ cmdLoad ns >> cmdMake s q b out
+          g x     = T.putStrLn notice >> runMida x
           version = "0.4.1"
 
 notice :: T.Text
@@ -56,6 +64,24 @@ notice =
     \This program comes with ABSOLUTELY NO WARRANTY. This is free software,\n\
     \and you are welcome to redistribute it under certain conditions; see\n\
     \GNU General Public License for details.\n"
+
+license :: T.Text
+license =
+    "MIDA - realization of MIDA, language for generation of MIDI files.\n\
+    \Copyright (c) 2014, 2015 Mark Karpov\n\
+    \\n\
+    \MIDA is free software: you can redistribute it and/or modify it under the\n\
+    \terms of the GNU General Public License as published by the Free Software\n\
+    \Foundation, either version 3 of the License, or (at your option) any\n\
+    \later version.\n\
+    \\n\
+    \MIDA is distributed in the hope that it will be useful, but WITHOUT ANY\n\
+    \WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n\
+    \FOR A PARTICULAR PURPOSE. See the GNU General Public License for more\n\
+    \details.\n\
+    \\n\
+    \You should have received a copy of the GNU General Public License along\n\
+    \with this program. If not, see <http://www.gnu.org/licenses/>.\n"
 
 runMida :: MidaIO () -> IO ()
 runMida e = do
@@ -120,4 +146,10 @@ options = Opts
   <> metavar "OUT"
   <> value ""
   <> help "Set name of output file" )
+  <*> switch
+  ( long "license"
+  <> help "Show license of the program." )
+  <*> switch
+  ( long "version"
+  <> help "Show version of the program." )
   <*> many (strArgument $ metavar "FILES")
