@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <!-- This manual describes MIDA language and its realization (version
-0.4.1, 24 March 2015).
+0.4.1, 28 March 2015).
 
 Copyright (C) 2015 Mark Karpov
 
@@ -14,7 +14,7 @@ Documentation License".
 
 
  -->
-<!-- Created on March 24, 2015 by texi2html 5.0
+<!-- Created on March 28, 2015 by texi2html 5.0
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -70,7 +70,7 @@ ul.no-bullet {list-style: none}
 
 
 <p>This manual describes MIDA language and its realization (version
-0.4.1, 24 March 2015).
+0.4.1, 28 March 2015).
 </p>
 <p>Copyright &copy; 2015 Mark Karpov
 </p>
@@ -244,7 +244,8 @@ default. Otherwise, one should use command line options to start MIDA
 in interactive mode.
 </p>
 <div class="example">
-<pre class="example">mida [-i|--interactive] [-s|--seed SEED] [-q|--quarter TICKS] [-b|--beats BEATS] [-o|--output OUT] [FILES]
+<pre class="example">mida [-i|--interactive] [-s|--seed SEED] [-q|--quarter TICKS]
+     [-b|--beats BEATS] [-o|--output OUT] [--license] [--version] [FILES]
 </pre></div>
 
 <p>Here&rsquo;s the complete list of command line options:
@@ -273,6 +274,12 @@ notes), default value is <code>16</code>.
 <dt>&lsquo;<samp>-o</samp>&rsquo; <var>output</var>, &lsquo;<samp>--output</samp>&rsquo; <var>output</var></dt>
 <dd><p>Specifies <var>output</var> file. Default value is built from base name of
 supplied file and extension &lsquo;<samp>.mid</samp>&rsquo;.
+</p></dd>
+<dt>&lsquo;<samp>--license</samp>&rsquo;</dt>
+<dd><p>Show license of the program.
+</p></dd>
+<dt>&lsquo;<samp>--version</samp>&rsquo;</dt>
+<dd><p>Show version of the program.
 </p></dd>
 </dl>
 
@@ -406,9 +413,8 @@ logic depends on contents of the input line.
 <a name="index-comments"></a>
 
 <p>It&rsquo;s allowed to put comments in MIDA source files or in interactive
-environment. MIDA uses C-like comments. Line comments starts with
-&lsquo;<samp>//</samp>&rsquo;, block comment starts with &lsquo;<samp>/*</samp>&rsquo; and ends with
-&lsquo;<samp>*/</samp>&rsquo;.
+environment. MIDA uses Unix shell comment style: line comments starts
+with &lsquo;<samp>#</samp>&rsquo;.
 </p>
 <a name="index-multiline-input"></a>
 
@@ -465,9 +471,6 @@ Available commands:
   :udef                    Remove definition of given symbol.
 </pre></div>
 </dd>
-<dt>&lsquo;<samp>:license</samp>&rsquo;</dt>
-<dd><p>Show license.
-</p></dd>
 <dt>&lsquo;<samp>:load</samp>&rsquo;</dt>
 <dd><p>Load definition from specified source files. When something is
 defined, you usually get some helpful feedback:
@@ -829,7 +832,7 @@ guaranteed to be processed correctly.
 for pitch, but it&rsquo;s a bit inconvenient. MIDA knows some alias for that
 case. Since MIDA doesn&rsquo;t work with negative numbers, we use alias
 where octaves start from <code>0</code>. So <code>c0</code> corresponds to
-<code>0</code>, <code>c#0</code> to <code>1</code>, and so on: one semitone per number.
+<code>0</code>, <code>cs0</code> to <code>1</code>, and so on: one semitone per number.
 </p>
 <p>Please note that there is no standard way to number octaves in
 MIDI. The MIDI standard only says that note with index <code>60</code> must
@@ -994,6 +997,7 @@ none
 <a name="Definitions-1"></a>
 <h2 class="section">6.3 Definitions</h2>
 <a name="index-definition"></a>
+<a name="index-identifier"></a>
 
 <p>I said that it&rsquo;s quite hard to write an incorrect statement in
 MIDA. Let&rsquo;s prove it. Here&rsquo;s my attempt:
@@ -1011,11 +1015,12 @@ none
 can be even put inside a principle without any obvious harm.
 </p>
 <p>The thing is that MIDA considers any alpha-numeric sequence of
-characters that does not begin with a number
-<em>definition</em>. Definition can hold a principle and default value of
-any definition is <code>none</code>. You can combine definitions to build
-really complex principles. Keep in mind that names of the definitions
-are case-sensitive.
+characters that does not begin with a number <em>identifier</em> (from
+MIDA 0.4.1 identifiers can contain underscore &lsquo;<samp>_</samp>&rsquo;). Identifier
+has associated <em>definition</em>. Definition can hold a principle and
+default value of any definition is <code>none</code>. You can combine
+definitions to build really complex principles. Keep in mind that
+names of the definitions are case-sensitive.
 </p>
 <p>Definitions are created by putting definition name on the left side of
 equation sign &lsquo;<samp>=</samp>&rsquo; and a principle on the right of the sign. Let&rsquo;s
@@ -2151,6 +2156,8 @@ to permit their use in free software.
  &nbsp; 
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-H"><b>H</b></a>
  &nbsp; 
+<a class="summary-letter" href="#Concept-Index-1_cp_letter-I"><b>I</b></a>
+ &nbsp; 
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-M"><b>M</b></a>
  &nbsp; 
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-P"><b>P</b></a>
@@ -2188,6 +2195,9 @@ to permit their use in free software.
 <tr><td colspan="4"> <hr></td></tr>
 <tr><th><a name="Concept-Index-1_cp_letter-H">H</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-Haskell-Platform">Haskell Platform</a></td><td>&nbsp;</td><td valign="top"><a href="#Installation">2 Installation</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-Index-1_cp_letter-I">I</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-identifier">identifier</a></td><td>&nbsp;</td><td valign="top"><a href="#Definitions">6.3 Definitions</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
 <tr><th><a name="Concept-Index-1_cp_letter-M">M</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-modulation">modulation</a></td><td>&nbsp;</td><td valign="top"><a href="#Additional-Parameters">6.1.4 Additional Parameters</a></td></tr>
@@ -2229,6 +2239,8 @@ to permit their use in free software.
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-D"><b>D</b></a>
  &nbsp; 
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-H"><b>H</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-Index-1_cp_letter-I"><b>I</b></a>
  &nbsp; 
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-M"><b>M</b></a>
  &nbsp; 
@@ -2322,7 +2334,7 @@ to permit their use in free software.
 <h1>About This Document</h1>
 
 <p>
-  This document was generated on <i>March 24, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>March 28, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
 </p>
 <p>
   The buttons in the navigation panels have the following meaning:
@@ -2424,7 +2436,7 @@ to permit their use in free software.
 <hr>
 <p>
  <font size="-1">
-  This document was generated on <i>March 24, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>March 28, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
  </font>
  <br>
 
