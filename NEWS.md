@@ -24,7 +24,9 @@
 
 * many purely technical changes that are difficult to explain concisely, but
   they should be mentioned, most important being addition of test suite and
-  ability to generate source files from syntax trees.
+  ability to generate source files from syntax trees;
+
+* added command line options: `--license` and `--version`.
 
 ## MIDA 0.4.0
 
