@@ -4,9 +4,9 @@
 @settitle MIDA Manual
 @set EDITION 0.4.1
 @set VERSION 0.4.1
-@set UPDATED 24 March 2015
+@set UPDATED 28 March 2015
 @set UPDATED-MONTH March 2015
-@set LASTCHANGE Tue March 24 22:40:13 EST 2015
+@set LASTCHANGE Sat March 28 22:40:13 EST 2015
 
 @comment %**end of header (This is for running Texinfo on a region.)
 @synindex vr fn
@@ -139,7 +139,8 @@ default. Otherwise, one should use command line options to start MIDA
 in interactive mode.
 
 @example
-mida [-i|--interactive] [-s|--seed SEED] [-q|--quarter TICKS] [-b|--beats BEATS] [-o|--output OUT] [FILES]
+mida [-i|--interactive] [-s|--seed SEED] [-q|--quarter TICKS]
+     [-b|--beats BEATS] [-o|--output OUT] [--license] [--version] [FILES]
 @end example
 
 Here's the complete list of command line options:
@@ -163,6 +164,10 @@ notes), default value is @code{16}.
 @item @option{-o} @var{output}, @option{--output} @var{output}
 Specifies @var{output} file. Default value is built from base name of
 supplied file and extension @samp{.mid}.
+@item @option{--license}
+Show license of the program.
+@item @option{--version}
+Show version of the program.
 @end table
 
 @node Configuration File
@@ -252,9 +257,8 @@ logic depends on contents of the input line.
 @cindex comments
 
 It's allowed to put comments in MIDA source files or in interactive
-environment. MIDA uses C-like comments. Line comments starts with
-@samp{//}, block comment starts with @samp{/*} and ends with
-@samp{*/}.
+environment. MIDA uses Unix shell comment style: line comments starts
+with @samp{#}.
 
 @cindex multiline input
 
@@ -307,8 +311,6 @@ Available commands:
   :tempo                   Set tempo for preview.
   :udef                    Remove definition of given symbol.
 @end example
-@item :license
-Show license.
 @item :load
 Load definition from specified source files. When something is
 defined, you usually get some helpful feedback:
@@ -564,7 +566,7 @@ Sure, you can use the same plain numbers from @code{0} to @code{127}
 for pitch, but it's a bit inconvenient. MIDA knows some alias for that
 case. Since MIDA doesn't work with negative numbers, we use alias
 where octaves start from @code{0}. So @code{c0} corresponds to
-@code{0}, @code{c#0} to @code{1}, and so on: one semitone per number.
+@code{0}, @code{cs0} to @code{1}, and so on: one semitone per number.
 
 Please note that there is no standard way to number octaves in
 MIDI. The MIDI standard only says that note with index @code{60} must
@@ -674,6 +676,7 @@ In the next section we will see other roles of @code{none}.
 @node Definitions
 @section Definitions
 @cindex definition
+@cindex identifier
 
 I said that it's quite hard to write an incorrect statement in
 MIDA. Let's prove it. Here's my attempt:
@@ -691,11 +694,12 @@ So, MIDA thinks that these things are realized to @code{none}, they
 can be even put inside a principle without any obvious harm.
 
 The thing is that MIDA considers any alpha-numeric sequence of
-characters that does not begin with a number
-@dfn{definition}. Definition can hold a principle and default value of
-any definition is @code{none}. You can combine definitions to build
-really complex principles. Keep in mind that names of the definitions
-are case-sensitive.
+characters that does not begin with a number @dfn{identifier} (from
+MIDA 0.4.1 identifiers can contain underscore @samp{_}). Identifier
+has associated @dfn{definition}. Definition can hold a principle and
+default value of any definition is @code{none}. You can combine
+definitions to build really complex principles. Keep in mind that
+names of the definitions are case-sensitive.
 
 Definitions are created by putting definition name on the left side of
 equation sign @samp{=} and a principle on the right of the sign. Let's
