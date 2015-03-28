@@ -102,7 +102,7 @@ processCmd txt =
       Nothing -> liftIO $ F.print "Unknown command, try {}help.\n"
                          (F.Only cmdPrefix)
     where g Cmd { cmdName = c } = c == dropCmdPrefix (T.unpack cmd)
-          (cmd, args)           = T.break isSpace txt
+          (cmd, args)           = T.break isSpace (T.strip txt)
 
 completionFunc :: L.CompletionFunc MidaIO
 completionFunc = L.completeWordWithPrev Nothing " " getCompletions
