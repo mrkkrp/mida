@@ -66,8 +66,6 @@ configuration file.
 * MIDA Tutorial:: This tutorial teaches concepts of MIDA language.
 * GNU Free Documentation License:: License for copying this manual.
 * Concept Index:: Index of concepts described in this manual.
-* Variable Index::	Index of variables that can be used in
-configuration file.
 @end menu
 @end ifnottex
 
@@ -1140,9 +1138,5 @@ As always, arbitrary complex elements can be reversed.
 @node Concept Index
 @unnumbered Concept Index
 @printindex cp
-
-@node Variable Index
-@unnumbered Variable Index
-@printindex fn
 
 @bye
