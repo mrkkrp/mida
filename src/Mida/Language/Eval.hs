@@ -79,7 +79,7 @@ choice [] = return Nothing
 choice xs = do
   (n, g) <- randomInt . clcRandGen <$> get
   modify $ \c -> c { clcRandGen = g }
-  return . Just $ xs !! mod (abs n) (length xs)
+  return . Just $ xs !! (abs n `rem` length xs)
 
 condMatch :: [Int] -> Elt -> Bool
 condMatch []    _        = False
