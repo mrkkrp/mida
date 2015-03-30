@@ -66,16 +66,16 @@ library
                    , parsec                 >= 3.1.8
                    , text                   >= 1.2.0.4
                    , transformers           >= 0.2.0.0 && < 0.5
-  exposed-modules:   Mida.Configuration,
-                     Mida.Language,
-                     Mida.Language.Element,
-                     Mida.Language.Environment,
-                     Mida.Language.Eval,
-                     Mida.Language.SyntaxTree,
-                     Mida.Midi,
-                     Mida.Representation,
-                     Mida.Representation.Parser,
-                     Mida.Representation.Show
+  exposed-modules:   Mida.Configuration
+                   , Mida.Language
+                   , Mida.Language.Element
+                   , Mida.Language.Environment
+                   , Mida.Language.Eval
+                   , Mida.Language.SyntaxTree
+                   , Mida.Midi
+                   , Mida.Representation
+                   , Mida.Representation.Parser
+                   , Mida.Representation.Show
   other-modules:     Mida.Representation.Base
   default-language:  Haskell2010
 
