@@ -77,7 +77,7 @@ getMultiline prv = do
                  else getMultiline r
     Nothing -> return Nothing
 
-processExpr :: T.Text -> MidaInt IO ()
+processExpr :: T.Text -> MidaIO ()
 processExpr expr = do
   file <- getSrcFile
   case parseMida file expr of
