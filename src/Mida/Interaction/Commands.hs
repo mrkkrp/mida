@@ -1,6 +1,6 @@
 -- -*- Mode: Haskell; -*-
 --
--- This modules describes all supported MIDA commands. It also provides all
+-- This module describes all supported MIDA commands. It also provides all
 -- the functionality to load source files and generate / save MIDI files.
 --
 -- Copyright (c) 2014, 2015 Mark Karpov
