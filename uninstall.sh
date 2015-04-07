@@ -2,7 +2,7 @@
 #
 # MIDA Uninstallation script
 #
-# Copyright (c) 2014, 2015 Mark Karpov
+# Copyright © 2014, 2015 Mark Karpov
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free

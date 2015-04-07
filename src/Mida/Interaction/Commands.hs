@@ -3,7 +3,7 @@
 -- This module describes all supported MIDA commands. It also provides all
 -- the functionality to load source files and generate / save MIDI files.
 --
--- Copyright (c) 2014, 2015 Mark Karpov
+-- Copyright © 2014, 2015 Mark Karpov
 --
 -- MIDA is free software: you can redistribute it and/or modify it under the
 -- terms of the GNU General Public License as published by the Free Software

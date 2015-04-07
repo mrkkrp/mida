@@ -48,6 +48,6 @@ MIDA is a
 
 ## License
 
-Copyright (c) 2014, 2015 Mark Karpov
+Copyright © 2014, 2015 Mark Karpov
 
 Distributed under GNU GPL, version 3.
