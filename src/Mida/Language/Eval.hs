@@ -100,10 +100,10 @@ toPrin :: Monad m => SyntaxTree -> MidaEnv m Principle
 toPrin = liftM concat . mapM f
     where
       fPair (c, x)     = (,) <$> toPrin c <*> toPrin x
-      f (Value      x) = (return . Val) <$> return x
-      f (Section   xs) = (return . Sec) <$> toPrin xs
-      f (Multi     xs) = (return . Mul) <$> toPrin xs
-      f (CMulti    xs) = (return . CMul) <$> mapM fPair xs
+      f (Value      x) = return . Val <$> return x
+      f (Section   xs) = return . Sec <$> toPrin xs
+      f (Multi     xs) = return . Mul <$> toPrin xs
+      f (CMulti    xs) = return . CMul <$> mapM fPair xs
       f (Reference  x) = getPrin x >>= toPrin
       f (Range    x y) = return $ Val <$> if x > y then [x,x-1..y] else [x..y]
       f (Product  x y) = adb (\a b -> [(*) <$> a <*> b]) <$> f x <*> f y
