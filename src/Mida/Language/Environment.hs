@@ -37,13 +37,10 @@ module Mida.Language.Environment
     , newRandGen )
 where
 
-import Control.Applicative (Applicative, (<$>))
 import Control.Arrow ((***), (>>>))
 import Control.Monad.State.Strict
-import Data.Foldable
 import Data.Maybe (fromMaybe)
-import Data.Monoid ((<>), mempty)
-import Prelude hiding (concatMap, elem)
+import Data.Monoid ((<>))
 import qualified Data.Map.Strict as M
 import qualified Data.Text.Lazy as T
 
@@ -79,31 +76,31 @@ defaultDefs = M.fromList $ zip noteAlias (f <$> [0..])
     where f = return . Value
 
 getDefs :: Monad m => MidaEnv m Defs
-getDefs = stDefs `liftM` get
+getDefs = stDefs <$> get
 
 setDefs :: Monad m => Defs -> MidaEnv m ()
 setDefs x = modify $ \e -> e { stDefs = x }
 
 addDef :: Monad m => String -> SyntaxTree -> MidaEnv m ()
-addDef name tree = M.insert name tree `liftM` getDefs >>= setDefs
+addDef name tree = M.insert name tree <$> getDefs >>= setDefs
 
 remDef :: Monad m => String -> MidaEnv m ()
-remDef name = M.delete name `liftM` getDefs >>= setDefs
+remDef name = M.delete name <$> getDefs >>= setDefs
 
 clearDefs :: Monad m => MidaEnv m ()
 clearDefs = setDefs defaultDefs
 
 getPrin :: Monad m => String -> MidaEnv m SyntaxTree
-getPrin name = (fromMaybe [] . M.lookup name) `liftM` getDefs
+getPrin name = (fromMaybe [] . M.lookup name) <$> getDefs
 
 getSrc :: Monad m => String -> MidaEnv m T.Text
-getSrc name = showDefinition name `liftM` getPrin name
+getSrc name = showDefinition name <$> getPrin name
 
 fullSrc :: Monad m => MidaEnv m T.Text
-fullSrc = (M.foldMapWithKey showDefinition . (M.\\ defaultDefs)) `liftM` getDefs
+fullSrc = (M.foldMapWithKey showDefinition . (M.\\ defaultDefs)) <$> getDefs
 
 getRefs :: Monad m => MidaEnv m [String]
-getRefs = M.keys `liftM` getDefs
+getRefs = M.keys <$> getDefs
 
 tDefs :: String -> Defs -> [String]
 tDefs name defs = maybe mzero cm $ name `M.lookup` defs
@@ -123,13 +120,13 @@ tDefs name defs = maybe mzero cm $ name `M.lookup` defs
           f (Reverse    x) = f x
 
 purgeEnv :: Monad m => [String] -> MidaEnv m ()
-purgeEnv tops = f `liftM` getDefs >>= setDefs
+purgeEnv tops = f <$> getDefs >>= setDefs
     where f defs = M.intersection defs $ M.unions [ts, ms defs, defaultDefs]
           ms     = M.unions . fmap toDefs . zipWith tDefs tops . repeat
           ts     = toDefs tops
 
 checkRecur :: Monad m => String -> SyntaxTree -> MidaEnv m Bool
-checkRecur name tree = check `liftM` getDefs
+checkRecur name tree = check <$> getDefs
     where check = elem name . tDefs name . M.insert name tree
 
 setRandGen :: Monad m => Int -> MidaEnv m ()
@@ -137,7 +134,7 @@ setRandGen x = modify $ \e -> e { stRandGen = pureMT (fromIntegral x) }
 
 newRandGen :: Monad m => MidaEnv m PureMT
 newRandGen = do
-  (n, g) <- (randomWord64 . stRandGen) `liftM` get
+  (n, g) <- (randomWord64 . stRandGen) <$> get
   modify $ \e -> e { stRandGen = pureMT n }
   return . pureMT . fst . randomWord64 $ g
 

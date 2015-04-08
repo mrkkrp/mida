@@ -27,9 +27,7 @@ module Mida.Language.Element
     , Element (..) )
 where
 
-import Control.Applicative (Applicative, pure, (<$>), (<*>))
 import Control.Arrow ((***))
-import Data.Foldable
 
 type Principle = [Elt]
 type Elt       = Element Int

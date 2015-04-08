@@ -26,12 +26,9 @@ module Mida.Configuration
     , lookupCfg )
 where
 
-import Control.Applicative ((<$>), (<*>), (<*), (*>))
 import Data.Char (isDigit, isSpace)
-import Data.Foldable
 import Data.Functor.Identity
 import Data.Maybe (fromMaybe)
-import Prelude hiding (all)
 import qualified Data.Map as M
 import qualified Data.Text.Lazy as T
 

@@ -28,14 +28,12 @@ module Mida.Interaction.Commands
     , cmdPrefix )
 where
 
-import Control.Applicative ((<$>))
 import Control.Exception (SomeException, try)
 import Control.Monad (void)
 import Control.Monad.IO.Class
 import Data.Char (isDigit, isSpace)
-import Data.Foldable
+import Data.Foldable (find)
 import Data.List (elemIndex, isPrefixOf)
-import Prelude hiding (all, mapM_)
 import System.Directory
     ( canonicalizePath
     , doesDirectoryExist

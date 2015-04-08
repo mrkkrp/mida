@@ -26,12 +26,9 @@ module Mida.Representation.Parser
     , parseMida )
 where
 
-import Control.Applicative ((<$>), (<*>), (<*), (*>))
 import Control.Monad (void)
-import Data.Foldable
 import Data.Functor.Identity
 import Data.List (nub)
-import Prelude hiding (concat, or)
 import qualified Data.Text.Lazy as T
 
 import Text.Parsec

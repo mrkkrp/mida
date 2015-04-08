@@ -34,7 +34,6 @@ module Mida.Interaction
     , dfltBeats )
 where
 
-import Control.Applicative ((<$>))
 import Control.Monad.Reader
 import Prelude hiding (mapM_)
 import System.IO

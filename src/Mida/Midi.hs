@@ -24,13 +24,11 @@ module Mida.Midi
     , topDefs )
 where
 
-import Control.Applicative ((<$>), (<*>))
 import Control.Monad.State.Strict
-import Data.Foldable
+import Data.Foldable (foldl')
 import Data.List (zipWith7)
 import Data.Maybe (listToMaybe)
-import Data.Monoid (mempty)
-import Prelude hiding (all, concat, mod)
+import Prelude hiding (mod)
 
 import qualified Codec.Midi as M
 
@@ -87,7 +85,7 @@ type Track = M.Track Int
 genMidi :: Monad m => Int -> Int -> Int -> MidaEnv m M.Midi
 genMidi s q b = do
   setRandGen s
-  voices <- filter defined `liftM` mapM request [0..mvIndex]
+  voices <- filter defined <$> mapM request [0..mvIndex]
   return M.Midi { M.fileType = M.MultiTrack
                 , M.timeDiv  = M.TicksPerBeat q
                 , M.tracks   = zipWith (toTrack . slice (b * q)) voices [0..] }

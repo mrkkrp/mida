@@ -27,10 +27,9 @@ module Mida.Representation.Show
     , showPrinciple )
 where
 
-import Control.Applicative ((<$>))
 import Control.Arrow ((***), (>>>))
 import Data.List (intersperse)
-import Data.Monoid ((<>), mconcat)
+import Data.Monoid ((<>))
 import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.Builder as T (Builder, fromString, toLazyText)
 import qualified Data.Text.Lazy.Builder.Int as T (decimal)

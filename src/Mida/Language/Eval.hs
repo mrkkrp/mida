@@ -27,14 +27,11 @@ module Mida.Language.Eval
     , toPrin )
 where
 
-import Control.Applicative (Applicative, (<$>), (<*>))
 import Control.Arrow ((***))
 import Control.Monad.State.Lazy
-import Data.Foldable
 import Data.List (tails)
 import Data.Maybe (listToMaybe)
-import Data.Monoid (mempty, (<>))
-import Prelude hiding (concat, concatMap, and, or)
+import Data.Monoid ((<>))
 
 import System.Random.Mersenne.Pure64
 
@@ -57,8 +54,8 @@ evalDef :: Monad m => String -> MidaEnv m [Int]
 evalDef name = getPrin name >>= eval
 
 eval :: Monad m => SyntaxTree -> MidaEnv m [Int]
-eval tree = liftM2 runCalc ((resolve . cycle') `liftM` toPrin tree) newRandGen
-    where cycle' p = if null $ foldMap return (Sec p) then [] else cycle p
+eval tree = liftM2 runCalc (resolve . cycle' <$> toPrin tree) newRandGen
+    where cycle' p = if null $ foldMap (:[]) (Sec p) then [] else cycle p
 
 resolve :: Principle -> Calc [Int]
 resolve [] = return []
@@ -102,20 +99,20 @@ addHistory x = modify $ \c -> c { clcHistory = return x <> clcHistory c }
 toPrin :: Monad m => SyntaxTree -> MidaEnv m Principle
 toPrin = liftM concat . mapM f
     where
-      fPair (c, x)     = liftM2 (,) (toPrin c) (toPrin x)
-      f (Value      x) = (return . Val) `liftM` return x
-      f (Section   xs) = (return . Sec) `liftM` toPrin xs
-      f (Multi     xs) = (return . Mul) `liftM` toPrin xs
-      f (CMulti    xs) = (return . CMul) `liftM` mapM fPair xs
+      fPair (c, x)     = (,) <$> toPrin c <*> toPrin x
+      f (Value      x) = (return . Val) <$> return x
+      f (Section   xs) = (return . Sec) <$> toPrin xs
+      f (Multi     xs) = (return . Mul) <$> toPrin xs
+      f (CMulti    xs) = (return . CMul) <$> mapM fPair xs
       f (Reference  x) = getPrin x >>= toPrin
       f (Range    x y) = return $ Val <$> if x > y then [x,x-1..y] else [x..y]
-      f (Product  x y) = liftM2 (adb (\a b -> [(*) <$> a <*> b])) (f x) (f y)
-      f (Division x y) = liftM2 (adb (\a b -> [sdiv <$> a <*> b])) (f x) (f y)
-      f (Sum      x y) = liftM2 (adb (\a b -> [(+) <$> a <*> b])) (f x) (f y)
-      f (Diff     x y) = liftM2 (adb (\a b -> [sdif <$> a <*> b])) (f x) (f y)
-      f (Loop     x y) = liftM2 (adb loop) (f x) (f y)
-      f (Rotation x y) = liftM2 (adb (\a b -> [rotate a b])) (f x) (f y)
-      f (Reverse    x) = liftM  (adu reverse') (f x)
+      f (Product  x y) = adb (\a b -> [(*) <$> a <*> b]) <$> f x <*> f y
+      f (Division x y) = adb (\a b -> [sdiv <$> a <*> b]) <$> f x <*> f y
+      f (Sum      x y) = adb (\a b -> [(+) <$> a <*> b]) <$> f x <*> f y
+      f (Diff     x y) = adb (\a b -> [sdif <$> a <*> b]) <$> f x <*> f y
+      f (Loop     x y) = adb loop <$> f x <*> f y
+      f (Rotation x y) = adb (\a b -> [rotate a b]) <$> f x <*> f y
+      f (Reverse    x) = adu reverse' <$> f x
       adb _ [] _       = []
       adb _ xs []      = xs
       adb g xs (y:ys)  = init xs ++ g (last xs) y ++ ys

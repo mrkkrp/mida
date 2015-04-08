@@ -29,7 +29,6 @@
 
 module Main (main) where
 
-import Control.Applicative ((<$>), (<*>))
 import Control.Arrow ((&&&), (>>>))
 import Data.Char (isLetter, isAlphaNum)
 

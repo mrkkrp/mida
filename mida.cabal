@@ -59,7 +59,7 @@ library
   ghc-options:       -O2 -Wall
   ghc-prof-options:  -O2 -Wall -prof -fprof-auto -fprof-cafs -rtsopts
   build-depends:     HCodecs                >= 0.5
-                   , base                   >= 4.7 && < 4.8
+                   , base                   >= 4.8
                    , containers             >= 0.5.5.1
                    , mersenne-random-pure64 >= 0.2.0.4
                    , mtl                    >= 2.1.3.1
@@ -86,7 +86,7 @@ executable mida
   ghc-options:       -O2 -Wall
   ghc-prof-options:  -O2 -Wall -prof -fprof-auto -fprof-cafs -rtsopts
   build-depends:     HCodecs                >= 0.5
-                   , base                   >= 4.7 && <4.8
+                   , base                   >= 4.8
                    , containers             >= 0.5.5.1
                    , directory              >= 1.2.1.0
                    , filepath               >= 1.3.0.2
@@ -110,7 +110,7 @@ test-suite tests
   default-language:  Haskell2010
   build-depends:     HCodecs                    >= 0.5
                    , QuickCheck                 >= 2.4 && < 3
-                   , base                       >= 4.7 && <4.8
+                   , base                       >= 4.8
                    , containers                 >= 0.5.5.1
                    , mersenne-random-pure64     >= 0.2.0.4
                    , mida                       >= 0.4.1

@@ -50,7 +50,6 @@ module Mida.Interaction.Base
     , processDef )
 where
 
-import Control.Applicative (Applicative)
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 
@@ -97,43 +96,43 @@ runMidaInt m st cfg =
     runMidaEnv (runReaderT (evalStateT (unMidaInt m) st) cfg)
 
 getPrevLen :: MidaIO Int
-getPrevLen = stPrevLen `liftM` get
+getPrevLen = stPrevLen <$> get
 
 setPrevLen :: Int -> MidaIO ()
 setPrevLen x = modify $ \e -> e { stPrevLen = x }
 
 getSrcFile :: MidaIO String
-getSrcFile = stSrcFile `liftM` get
+getSrcFile = stSrcFile <$> get
 
 setSrcFile :: String -> MidaIO ()
 setSrcFile x = modify $ \e -> e { stSrcFile = x }
 
 getProg :: MidaIO Int
-getProg = stProg `liftM` get
+getProg = stProg <$> get
 
 setProg :: Int -> MidaIO ()
 setProg x = modify $ \e -> e { stProg = x }
 
 getTempo :: MidaIO Int
-getTempo = stTempo `liftM` get
+getTempo = stTempo <$> get
 
 setTempo :: Int -> MidaIO ()
 setTempo x = modify $ \e -> e { stTempo = x }
 
 getPrompt :: MidaIO String
-getPrompt = cfgPrompt `liftM` ask
+getPrompt = cfgPrompt <$> ask
 
 getVerbose :: MidaIO Bool
-getVerbose = cfgVerbose `liftM` ask
+getVerbose = cfgVerbose <$> ask
 
 getPrvCmd :: MidaIO String
-getPrvCmd = cfgPrvCmd `liftM` ask
+getPrvCmd = cfgPrvCmd <$> ask
 
 getProgOp :: MidaIO String
-getProgOp = cfgProgOp `liftM` ask
+getProgOp = cfgProgOp <$> ask
 
 getTempoOp :: MidaIO String
-getTempoOp = cfgTempoOp `liftM` ask
+getTempoOp = cfgTempoOp <$> ask
 
 dfltSeed :: Int
 dfltSeed = 0
