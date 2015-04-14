@@ -86,7 +86,7 @@ condMatch hs    (Mul  x) = or  $ condMatch hs <$> x
 condMatch hs    (CMul x) = condMatch hs (toMul x)
 
 toMul :: [([Elt], [Elt])] -> Elt
-toMul = Mul . concatMap snd
+toMul xs = Mul (xs >>= snd)
 
 matchHistory :: [Elt] -> Calc Bool
 matchHistory x = do
@@ -97,14 +97,34 @@ addHistory :: Int -> Calc ()
 addHistory x = modify $ \c -> c { clcHistory = return x <> clcHistory c }
 
 toPrin :: Monad m => SyntaxTree -> MidaEnv m Principle
-toPrin = liftM concat . mapM f
+toPrin = fmap simplifySec . toPrin'
+
+simplifySec :: Principle -> Principle
+simplifySec = (>>= f)
+    where f (Sec xs) = simplifySec xs
+          f x        = simplifyElt x
+
+simplify :: Principle -> Principle
+simplify = (>>= simplifyElt)
+
+simplifyElt :: Elt -> Principle
+simplifyElt x@(Val _)        = [x]
+simplifyElt (Sec  [x])       = simplify [x]
+simplifyElt (Mul  [x])       = simplify [x]
+simplifyElt (CMul [(_, xs)]) = simplifyElt (Mul xs)
+simplifyElt (Sec  xs)        = [Sec (simplifySec xs)]
+simplifyElt (Mul  xs)        = [Mul (simplify xs)]
+simplifyElt (CMul xs)        = [CMul ((simplify *** simplify) <$> xs)]
+
+toPrin' :: Monad m => SyntaxTree -> MidaEnv m Principle
+toPrin' = fmap concat . mapM f
     where
-      fPair (c, x)     = (,) <$> toPrin c <*> toPrin x
+      fPair (c, x)     = (,) <$> toPrin' c <*> toPrin' x
       f (Value      x) = return . Val <$> return x
-      f (Section   xs) = return . Sec <$> toPrin xs
-      f (Multi     xs) = return . Mul <$> toPrin xs
+      f (Section   xs) = return . Sec <$> toPrin' xs
+      f (Multi     xs) = return . Mul <$> toPrin' xs
       f (CMulti    xs) = return . CMul <$> mapM fPair xs
-      f (Reference  x) = getPrin x >>= toPrin
+      f (Reference  x) = getPrin x >>= toPrin'
       f (Range    x y) = return $ Val <$> if x > y then [x,x-1..y] else [x..y]
       f (Product  x y) = adb (\a b -> [(*) <$> a <*> b]) <$> f x <*> f y
       f (Division x y) = adb (\a b -> [sdiv <$> a <*> b]) <$> f x <*> f y

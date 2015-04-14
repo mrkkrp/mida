@@ -104,11 +104,11 @@ getRefs = M.keys <$> getDefs
 
 tDefs :: String -> Defs -> [String]
 tDefs name defs = maybe mzero cm $ name `M.lookup` defs
-    where cm               = concatMap f
+    where cm               = (>>= f)
           f (Value      _) = mempty
           f (Section    x) = cm x
           f (Multi      x) = cm x
-          f (CMulti     x) = concatMap (cm *** cm >>> uncurry (<>)) x
+          f (CMulti     x) = x >>= (cm *** cm >>> uncurry (<>))
           f (Reference  x) = return x <> tDefs x defs
           f (Range    _ _) = mempty
           f (Product  x y) = f x <> f y
