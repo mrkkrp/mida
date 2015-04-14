@@ -88,12 +88,12 @@ runMida e = do
   params <- loadConfig
   wdir   <- getCurrentDirectory
   void $ runMidaInt e
-       MidaSt { stPrevLen = lookupCfg params "prvlen" 16
+       MidaSt { stPrevLen = lookupCfg params "prvlen" 18
               , stSrcFile = lookupCfg params "src"    wdir </> "foo.da"
               , stProg    = lookupCfg params "prog"   0
               , stTempo   = lookupCfg params "tempo"  120 }
-       MidaCfg { cfgPrompt  = lookupCfg params "prompt"  "? "
-               , cfgVerbose = lookupCfg params "verbose" False
+       MidaCfg { cfgPrompt  = lookupCfg params "prompt"  "> "
+               , cfgVerbose = lookupCfg params "verbose" True
                , cfgPrvCmd  = lookupCfg params "prvcmd"  "timidity"
                , cfgProgOp  = lookupCfg params "progop"  "--force-program"
                , cfgTempoOp = lookupCfg params "tempop"  "--adjust-tempo" }
