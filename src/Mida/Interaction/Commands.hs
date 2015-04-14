@@ -267,7 +267,7 @@ cmdPrefix :: String
 cmdPrefix = ":"
 
 spitExc :: SomeException -> MidaIO ()
-spitExc = liftIO . F.print "(!) {}.\n" . F.Only . show
+spitExc = liftIO . F.print "× {}.\n" . F.Only . show
 
 trim :: String -> String
 trim = f . f

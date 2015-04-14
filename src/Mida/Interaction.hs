@@ -89,9 +89,9 @@ processExpr expr = do
                  result  <- liftEnv $ eval t
                  prin    <- liftEnv $ toPrin t
                  liftIO $ when verbose
-                            (F.print "= {}" (F.Only $ showPrinciple prin))
+                            (F.print "≡ {}" (F.Only $ showPrinciple prin))
                  spitList $ take len result
 
 spitList :: [Int] -> MidaIO ()
-spitList [] = liftIO $ T.putStrLn "none"
-spitList xs = liftIO $ F.print "{}...\n" (F.Only $ unwords (show <$> xs))
+spitList [] = liftIO $ T.putStrLn "⇒ ⊥"
+spitList xs = liftIO $ F.print "⇒ {}…\n" (F.Only $ unwords (show <$> xs))

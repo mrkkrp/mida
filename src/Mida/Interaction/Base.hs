@@ -147,5 +147,5 @@ processDef :: String -> SyntaxTree -> MidaIO ()
 processDef n t = do
   recursive <- liftEnv $ checkRecur n t
   if recursive
-  then liftIO $ F.print "Rejected recursive definition for '{}'.\n" (F.Only n)
-  else liftEnv (addDef n t) >> liftIO (F.print "Defined '{}'.\n" (F.Only n))
+  then liftIO $ F.print "Rejected recursive definition for «{}».\n" (F.Only n)
+  else liftEnv (addDef n t) >> liftIO (F.print "• «{}».\n" (F.Only n))
