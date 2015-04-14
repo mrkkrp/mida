@@ -1,5 +1,15 @@
 # History of changes
 
+## MIDA 0.4.2
+
+* introduced simplifications on the level of internal language;
+
+* changed default values of some parameters;
+
+* some characters have been replaced with pretty Unicode symbols;
+
+* improved manual.
+
 ## MIDA 0.4.1
 
 * dramatically improved efficiency, now very long compositions can be
