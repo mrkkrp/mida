@@ -1,25 +1,19 @@
 # MIDA
 
-MIDA is a minimalistic language for algorithmic generation of MIDI
-files. MIDA is not interactive in sense that you cannot control result
-of its activity in real time, it is intended for producers and should
-be used with a DAW. MIDA can help you create variative elements in
-your music in a very simple way. Since MIDI can control a lot of
-different instruments, power of MIDA is truly great.
+MIDA is a minimalistic declarative language for algorithmic generation of
+MIDI files. MIDA is not interactive in sense that you cannot control result
+of its activity in real time, it is intended for producers and should be
+used with a DAW. MIDA can help you create variative elements in your music
+in a very simple way. Since MIDI can control a lot of different instruments,
+power of MIDA is truly great.
 
 Main reason for MIDA development is to create software tool that can
 be used in such a way that does not change established workflow, so
 people could use familiar plugins and software instruments.
 
-The core concept of MIDA is building systems with complex behaviors
-from very basic and easy-to-understand elements and powerful means of
-their composition.
-
 Currently MIDA can be used to translate source files into `.mid` files, and
 also in interactive mode that will help you to understand how MIDA language
 works.
-
-See [MIDA Manual](https://mrkkrp.github.io/mida/) for more information.
 
 MIDA is a
 [member of Linux Audio consortium](http://linuxaudio.org/members.html).
@@ -45,6 +39,27 @@ MIDA is a
    ```
 
 5. Done (you can use `uninstall.sh` to uninstall the program).
+
+## Example
+
+Here is a simple example of MIDA program that demonstrates syntax and
+declarative nature of the language.
+
+```
+#
+# Example of MIDA program
+# Recommended tempo is 60
+#
+
+dur0 = 12 6 6
+dur1 = @[dur0]
+pch0 = {0 5 7} + [c5 {e5 d5} c6 {f5 g5}]
+pch1 = pch0
+vel0 = {7..11} * 10
+vel1 = vel0
+```
+
+See [MIDA Manual](https://mrkkrp.github.io/mida/) for more information.
 
 ## License
 
