@@ -2,11 +2,11 @@
 @comment %**start of header (This is for running Texinfo on a region.)
 @setfilename mida.info
 @settitle MIDA Manual
-@set EDITION 0.4.1
-@set VERSION 0.4.1
-@set UPDATED 28 March 2015
-@set UPDATED-MONTH March 2015
-@set LASTCHANGE Sat March 28 22:40:13 EST 2015
+@set EDITION 0.4.2
+@set VERSION 0.4.2
+@set UPDATED 15 April 2015
+@set UPDATED-MONTH April 2015
+@set LASTCHANGE Wed April 15 22:40:13 EST 2015
 
 @comment %**end of header (This is for running Texinfo on a region.)
 @synindex vr fn
@@ -15,7 +15,7 @@
 This manual describes MIDA language and its realization (version
 @value{VERSION}, @value{UPDATED}).
 
-Copyright @copyright{} 2015 Mark Karpov
+Copyright @copyright{} 2014, 2015 Mark Karpov
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -72,20 +72,16 @@ configuration file.
 @node What is MIDA?
 @chapter What is MIDA?
 
-MIDA is a minimalistic language for algorithmic generation of MIDI
-files. MIDA is not interactive in sense that you cannot control result
-of its activity in real time, it is intended for producers and should
-be used with a DAW. MIDA can help you create variative elements in
-your music in a very simple way. Since MIDI can control a lot of
-different instruments, power of MIDA is truly great.
+MIDA is a minimalistic declarative language for algorithmic generation
+of MIDI files. MIDA is not interactive in sense that you cannot
+control result of its activity in real time, it is intended for
+producers and should be used with a DAW. MIDA can help you create
+variative elements in your music in a very simple way. Since MIDI can
+control a lot of different instruments, power of MIDA is truly great.
 
 Main reason for MIDA development is to create software tool that can
 be used in such a way that does not change established workflow, so
 people could use familiar plugins and software instruments.
-
-The core concept of MIDA is building systems with complex behaviors
-from very basic and easy-to-understand elements and powerful means of
-their composition.
 
 Currently MIDA can be used to translate source files into @samp{.mid}
 files, and also in interactive mode that will help you to understand
@@ -144,27 +140,27 @@ mida [-i|--interactive] [-s|--seed SEED] [-q|--quarter TICKS]
 Here's the complete list of command line options:
 
 @table @asis
-@item @option{-h}, @option{--help}
+@item @code{-h}, @code{--help}
 Shows information regarding invocation parameters.
-@item @option{-i}, @option{--interactive}
+@item @code{-i}, @code{--interactive}
 Starts MIDA in interactive mode. This option effectively disables all
 other supplied options, because they only make sense in
 non-interactive (batch) mode.
-@item @option{-s} @var{seed}, @option{--seed} @var{seed}
+@item @code{-s} @var{seed}, @code{--seed} @var{seed}
 Sets @var{seed} for MIDI generation. You can generate identical MIDI
 files if you use the same seed. Default value is @code{0}.
-@item @option{-q} @var{ticks}, @option{--quarter} @var{ticks}
+@item @code{-q} @var{ticks}, @code{--quarter} @var{ticks}
 Sets number of @var{ticks} for quarter note, default value is
 @code{24}.
-@item @option{-b} @var{beats}, @option{--beats} @var{beats}
+@item @code{-b} @var{beats}, @code{--beats} @var{beats}
 Sets total time of result MIDI file as number of @var{beats} (quarter
 notes), default value is @code{16}.
-@item @option{-o} @var{output}, @option{--output} @var{output}
+@item @code{-o} @var{output}, @code{--output} @var{output}
 Specifies @var{output} file. Default value is built from base name of
 supplied file and extension @samp{.mid}.
-@item @option{--license}
+@item @code{--license}
 Show license of the program.
-@item @option{--version}
+@item @code{--version}
 Show version of the program.
 @end table
 
@@ -181,8 +177,8 @@ file @file{C:\Users\username\.mida}.
 @cindex configuration file variables
 
 The configuration file uses syntax similar to that of Unix shell. That
-is, you can use @code{#} for line comments, and @code{=} to assign new
-values (spaces before and after @code{=} are ignored). Currently, all
+is, you can use @samp{#} for line comments, and @samp{=} to assign new
+values (spaces before and after @samp{=} are ignored). Currently, all
 variables must be strings, integers, or Boolean values. If a string
 should contain space, enclose it into double quotes: @samp{"}. Inside
 the quotes you can escape characters with backslash @samp{\}. Integers
@@ -202,15 +198,14 @@ Command line option of external program that will be used for
 preview. By default, MIDA uses @code{timidity}, so value of this
 variable is @samp{--force-program}.
 @item prompt
-Prompt that will be used in MIDA REPL. Default value is @samp{? }, but
-you can put a lambda here ;-)
+Prompt that will be used in MIDA REPL. Default value is @samp{> }.
 @item prvcmd
 Command that will be used to invoke external program for preview. You
 can use this variable to supply some options as well. Default value
 is @samp{timidity}.
 @item prvlen
 How many elements is displayed after evaluation of given
-principle. Default value is @samp{16}. You can also interactively
+principle. Default value is @samp{18}. You can also interactively
 change the value form interactive REPL (@pxref{Interactive REPL}).
 @item src
 Default name of currently active file. If you load some file, this
@@ -227,8 +222,7 @@ program for preview is @code{timidity}.
 @item verbose
 This indicates whether or not display simplified principle before
 printing the final result of evaluation. Default value is
-@samp{false}, but it's a good idea to enable this option for
-educational purposes.
+@samp{true}.
 @end table
 
 Here is complete example of @file{.mida} file:
@@ -238,9 +232,9 @@ Here is complete example of @file{.mida} file:
 # MIDA Configuration File
 #
 
-prompt = "λ "
+prompt = "mida> "
 prvlen = 20
-verbose = true
+verbose = false
 @end example
 
 @node Interactive REPL
@@ -263,7 +257,7 @@ with @samp{#}.
 Interpreter supports multiline input. It automatically detects
 unbalanced parenthesis, braces, brackets. If you want to continue
 writing a principle on the next line, end current line with a comma
-@samp{,}. Since comma is allowed only between elements of a principle
+@samp{,}. Since comma is allowed only between elements of a principle,
 MIDA will know that current principle is not completed.
 
 Evaluation of principles will be described later in this document
@@ -277,20 +271,20 @@ Change working directory. Since MIDA allows to load, save, and
 generate various files, it's sometimes convenient to be able to change
 directories.
 @item :clear
-Restore default state of environment removing all definitions from the
-memory.
+Restore default state of environment removing all (non-standard)
+definitions from the memory.
 @item :def
 Print definition of specified symbol. This command can take several
 arguments (names of definitions to print). For example:
 @example
-? :def dur0 vel0
+> :def dur0 vel0
 dur0 = @{5 6 $ 17@}
 vel0 = @{50..70@}
 @end example
 @item :help
 Show help text. For example:
 @example
-? :help
+> :help
 Available commands:
   :cd                      Change working directory.
   :clear                   Restore default state of environment.
@@ -313,16 +307,16 @@ Available commands:
 Load definition from specified source files. When something is
 defined, you usually get some helpful feedback:
 @example
-? :load projects/music/tst1.da
-Defined 'pch0'.
-Defined 'dur0'.
-Defined 'vel0'.
-Defined 'pch1'.
-Defined 'dur1'.
-Defined 'vel1'.
-Defined 'pch2'.
-Defined 'dur2'.
-Defined 'vel2'.
+> :load projects/music/tst1.da
+• «pch0»
+• «dur0»
+• «vel0»
+• «pch1»
+• «dur1»
+• «vel1»
+• «pch2»
+• «dur2»
+• «vel2»
 "/home/mark/projects/music/tst1.da" loaded successfully.
 @end example
 Note that you can specify as many source files as you wish, they will
@@ -359,7 +353,7 @@ for @samp{:save} command but extension will be replaced with
 
 See the stuff in action:
 @example
-? :make 1 24 128
+> :make 1 24 128
 MIDI file saved as "/home/mark/projects/music/tst1.mid".
 @end example
 @cindex program
@@ -389,52 +383,53 @@ principle will be displayed. Default value is @code{16}, but you can
 choose different default value via configuration file
 (@pxref{Configuration File}).
 @example
-? 1
-1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1...
-? :prvlen 20
-? 1
-1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1...
+> 1
+≡ 1
+⇒ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1…
+> :prvlen 20
+> 1
+≡ 1
+⇒ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1…
 @end example
 @item :purge
 You can ``purge'' all useless definitions from memory using
 @samp{:purge} command. A definition is considered useless if it's not
 used as a part of a top-level definition. Here's an example:
 @example
-? foo = bar bar = 12 baz = 13 dur0 = foo
-Defined 'foo'.
-Defined 'bar'.
-Defined 'baz'.
-Defined 'dur0'.
-? :def baz
-baz = 13
-? :purge
+> α = β β = 12 Y = 13 dur0 = α
+• «α»
+• «β»
+• «Y»
+• «dur0»
+> :def Y
+Y = 13
+> :purge
 Environment purged.
-? :def baz
-baz =
-? :def bar
-bar = 12
+> :def Y
+Y =
+> :def β
+β = 12
 @end example
 What happened here? Well, we see that @code{dur0} is a top level
-definition (@pxref{Definitions}). @code{foo} is used in @code{dur0}'s
-principle and @code{bar} is used in @code{foo}'s principle. So,
-@code{foo} and @code{bar} are necessary definitions. What's about
-@code{baz}? It does not participate in principle building of any
-top-level definition. System considers it redundant, so it purges it.
+definition (@pxref{Definitions}). @code{α} is used in @code{dur0}'s
+principle and @code{β} is used in @code{α}'s principle. So, @code{α}
+and @code{β} are necessary definitions. What's about @code{Y}? It does
+not participate in principle building of any top-level
+definition. System considers it redundant, so it purges it.
 @item :pwd
 Quite obviously, it prints current working directory.
 @item :quit
 Quit the interactive environment.
 @item :save
-Save the current environment in MIDA source file.  As you compose
-music with MIDA, you will need to save all existing definitions to
-hard disk. You can then edit them or load them into MIDA to continue
-your work. It's quite easy to accomplish with @samp{:save}
-command. This command takes an optional argument -- file name. If you
-don't supply the file name, the system will try to guess it. It will
-be file name of loaded source file, last used file name, or default
-value (it can be specified in configuration file (@pxref{Configuration
-File}). I recommend @samp{.da} as file name extension for MIDA source
-files.
+Save the current environment in MIDA source file. As you compose music
+with MIDA, you will need to save all existing definitions to hard
+disk. You can then edit them or load them into MIDA to continue your
+work. It's quite easy to accomplish with @samp{:save} command. This
+command takes an optional argument -- file name. If you don't supply
+the file name, the system will try to guess it. It will be file name
+of loaded source file, last used file name, or default value (it can
+be specified in configuration file (@pxref{Configuration File}). I
+recommend @samp{.da} as file name extension for MIDA source files.
 @cindex tempo
 @item :tempo
 Set tempo for preview. Default value is @code{120}, but you can choose
@@ -443,10 +438,10 @@ File}).
 @cindex removing definitions
 @item :udef
 Remove definition of given symbol. Although standard way to remove
-definition is @samp{ definition_name =}, i.e. assigning empty
-principle to it, you may find @samp{:udef} command more convenient,
-because it takes arbitrary number of arguments and it also frees
-memory that was allocated for specified definitions.
+definition is @samp{definition_name =}, i.e. assigning empty principle
+to it, you may find @samp{:udef} command more convenient, because it
+takes arbitrary number of arguments and it also frees memory that was
+allocated for specified definitions.
 @end table
 
 @node MIDA Tutorial
@@ -455,10 +450,12 @@ memory that was allocated for specified definitions.
 Now that you know all the basic information about the interpreter, we
 can start our journey into the magic world of MIDA.
 
-MIDA is minimalistic and not very flexible or complex. In fact, it is
-so simple that any statement that has valid syntax will produce valid
-result. MIDA statement only has to pass parser, that's all. In fact,
-it's quite hard to enter invalid statement in MIDA and we'll see why.
+MIDA is minimalistic, declarative language. In fact, it is so simple
+that any statement that has valid syntax will produce valid
+result. MIDA statement only has to pass parser, that's
+all. Declarative nature of MIDA means that you describe relations
+between principles that will be turned into actual MIDI data without
+describing control flow.
 
 @menu
 * Literal Values:: Most basic elements in MIDA.
@@ -479,14 +476,14 @@ something like this:
 
 @example
 [mark@@arch ~]$ mida
-MIDA Copyright (c) 2014, 2015 Mark Karpov
+MIDA Copyright © 2014, 2015 Mark Karpov
 
 This program comes with ABSOLUTELY NO WARRANTY. This is free software,
 and you are welcome to redistribute it under certain conditions; see
 GNU General Public License for details.
 
-MIDA Interactive Environment 0.4.1
-?
+MIDA Interactive Environment 0.4.2
+>
 @end example
 
 You can try your powers right away. Remember, MIDA is all about
@@ -530,15 +527,16 @@ default value is @code{24}, so try to work with this in mind.
 
 So, if quarter note is @code{24} ticks, whole note will be @code{96}
 ticks, while eight note will be @code{12} ticks, etc. You can also use
-any number in between creating really strange rhythms. Remember that
+any number in between creating rather strange rhythms. Remember that
 you can use numbers greater than @code{127} for duration, so there is
 no limits.
 
 Let's enter a number:
 
 @example
-? 24
-24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24...
+> 24
+≡ 24
+⇒ 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24…
 @end example
 
 So, we see that we can enter literal values! However, the result may
@@ -561,9 +559,9 @@ guaranteed to be processed correctly.
 @cindex pitch
 
 Sure, you can use the same plain numbers from @code{0} to @code{127}
-for pitch, but it's a bit inconvenient. MIDA knows some alias for that
-case. Since MIDA doesn't work with negative numbers, we use alias
-where octaves start from @code{0}. So @code{c0} corresponds to
+for pitch, but it's a bit inconvenient. MIDA has predefined ``alias''
+for that case. Since MIDA doesn't work with negative numbers, we use
+alias where octaves start from @code{0}. So @code{c0} corresponds to
 @code{0}, @code{cs0} to @code{1}, and so on: one semitone per number.
 
 Please note that there is no standard way to number octaves in
@@ -577,8 +575,9 @@ entering corresponding MIDI code (note that all alias are
 case-sensitive):
 
 @example
-? c5
-60 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60...
+> c5
+≡ 60
+⇒ 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60…
 @end example
 
 @node Additional Parameters
@@ -586,7 +585,7 @@ case-sensitive):
 @cindex modulation
 
 Parameters like modulation, breath, aftertouch, and pitch bend are
-called @dfn{additional parameters}. In section @ref{Definitions} I
+called @dfn{additional parameters}. In section @ref{Definitions} we
 will explain why they are called so, but for now it's important to
 understand how you can use literal values to represent these
 parameters and their change in time.
@@ -598,7 +597,7 @@ Additional parameters are written either as plain numbers from
 Numbers from @code{0} to @code{127} without modifier represent value
 that doesn't change during length of note. Modifiers tells MIDA to use
 special forms of modulation, while number that's added to modifier
-signifies intensity of such modulation.
+signifies intensity of such a modulation.
 
 This table describes forms of modulation that exist in MIDA:
 
@@ -640,10 +639,12 @@ elements. These elements may be separated by commas @samp{,}. Let's
 try some principles:
 
 @example
-? 1, 2, 3
-1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...
-? c5 d5 e5 f5 g5 a5 b5 c6
-60 62 64 65 67 69 71 72 60 62 64 65 67 69 71 72...
+> 1, 2, 3
+≡ 1 2 3
+⇒ 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3…
+> c5 d5 e5 f5 g5 a5 b5 c6
+≡ 60 62 64 65 67 69 71 72
+⇒ 60 62 64 65 67 69 71 72 60 62 64 65 67 69 71 72 60 62…
 @end example
 
 So, we enter a principle and MIDA prints its realization. Realization
@@ -651,8 +652,10 @@ of principle is built this way:
 
 @enumerate
 @item
-system tries to simplify given principle by applying some
-operators, such as ranges or polymorphic operators;
+system tries to simplify given principle by de-referencing definitions
+and applying some operators, such as ranges or polymorphic operators
+(by default MIDA shows result of this step after identity symbol
+@samp{≡});
 @item
 MIDA cycles elements (not their values, you'll see difference later),
 so we have now infinite collection of elements;
@@ -661,15 +664,16 @@ it realizes all the elements one by one.
 @end enumerate
 
 Realization can be either infinite sequence of non-negative numbers or
-@code{none}. @code{none} is a special value that represent realization
-of empty principle:
+@dfn{bottom} @samp{⊥}. Bottom is realization of empty principle and it
+is said to be less defined than any other result.
 
 @example
-?
-none
+>
+≡
+⇒ ⊥
 @end example
 
-In the next section we will see other roles of @code{none}.
+In the next section we will see other rôle of bottom.
 
 @node Definitions
 @section Definitions
@@ -680,22 +684,25 @@ I said that it's quite hard to write an incorrect statement in
 MIDA. Let's prove it. Here's my attempt:
 
 @example
-? foo
-none
-? asdfasdflk
-none
-? 1 2 rere 5
-1 2 5 1 2 5 1 2 5 1 2 5 1 2 5 1...
+> foo
+≡
+⇒ ⊥
+> asdfasdflk
+≡
+⇒ ⊥
+> 1 2 rere 5
+≡ 1 2 5
+⇒ 1 2 5 1 2 5 1 2 5 1 2 5 1 2 5 1 2 5…
 @end example
 
-So, MIDA thinks that these things are realized to @code{none}, they
-can be even put inside a principle without any obvious harm.
+So, MIDA thinks that these things are realized to @code{⊥}, they can
+be even put inside a principle without any obvious harm.
 
 The thing is that MIDA considers any alpha-numeric sequence of
 characters that does not begin with a number @dfn{identifier} (from
 MIDA 0.4.1 identifiers can contain underscore @samp{_}). Identifier
 has associated @dfn{definition}. Definition can hold a principle and
-default value of any definition is @code{none}. You can combine
+default value of any definition is empty principle. You can combine
 definitions to build really complex principles. Keep in mind that
 names of the definitions are case-sensitive.
 
@@ -704,34 +711,39 @@ equation sign @samp{=} and a principle on the right of the sign. Let's
 give it a go:
 
 @example
-? foo = 1 2 3
-Defined 'foo'.
-? foo
-1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...
-? foo 5
-1 2 3 5 1 2 3 5 1 2 3 5 1 2 3 5...
+> α = 1 2 3
+• «α»
+> α
+≡ 1 2 3
+⇒ 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3…
+> α 5
+≡ 1 2 3 5
+⇒ 1 2 3 5 1 2 3 5 1 2 3 5 1 2 3 5 1 2…
 @end example
 
-Remember that definitions are like recipes how to create a principle,
-not static values. So we can change a definition and all other
-definitions which use it will change accordingly:
+Remember that definitions are like recipes how to create a principle
+and they live in interactive environment. So we can change a
+definition and all other definitions which use it will change
+accordingly:
 
 @example
-? foo = 5 boo = 6 baz = foo boo
-Defined 'foo'.
-Defined 'boo'.
-Defined 'baz'.
-? baz
-5 6 5 6 5 6 5 6 5 6 5 6 5 6 5 6...
-? boo = 10
-Defined 'boo'.
-? baz
-=> 5 10 5 10 5 10 5 10 5 10 5 10 5 10 5 10...
+> α = 5 β = 6 Y = α β
+• «α»
+• «β»
+• «Y»
+> Y
+≡ 5 6
+⇒ 5 6 5 6 5 6 5 6 5 6 5 6 5 6 5 6 5 6…
+> β = 10
+• «β»
+> Y
+≡ 5 10
+⇒ 5 10 5 10 5 10 5 10 5 10 5 10 5 10 5 10 5 10…
 @end example
 
-And since all possible definitions are bound to @code{none}, we can
-even design our principles in top-down manner, using definitions that
-we haven't defined yet.
+And since all possible definitions are bound to empty principles, we
+can even design our principles in top-down manner, using definitions
+that we haven't defined yet.
 
 Now you're ready to create your first piece of music, but before you
 do it I should explain something about @dfn{top-level
@@ -765,21 +777,21 @@ Let's create some music (or ``music'', creation of real music is left
 as an exercise for the reader):
 
 @example
-? dur0 = 24 vel0 = 70 pch0 = c5 d5 e5 f5 g5 a5 b5
-Defined 'dur0'.
-Defined 'vel0'.
-Defined 'pch0'.
+> dur0 = 24 vel0 = 70 pch0 = c5 d5 e5 f5 g5 a5 b5
+• «dur0»
+• «vel0»
+• «pch0»
 @end example
 
 It's as simple as that! Other top-level definitions hold empty
-principles, so they will be ignored. Additional parameters like
-modulation, breath, aftertouch, and pitch bend may be omitted (that's
-why they are called ``additional'') -- in this case there will be no
-corresponding events in result MIDI file. Use @samp{:make} command to
-create a MIDI file:
+principles, so their realization is bottom @code{⊥}, thus they will be
+ignored. Additional parameters like modulation, breath, aftertouch,
+and pitch bend may be omitted (that's why they are called
+``additional'') -- in this case there will be no corresponding events
+in result MIDI file. Use @samp{:make} command to create a MIDI file:
 
 @example
-? :make 0 24 14
+> :make 0 24 14
 MIDI file saved as "/home/mark/foo.mid".
 @end example
 
@@ -788,7 +800,7 @@ Here is how (make sure that you have installed @code{timidity}, and
 configured it correctly):
 
 @example
-? :prv 0 24 14
+> :prv 0 24 14
 MIDI file saved as "/tmp/foo.mid".
 Requested buffer size 32768, fragment size 8192
 ALSA pcm 'default' set buffer size 33868, period size 3760 bytes
@@ -818,10 +830,12 @@ represents collection of successive natural numbers from left-side
 number to right-side number inclusively.
 
 @example
-? 1..3
-1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...
-? 5..2
-5 4 3 2 5 4 3 2 5 4 3 2 5 4 3 2...
+> 1..3
+≡ 1 2 3
+⇒ 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3…
+> 5..2
+≡ 5 4 3 2
+⇒ 5 4 3 2 5 4 3 2 5 4 3 2 5 4 3 2 5 4…
 @end example
 
 Although you cannot specify step between resulting elements, you can
@@ -842,8 +856,9 @@ Multivalue is written as collection of possible values inside
 of braces:
 
 @example
-? @{1..3@}
-3 3 1 2 2 2 3 1 1 2 2 3 3 2 2 1...
+> @{1..3@}
+≡ @{1 2 3@}
+⇒ 1 2 2 2 3 1 2 1 1 1 2 2 3 1 3 1 2 1…
 @end example
 
 As you can see, the same element is replicated, but its realized value
@@ -851,10 +866,12 @@ is different for every instance. Here we have uniform distribution,
 but you can change it with help of repetition:
 
 @example
-? @{1 1 2 3@} // 1 - 50%, 2 - 25%, 3 - 25%
-1 1 1 3 1 3 1 3 2 1 3 1 3 1 1 1...
-? @{1 $ 8, 2 3@} // 1 - 80%, 2 - 10%, 3 - 10%
-=> 1 1 1 1 1 2 1 1 1 1 2 1 3 1 1 1...
+> @{1 1 2 3@} # 1 → 50%, 2 → 25%, 3 → 25%
+≡ @{1 1 2 3@}
+⇒ 1 1 1 1 2 1 3 3 1 3 3 3 1 2 1 3 3 1…
+> @{1 $ 8, 2 3@} # 1 → 80%, 2 → 10%, 3 → 10%
+≡ @{1 1 1 1 1 1 1 1 2 3@}
+⇒ 1 1 2 1 3 1 1 3 1 1 3 3 1 1 1 1 1 1…
 @end example
 
 Basic operators work together! (@samp{$} operator will be considered
@@ -862,8 +879,9 @@ later, @pxref{Repetition}.) You can put a multivalue into another
 multivalue too:
 
 @example
-? @{1 @{2 3@}@}
-1 1 1 2 2 1 1 1 2 1 1 1 3 1 1 2...
+> @{1 @{2 3@}@} # 1 → 50%, 2 → 25%, 3 → 25%
+≡ @{1 @{2 3@}@}
+⇒ 3 1 1 1 1 2 1 1 1 2 1 2 1 1 3 1 3 2…
 @end example
 
 @code{1} has probability 50%, and @code{@{2 3@}} has probability
@@ -882,8 +900,9 @@ Sections are written as a principle inside of square brackets
 (@samp{[} and @samp{]}):
 
 @example
-? [1 2 3]
-1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...
+> [1..3]
+≡ 1 2 3
+⇒ 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3…
 @end example
 
 Typical example of their use is in juxtaposition with
@@ -891,8 +910,9 @@ multivalues. With help of sections you can easily use sequence of
 elements as part of multivalue:
 
 @example
-? @{1 2 [3..5]@}
-1 3 4 5 2 2 1 3 4 5 1 1 3 4 5 3...
+> @{1 2 [3..5]@}
+≡ @{1 2 [3 4 5]@}
+⇒ 3 4 5 3 4 5 1 2 1 2 3 4 5 2 3 4 5 1…
 @end example
 
 So here we have @code{1} with probability @code{1/3}, @code{2} with
@@ -916,8 +936,9 @@ This example demonstrates syntax of conditional multivalue and its
 logic:
 
 @example
-? @{<1> 2 3 <2> 3 <3> 1@}
-3 1 3 1 2 3 1 2 3 1 2 3 1 3 1 3...
+> @{<1> 2 3 <2> 3 <3> 1@}
+≡ @{<1> 2 3 <2> 3 <3> 1@}
+⇒ 1 3 1 3 1 2 3 1 2 3 1 2 3 1 3 1 2 3…
 @end example
 
 If the last element has value @code{1}, conditional multivalue will
@@ -931,27 +952,30 @@ selects realization of one of corresponding elements.
 It's also possible to use multiple conditional elements:
 
 @example
-? @{<1 2> 3 <3> 1 2@}
-1 3 1 3 2 3 2 3 1 3 2 3 1 3 2 3...
+> @{<1 2> 3 <3> 1 2@}
+≡ @{<1 2> 3 <3> 1 2@}
+⇒ 3 1 3 2 3 2 3 2 3 2 3 2 3 1 3 2 3 2…
 @end example
 
 You can use sections to match not only on the last element, but on
 sequence of elements:
 
 @example
-? @{<[1 2 3]> 4 <1..4> 1..3@}
-=> 1 1 2 3 4 1 1 3 1 1 3 2 3 3 1 1...
+> @{<[1..3]> 4 <1..4> 1..3@}
+≡ @{<[1 2 3]> 4 <1 2 3 4> 1 2 3@}
+⇒ 4 3 1 2 1 2 2 2 3 2 3 3 1 1 2 3 4 1…
 @end example
 
 Here, @code{1 2 3} triggers @code{4} while any other single element
 triggers @code{1}, @code{2}, or @code{3}.
 
 You can use multivalues in conditional clauses as sort of `or'
-operator, consider this example:
+operator, consider the following example:
 
 @example
-? @{<[1 @{2 3@}]> 7 <1..7> 1..6@}
-=> 7 1 1 6 1 1 2 7 1 1 4 1 3 7 3 4 5 5 1 3 7 6 5 1 4 2 5 1 1 2 7 1 4 6 2 1...
+> @{<[1 @{2 3@}]> 7 <1..7> 1..6@}
+≡ @{<[1 @{2 3@}]> 7 <1 2 3 4 5 6 7> 1 2 3 4 5 6@}
+⇒ 7 1 1 6 1 1 2 7 1 1 4 1 3 7 3 4 5 5 1 3 7 6 5 1 4 2 5 1 1 2 7 1 4 6 2 1…
 @end example
 
 Here our first condition says ``if last but one realized element is
@@ -977,10 +1001,6 @@ associative. All operators have the same precedence, so they are
 always applied from left to right. However, you can use parenthesis
 @samp{(} and @samp{)} to change order of evaluation.
 
-I encourage you to set variable @code{verbose} in your @file{.mida}
-file to enable displaying of simplified principles. Restart your MIDA
-environment after editing of the file.
-
 @menu
 * Basic Arithmetic:: How to add, subtract , multiply, and divide elements.
 * Repetition:: How to repeat elements.
@@ -1000,21 +1020,21 @@ To perform arithmetic operation, put @samp{+}, @samp{-}, @samp{*},
 or @samp{/} between two elements.
 
 @example
-? 1 + 3
-= 4
-4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4...
-? 7 + (2 * 2)
-= 11
-11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11...
-? 7 / 2
-= 3
-3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3...
-? (4 - 1) / 0
-= 3
-3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3...
-? 7 - 100
-= 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0...
+> 1 + 3
+≡ 4
+⇒ 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4…
+> 7 + (2 * 2)
+≡ 11
+⇒ 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11…
+> 7 / 2
+≡ 3
+⇒ 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3…
+>  (4 - 1) / 0
+≡ 3
+⇒ 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3…
+> 7 - 100
+≡ 0
+⇒ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0…
 @end example
 
 Note that we don't work with negative numbers in MIDA, so subtraction
@@ -1027,24 +1047,24 @@ You can put any element into arithmetic expressions. Different types
 of elements will produce different effects:
 
 @example
-? [1..3] + 10
-= [11 12 13]
-11 12 13 11 12 13 11 12 13 11 12 13 11 12 13 11...
-? [1..3] + [0 10]
-= [[1 11] [2 12] [3 13]]
-1 11 2 12 3 13 1 11 2 12 3 13 1 11 2 12...
-? [1..3] + @{0 10@}
-= [@{1 11@} @{2 12@} @{3 13@}]
-11 12 3 11 12 3 1 2 3 1 2 13 1 2 3 11...
-? @{1..3@} + [0 10]
-= @{[1 11] [2 12] [3 13]@}
-1 11 3 13 3 13 2 12 2 12 3 13 3 13 1 11...
-? @{<1> 2 <2> 1@} + 5
-= @{<6> 7 <7> 6@}
-6 7 6 7 6 7 6 7 6 7 6 7 6 7 6 7...
-? @{_u, _d, _ud, _du@} + 127
-= @{511 639 255 383@}
-511 255 383 639 383 639 383 639 255 639 383 383 511 511 639 639...
+> [1..3] + 10
+≡ 11 12 13
+⇒ 11 12 13 11 12 13 11 12 13 11 12 13 11 12 13 11 12 13…
+> [1..3] + [0 10]
+≡ 1 11 2 12 3 13
+⇒ 1 11 2 12 3 13 1 11 2 12 3 13 1 11 2 12 3 13…
+> [1..3] + @{0 10@}
+≡ @{1 11@} @{2 12@} @{3 13@}
+⇒ 1 12 13 1 12 13 11 2 3 11 12 3 1 2 13 1 2 13…
+> @{1..3@} + [0 10]
+≡ @{[1 11] [2 12] [3 13]@}
+⇒ 1 11 1 11 1 11 1 11 2 12 2 12 1 11 1 11 1 11…
+> @{<1> 2 <2> 1@} + 5
+≡ @{<6> 7 <7> 6@}
+⇒ 6 7 6 7 6 7 6 7 6 7 6 7 6 7 6 7 6 7…
+> @{_u _d _ud _du@} + 127
+≡ @{511 639 255 383@}
+⇒ 511 255 383 639 383 639 383 639 255 639 383 383 511 511 639 639 511 255…
 @end example
 
 General rule for type of result element:
@@ -1070,21 +1090,21 @@ Operator for repetition is @samp{$}. Principles of evaluation are
 a bit different from arithmetic operators:
 
 @example
-? 1 $ 3, 10
-= 1 1 1 10
-1 1 1 10 1 1 1 10 1 1 1 10 1 1 1 10...
-? @{1 2@} $ 3, 10
-= @{1 2@} @{1 2@} @{1 2@} 10
-1 1 1 10 2 1 2 10 1 2 1 10 2 1 1 10...
-? [1..3] $ 3, 10
-= [1 2 3] [1 2 3] [1 2 3] 10
-1 2 3 1 2 3 1 2 3 10 1 2 3 1 2 3...
-? 1 $ @{2 3@}, 10
-= @{[1 1] [1 1 1]@} 10
-1 1 10 1 1 1 10 1 1 10 1 1 1 10 1 1...
-? [1 2 3] $ [2 3 1], 10
-= [1 1 2 2 2 3] 10
-1 1 2 2 2 3 10 1 1 2 2 2 3 10 1 1...
+> 1 $ 3, 10
+≡ 1 1 1 10
+⇒ 1 1 1 10 1 1 1 10 1 1 1 10 1 1 1 10 1 1…
+> @{1 2@} $ 3, 10
+≡ @{1 2@} @{1 2@} @{1 2@} 10
+⇒ 1 1 1 10 2 1 2 10 1 2 1 10 2 1 1 10 1 1…
+> [1..3] $ 3, 10
+≡ 1 2 3 1 2 3 1 2 3 10
+⇒ 1 2 3 1 2 3 1 2 3 10 1 2 3 1 2 3 1 2…
+> 1 $ @{2 3@}, 10
+≡ @{[1 1] [1 1 1]@} 10
+⇒ 1 1 10 1 1 1 10 1 1 10 1 1 1 10 1 1 10 1…
+> [1..3] $ [2 3 1], 10
+≡ 1 1 2 2 2 3 10
+⇒ 1 1 2 2 2 3 10 1 1 2 2 2 3 10 1 1 2 2…
 @end example
 
 @node Rotation
@@ -1096,15 +1116,15 @@ removing its former elements that will appear at the end of the
 principle:
 
 @example
-? [1..3] ^ 1
-= [2 3 1]
-2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2...
-? [1..3] ^ @{1 2@}
-= @{[2 3 1] [3 1 2]@}
-2 3 1 2 3 1 3 1 2 2 3 1 2 3 1 3...
-? [[1..3] $ 3] ^ [0 2 1]
-= [[1 2 3] [3 1 2] [2 3 1]]
-1 2 3 3 1 2 2 3 1 1 2 3 3 1 2 2...
+> [1..3] ^ 1
+≡ 2 3 1
+⇒ 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1…
+> [1..3] ^ @{1 2@}
+≡ @{[2 3 1] [3 1 2]@}
+⇒ 3 1 2 2 3 1 3 1 2 2 3 1 2 3 1 3 1 2…
+> [[1..3] $ 3] ^ [0 2 1]
+≡ 1 2 3 3 1 2 2 3 1
+⇒ 1 2 3 3 1 2 2 3 1 1 2 3 3 1 2 2 3 1…
 @end example
 
 This is so-called left rotation, but you can emulate right-rotation
@@ -1120,12 +1140,12 @@ precedence, this means that it is evaluated before all other
 operators:
 
 @example
-? @@[1..3]
-= [3 2 1]
-3 2 1 3 2 1 3 2 1 3 2 1 3 2 1 3...
-? @@@{[1 2] [3 4]@}
-= @{[2 1] [4 3]@}
-4 3 2 1 4 3 4 3 2 1 4 3 4 3 2 1...
+> @@[1..3]
+≡ 3 2 1
+⇒ 3 2 1 3 2 1 3 2 1 3 2 1 3 2 1 3 2 1…
+> @@@{[1 2] [3 4]@}
+≡ @{[2 1] [4 3]@}
+⇒ 4 3 2 1 4 3 4 3 2 1 4 3 4 3 2 1 4 3…
 @end example
 
 As always, arbitrary complex elements can be reversed.
