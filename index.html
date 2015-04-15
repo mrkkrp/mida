@@ -1,9 +1,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <!-- This manual describes MIDA language and its realization (version
-0.4.1, 28 March 2015).
+0.4.2, 15 April 2015).
 
-Copyright (C) 2015 Mark Karpov
+Copyright (C) 2014, 2015 Mark Karpov
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
@@ -14,7 +14,7 @@ Documentation License".
 
 
  -->
-<!-- Created on March 28, 2015 by texi2html 5.0
+<!-- Created on April 15, 2015 by texi2html 5.0
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -68,15 +68,15 @@ hr { display: none }
 <body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
 
 <h1>MIDA Manual</h1>
-<h3 align="right">Edition 0.4.1, for <code>MIDA</code> Version 0.4.1.</h3>
-<h3 align="right">March 2015</h3>
+<h3 align="right">Edition 0.4.2, for <code>MIDA</code> Version 0.4.2.</h3>
+<h3 align="right">April 2015</h3>
 <strong>Mark Karpov</strong><br>
 
 
 <p>This manual describes MIDA language and its realization (version
-0.4.1, 28 March 2015).
+0.4.2, 15 April 2015).
 </p>
-<p>Copyright &copy; 2015 Mark Karpov
+<p>Copyright &copy; 2014, 2015 Mark Karpov
 </p>
 <blockquote>
 <p>Permission is granted to copy, distribute and/or modify this document
@@ -146,20 +146,16 @@ configuration file.
 <a name="What-is-MIDA_003f-1"></a>
 <h1 class="chapter">1 What is MIDA?</h1>
 
-<p>MIDA is a minimalistic language for algorithmic generation of MIDI
-files. MIDA is not interactive in sense that you cannot control result
-of its activity in real time, it is intended for producers and should
-be used with a DAW. MIDA can help you create variative elements in
-your music in a very simple way. Since MIDI can control a lot of
-different instruments, power of MIDA is truly great.
+<p>MIDA is a minimalistic declarative language for algorithmic generation
+of MIDI files. MIDA is not interactive in sense that you cannot
+control result of its activity in real time, it is intended for
+producers and should be used with a DAW. MIDA can help you create
+variative elements in your music in a very simple way. Since MIDI can
+control a lot of different instruments, power of MIDA is truly great.
 </p>
 <p>Main reason for MIDA development is to create software tool that can
 be used in such a way that does not change established workflow, so
 people could use familiar plugins and software instruments.
-</p>
-<p>The core concept of MIDA is building systems with complex behaviors
-from very basic and easy-to-understand elements and powerful means of
-their composition.
 </p>
 <p>Currently MIDA can be used to translate source files into &lsquo;<samp>.mid</samp>&rsquo;
 files, and also in interactive mode that will help you to understand
@@ -252,34 +248,34 @@ in interactive mode.
 <p>Here&rsquo;s the complete list of command line options:
 </p>
 <dl compact="compact">
-<dt>&lsquo;<samp>-h</samp>&rsquo;, &lsquo;<samp>--help</samp>&rsquo;</dt>
+<dt><code>-h</code>, <code>--help</code></dt>
 <dd><p>Shows information regarding invocation parameters.
 </p></dd>
-<dt>&lsquo;<samp>-i</samp>&rsquo;, &lsquo;<samp>--interactive</samp>&rsquo;</dt>
+<dt><code>-i</code>, <code>--interactive</code></dt>
 <dd><p>Starts MIDA in interactive mode. This option effectively disables all
 other supplied options, because they only make sense in
 non-interactive (batch) mode.
 </p></dd>
-<dt>&lsquo;<samp>-s</samp>&rsquo; <var>seed</var>, &lsquo;<samp>--seed</samp>&rsquo; <var>seed</var></dt>
+<dt><code>-s</code> <var>seed</var>, <code>--seed</code> <var>seed</var></dt>
 <dd><p>Sets <var>seed</var> for MIDI generation. You can generate identical MIDI
 files if you use the same seed. Default value is <code>0</code>.
 </p></dd>
-<dt>&lsquo;<samp>-q</samp>&rsquo; <var>ticks</var>, &lsquo;<samp>--quarter</samp>&rsquo; <var>ticks</var></dt>
+<dt><code>-q</code> <var>ticks</var>, <code>--quarter</code> <var>ticks</var></dt>
 <dd><p>Sets number of <var>ticks</var> for quarter note, default value is
 <code>24</code>.
 </p></dd>
-<dt>&lsquo;<samp>-b</samp>&rsquo; <var>beats</var>, &lsquo;<samp>--beats</samp>&rsquo; <var>beats</var></dt>
+<dt><code>-b</code> <var>beats</var>, <code>--beats</code> <var>beats</var></dt>
 <dd><p>Sets total time of result MIDI file as number of <var>beats</var> (quarter
 notes), default value is <code>16</code>.
 </p></dd>
-<dt>&lsquo;<samp>-o</samp>&rsquo; <var>output</var>, &lsquo;<samp>--output</samp>&rsquo; <var>output</var></dt>
+<dt><code>-o</code> <var>output</var>, <code>--output</code> <var>output</var></dt>
 <dd><p>Specifies <var>output</var> file. Default value is built from base name of
 supplied file and extension &lsquo;<samp>.mid</samp>&rsquo;.
 </p></dd>
-<dt>&lsquo;<samp>--license</samp>&rsquo;</dt>
+<dt><code>--license</code></dt>
 <dd><p>Show license of the program.
 </p></dd>
-<dt>&lsquo;<samp>--version</samp>&rsquo;</dt>
+<dt><code>--version</code></dt>
 <dd><p>Show version of the program.
 </p></dd>
 </dl>
@@ -314,8 +310,8 @@ file &lsquo;<tt>C:\Users\username\.mida</tt>&rsquo;.
 <a name="index-configuration-file-variables"></a>
 
 <p>The configuration file uses syntax similar to that of Unix shell. That
-is, you can use <code>#</code> for line comments, and <code>=</code> to assign new
-values (spaces before and after <code>=</code> are ignored). Currently, all
+is, you can use &lsquo;<samp>#</samp>&rsquo; for line comments, and &lsquo;<samp>=</samp>&rsquo; to assign new
+values (spaces before and after &lsquo;<samp>=</samp>&rsquo; are ignored). Currently, all
 variables must be strings, integers, or Boolean values. If a string
 should contain space, enclose it into double quotes: &lsquo;<samp>&quot;</samp>&rsquo;. Inside
 the quotes you can escape characters with backslash &lsquo;<samp>\</samp>&rsquo;. Integers
@@ -337,8 +333,7 @@ preview. By default, MIDA uses <code>timidity</code>, so value of this
 variable is &lsquo;<samp>--force-program</samp>&rsquo;.
 </p></dd>
 <dt><code>prompt</code></dt>
-<dd><p>Prompt that will be used in MIDA REPL. Default value is &lsquo;<samp>? </samp>&rsquo;, but
-you can put a lambda here ;-)
+<dd><p>Prompt that will be used in MIDA REPL. Default value is &lsquo;<samp>&gt; </samp>&rsquo;.
 </p></dd>
 <dt><code>prvcmd</code></dt>
 <dd><p>Command that will be used to invoke external program for preview. You
@@ -347,7 +342,7 @@ is &lsquo;<samp>timidity</samp>&rsquo;.
 </p></dd>
 <dt><code>prvlen</code></dt>
 <dd><p>How many elements is displayed after evaluation of given
-principle. Default value is &lsquo;<samp>16</samp>&rsquo;. You can also interactively
+principle. Default value is &lsquo;<samp>18</samp>&rsquo;. You can also interactively
 change the value form interactive REPL (see section <a href="#Interactive-REPL">Interactive REPL</a>).
 </p></dd>
 <dt><code>src</code></dt>
@@ -368,8 +363,7 @@ program for preview is <code>timidity</code>.
 <dt><code>verbose</code></dt>
 <dd><p>This indicates whether or not display simplified principle before
 printing the final result of evaluation. Default value is
-&lsquo;<samp>false</samp>&rsquo;, but it&rsquo;s a good idea to enable this option for
-educational purposes.
+&lsquo;<samp>true</samp>&rsquo;.
 </p></dd>
 </dl>
 
@@ -380,9 +374,9 @@ educational purposes.
 # MIDA Configuration File
 #
 
-prompt = &quot;λ &quot;
+prompt = &quot;mida&gt; &quot;
 prvlen = 20
-verbose = true
+verbose = false
 </pre></div>
 
 <hr>
@@ -422,7 +416,7 @@ with &lsquo;<samp>#</samp>&rsquo;.
 <p>Interpreter supports multiline input. It automatically detects
 unbalanced parenthesis, braces, brackets. If you want to continue
 writing a principle on the next line, end current line with a comma
-&lsquo;<samp>,</samp>&rsquo;. Since comma is allowed only between elements of a principle
+&lsquo;<samp>,</samp>&rsquo;. Since comma is allowed only between elements of a principle,
 MIDA will know that current principle is not completed.
 </p>
 <p>Evaluation of principles will be described later in this document
@@ -437,14 +431,14 @@ generate various files, it&rsquo;s sometimes convenient to be able to change
 directories.
 </p></dd>
 <dt>&lsquo;<samp>:clear</samp>&rsquo;</dt>
-<dd><p>Restore default state of environment removing all definitions from the
-memory.
+<dd><p>Restore default state of environment removing all (non-standard)
+definitions from the memory.
 </p></dd>
 <dt>&lsquo;<samp>:def</samp>&rsquo;</dt>
 <dd><p>Print definition of specified symbol. This command can take several
 arguments (names of definitions to print). For example:
 </p><div class="example">
-<pre class="example">? :def dur0 vel0
+<pre class="example">&gt; :def dur0 vel0
 dur0 = {5 6 $ 17}
 vel0 = {50..70}
 </pre></div>
@@ -452,7 +446,7 @@ vel0 = {50..70}
 <dt>&lsquo;<samp>:help</samp>&rsquo;</dt>
 <dd><p>Show help text. For example:
 </p><div class="example">
-<pre class="example">? :help
+<pre class="example">&gt; :help
 Available commands:
   :cd                      Change working directory.
   :clear                   Restore default state of environment.
@@ -476,16 +470,16 @@ Available commands:
 <dd><p>Load definition from specified source files. When something is
 defined, you usually get some helpful feedback:
 </p><div class="example">
-<pre class="example">? :load projects/music/tst1.da
-Defined 'pch0'.
-Defined 'dur0'.
-Defined 'vel0'.
-Defined 'pch1'.
-Defined 'dur1'.
-Defined 'vel1'.
-Defined 'pch2'.
-Defined 'dur2'.
-Defined 'vel2'.
+<pre class="example">&gt; :load projects/music/tst1.da
+• «pch0»
+• «dur0»
+• «vel0»
+• «pch1»
+• «dur1»
+• «vel1»
+• «pch2»
+• «dur2»
+• «vel2»
 &quot;/home/mark/projects/music/tst1.da&quot; loaded successfully.
 </pre></div>
 <p>Note that you can specify as many source files as you wish, they will
@@ -523,7 +517,7 @@ for &lsquo;<samp>:save</samp>&rsquo; command but extension will be replaced with
 </p>
 <p>See the stuff in action:
 </p><div class="example">
-<pre class="example">? :make 1 24 128
+<pre class="example">&gt; :make 1 24 128
 MIDI file saved as &quot;/home/mark/projects/music/tst1.mid&quot;.
 </pre></div>
 <a name="index-program"></a>
@@ -556,11 +550,13 @@ principle will be displayed. Default value is <code>16</code>, but you can
 choose different default value via configuration file
 (see section <a href="#Configuration-File">Configuration File</a>).
 </p><div class="example">
-<pre class="example">? 1
-1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1...
-? :prvlen 20
-? 1
-1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1...
+<pre class="example">&gt; 1
+≡ 1
+⇒ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1…
+&gt; :prvlen 20
+&gt; 1
+≡ 1
+⇒ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1…
 </pre></div>
 </dd>
 <dt>&lsquo;<samp>:purge</samp>&rsquo;</dt>
@@ -568,26 +564,26 @@ choose different default value via configuration file
 &lsquo;<samp>:purge</samp>&rsquo; command. A definition is considered useless if it&rsquo;s not
 used as a part of a top-level definition. Here&rsquo;s an example:
 </p><div class="example">
-<pre class="example">? foo = bar bar = 12 baz = 13 dur0 = foo
-Defined 'foo'.
-Defined 'bar'.
-Defined 'baz'.
-Defined 'dur0'.
-? :def baz
-baz = 13
-? :purge
+<pre class="example">&gt; α = β β = 12 Y = 13 dur0 = α
+• «α»
+• «β»
+• «Y»
+• «dur0»
+&gt; :def Y
+Y = 13
+&gt; :purge
 Environment purged.
-? :def baz
-baz =
-? :def bar
-bar = 12
+&gt; :def Y
+Y =
+&gt; :def β
+β = 12
 </pre></div>
 <p>What happened here? Well, we see that <code>dur0</code> is a top level
-definition (see section <a href="#Definitions">Definitions</a>). <code>foo</code> is used in <code>dur0</code>&rsquo;s
-principle and <code>bar</code> is used in <code>foo</code>&rsquo;s principle. So,
-<code>foo</code> and <code>bar</code> are necessary definitions. What&rsquo;s about
-<code>baz</code>? It does not participate in principle building of any
-top-level definition. System considers it redundant, so it purges it.
+definition (see section <a href="#Definitions">Definitions</a>). <code>α</code> is used in <code>dur0</code>&rsquo;s
+principle and <code>β</code> is used in <code>α</code>&rsquo;s principle. So, <code>α</code>
+and <code>β</code> are necessary definitions. What&rsquo;s about <code>Y</code>? It does
+not participate in principle building of any top-level
+definition. System considers it redundant, so it purges it.
 </p></dd>
 <dt>&lsquo;<samp>:pwd</samp>&rsquo;</dt>
 <dd><p>Quite obviously, it prints current working directory.
@@ -596,15 +592,15 @@ top-level definition. System considers it redundant, so it purges it.
 <dd><p>Quit the interactive environment.
 </p></dd>
 <dt>&lsquo;<samp>:save</samp>&rsquo;</dt>
-<dd><p>Save the current environment in MIDA source file.  As you compose
-music with MIDA, you will need to save all existing definitions to
-hard disk. You can then edit them or load them into MIDA to continue
-your work. It&rsquo;s quite easy to accomplish with &lsquo;<samp>:save</samp>&rsquo;
-command. This command takes an optional argument &ndash; file name. If you
-don&rsquo;t supply the file name, the system will try to guess it. It will
-be file name of loaded source file, last used file name, or default
-value (it can be specified in configuration file (see section <a href="#Configuration-File">Configuration File</a>). I recommend &lsquo;<samp>.da</samp>&rsquo; as file name extension for MIDA source
-files.
+<dd><p>Save the current environment in MIDA source file. As you compose music
+with MIDA, you will need to save all existing definitions to hard
+disk. You can then edit them or load them into MIDA to continue your
+work. It&rsquo;s quite easy to accomplish with &lsquo;<samp>:save</samp>&rsquo; command. This
+command takes an optional argument &ndash; file name. If you don&rsquo;t supply
+the file name, the system will try to guess it. It will be file name
+of loaded source file, last used file name, or default value (it can
+be specified in configuration file (see section <a href="#Configuration-File">Configuration File</a>). I
+recommend &lsquo;<samp>.da</samp>&rsquo; as file name extension for MIDA source files.
 <a name="index-tempo"></a>
 </p></dd>
 <dt>&lsquo;<samp>:tempo</samp>&rsquo;</dt>
@@ -614,10 +610,10 @@ different default value via configuration file (see section <a href="#Configurat
 </p></dd>
 <dt>&lsquo;<samp>:udef</samp>&rsquo;</dt>
 <dd><p>Remove definition of given symbol. Although standard way to remove
-definition is &lsquo;<samp> definition_name =</samp>&rsquo;, i.e. assigning empty
-principle to it, you may find &lsquo;<samp>:udef</samp>&rsquo; command more convenient,
-because it takes arbitrary number of arguments and it also frees
-memory that was allocated for specified definitions.
+definition is &lsquo;<samp>definition_name =</samp>&rsquo;, i.e. assigning empty principle
+to it, you may find &lsquo;<samp>:udef</samp>&rsquo; command more convenient, because it
+takes arbitrary number of arguments and it also frees memory that was
+allocated for specified definitions.
 </p></dd>
 </dl>
 
@@ -644,10 +640,12 @@ memory that was allocated for specified definitions.
 <p>Now that you know all the basic information about the interpreter, we
 can start our journey into the magic world of MIDA.
 </p>
-<p>MIDA is minimalistic and not very flexible or complex. In fact, it is
-so simple that any statement that has valid syntax will produce valid
-result. MIDA statement only has to pass parser, that&rsquo;s all. In fact,
-it&rsquo;s quite hard to enter invalid statement in MIDA and we&rsquo;ll see why.
+<p>MIDA is minimalistic, declarative language. In fact, it is so simple
+that any statement that has valid syntax will produce valid
+result. MIDA statement only has to pass parser, that&rsquo;s
+all. Declarative nature of MIDA means that you describe relations
+between principles that will be turned into actual MIDI data without
+describing control flow.
 </p>
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top"><a href="#Literal-Values">6.1 Literal Values</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> Most basic elements in MIDA.
@@ -693,14 +691,14 @@ something like this:
 </p>
 <div class="example">
 <pre class="example">[mark@arch ~]$ mida
-MIDA Copyright (c) 2014, 2015 Mark Karpov
+MIDA Copyright © 2014, 2015 Mark Karpov
 
 This program comes with ABSOLUTELY NO WARRANTY. This is free software,
 and you are welcome to redistribute it under certain conditions; see
 GNU General Public License for details.
 
-MIDA Interactive Environment 0.4.1
-?
+MIDA Interactive Environment 0.4.2
+&gt;
 </pre></div>
 
 <p>You can try your powers right away. Remember, MIDA is all about
@@ -765,15 +763,16 @@ default value is <code>24</code>, so try to work with this in mind.
 </p>
 <p>So, if quarter note is <code>24</code> ticks, whole note will be <code>96</code>
 ticks, while eight note will be <code>12</code> ticks, etc. You can also use
-any number in between creating really strange rhythms. Remember that
+any number in between creating rather strange rhythms. Remember that
 you can use numbers greater than <code>127</code> for duration, so there is
 no limits.
 </p>
 <p>Let&rsquo;s enter a number:
 </p>
 <div class="example">
-<pre class="example">? 24
-24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24...
+<pre class="example">&gt; 24
+≡ 24
+⇒ 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24…
 </pre></div>
 
 <p>So, we see that we can enter literal values! However, the result may
@@ -830,9 +829,9 @@ guaranteed to be processed correctly.
 <a name="index-pitch"></a>
 
 <p>Sure, you can use the same plain numbers from <code>0</code> to <code>127</code>
-for pitch, but it&rsquo;s a bit inconvenient. MIDA knows some alias for that
-case. Since MIDA doesn&rsquo;t work with negative numbers, we use alias
-where octaves start from <code>0</code>. So <code>c0</code> corresponds to
+for pitch, but it&rsquo;s a bit inconvenient. MIDA has predefined &ldquo;alias&rdquo;
+for that case. Since MIDA doesn&rsquo;t work with negative numbers, we use
+alias where octaves start from <code>0</code>. So <code>c0</code> corresponds to
 <code>0</code>, <code>cs0</code> to <code>1</code>, and so on: one semitone per number.
 </p>
 <p>Please note that there is no standard way to number octaves in
@@ -846,8 +845,9 @@ entering corresponding MIDI code (note that all alias are
 case-sensitive):
 </p>
 <div class="example">
-<pre class="example">? c5
-60 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60...
+<pre class="example">&gt; c5
+≡ 60
+⇒ 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60 60…
 </pre></div>
 
 <hr>
@@ -872,7 +872,7 @@ case-sensitive):
 <a name="index-modulation"></a>
 
 <p>Parameters like modulation, breath, aftertouch, and pitch bend are
-called <em>additional parameters</em>. In section <a href="#Definitions">Definitions</a> I
+called <em>additional parameters</em>. In section <a href="#Definitions">Definitions</a> we
 will explain why they are called so, but for now it&rsquo;s important to
 understand how you can use literal values to represent these
 parameters and their change in time.
@@ -884,7 +884,7 @@ parameters and their change in time.
 <p>Numbers from <code>0</code> to <code>127</code> without modifier represent value
 that doesn&rsquo;t change during length of note. Modifiers tells MIDA to use
 special forms of modulation, while number that&rsquo;s added to modifier
-signifies intensity of such modulation.
+signifies intensity of such a modulation.
 </p>
 <p>This table describes forms of modulation that exist in MIDA:
 </p>
@@ -947,10 +947,12 @@ elements. These elements may be separated by commas &lsquo;<samp>,</samp>&rsquo;
 try some principles:
 </p>
 <div class="example">
-<pre class="example">? 1, 2, 3
-1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...
-? c5 d5 e5 f5 g5 a5 b5 c6
-60 62 64 65 67 69 71 72 60 62 64 65 67 69 71 72...
+<pre class="example">&gt; 1, 2, 3
+≡ 1 2 3
+⇒ 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3…
+&gt; c5 d5 e5 f5 g5 a5 b5 c6
+≡ 60 62 64 65 67 69 71 72
+⇒ 60 62 64 65 67 69 71 72 60 62 64 65 67 69 71 72 60 62…
 </pre></div>
 
 <p>So, we enter a principle and MIDA prints its realization. Realization
@@ -958,8 +960,10 @@ of principle is built this way:
 </p>
 <ol>
 <li>
-system tries to simplify given principle by applying some
-operators, such as ranges or polymorphic operators;
+system tries to simplify given principle by de-referencing definitions
+and applying some operators, such as ranges or polymorphic operators
+(by default MIDA shows result of this step after identity symbol
+&lsquo;<samp>≡</samp>&rsquo;);
 </li><li>
 MIDA cycles elements (not their values, you&rsquo;ll see difference later),
 so we have now infinite collection of elements;
@@ -968,15 +972,16 @@ it realizes all the elements one by one.
 </li></ol>
 
 <p>Realization can be either infinite sequence of non-negative numbers or
-<code>none</code>. <code>none</code> is a special value that represent realization
-of empty principle:
+<em>bottom</em> &lsquo;<samp>⊥</samp>&rsquo;. Bottom is realization of empty principle and it
+is said to be less defined than any other result.
 </p>
 <div class="example">
-<pre class="example">?
-none
+<pre class="example">&gt;
+≡
+⇒ ⊥
 </pre></div>
 
-<p>In the next section we will see other roles of <code>none</code>.
+<p>In the next section we will see other rôle of bottom.
 </p>
 <hr>
 <a name="Definitions"></a>
@@ -1004,22 +1009,25 @@ none
 MIDA. Let&rsquo;s prove it. Here&rsquo;s my attempt:
 </p>
 <div class="example">
-<pre class="example">? foo
-none
-? asdfasdflk
-none
-? 1 2 rere 5
-1 2 5 1 2 5 1 2 5 1 2 5 1 2 5 1...
+<pre class="example">&gt; foo
+≡
+⇒ ⊥
+&gt; asdfasdflk
+≡
+⇒ ⊥
+&gt; 1 2 rere 5
+≡ 1 2 5
+⇒ 1 2 5 1 2 5 1 2 5 1 2 5 1 2 5 1 2 5…
 </pre></div>
 
-<p>So, MIDA thinks that these things are realized to <code>none</code>, they
-can be even put inside a principle without any obvious harm.
+<p>So, MIDA thinks that these things are realized to <code>⊥</code>, they can
+be even put inside a principle without any obvious harm.
 </p>
 <p>The thing is that MIDA considers any alpha-numeric sequence of
 characters that does not begin with a number <em>identifier</em> (from
 MIDA 0.4.1 identifiers can contain underscore &lsquo;<samp>_</samp>&rsquo;). Identifier
 has associated <em>definition</em>. Definition can hold a principle and
-default value of any definition is <code>none</code>. You can combine
+default value of any definition is empty principle. You can combine
 definitions to build really complex principles. Keep in mind that
 names of the definitions are case-sensitive.
 </p>
@@ -1028,34 +1036,39 @@ equation sign &lsquo;<samp>=</samp>&rsquo; and a principle on the right of the s
 give it a go:
 </p>
 <div class="example">
-<pre class="example">? foo = 1 2 3
-Defined 'foo'.
-? foo
-1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...
-? foo 5
-1 2 3 5 1 2 3 5 1 2 3 5 1 2 3 5...
+<pre class="example">&gt; α = 1 2 3
+• «α»
+&gt; α
+≡ 1 2 3
+⇒ 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3…
+&gt; α 5
+≡ 1 2 3 5
+⇒ 1 2 3 5 1 2 3 5 1 2 3 5 1 2 3 5 1 2…
 </pre></div>
 
-<p>Remember that definitions are like recipes how to create a principle,
-not static values. So we can change a definition and all other
-definitions which use it will change accordingly:
+<p>Remember that definitions are like recipes how to create a principle
+and they live in interactive environment. So we can change a
+definition and all other definitions which use it will change
+accordingly:
 </p>
 <div class="example">
-<pre class="example">? foo = 5 boo = 6 baz = foo boo
-Defined 'foo'.
-Defined 'boo'.
-Defined 'baz'.
-? baz
-5 6 5 6 5 6 5 6 5 6 5 6 5 6 5 6...
-? boo = 10
-Defined 'boo'.
-? baz
-=&gt; 5 10 5 10 5 10 5 10 5 10 5 10 5 10 5 10...
+<pre class="example">&gt; α = 5 β = 6 Y = α β
+• «α»
+• «β»
+• «Y»
+&gt; Y
+≡ 5 6
+⇒ 5 6 5 6 5 6 5 6 5 6 5 6 5 6 5 6 5 6…
+&gt; β = 10
+• «β»
+&gt; Y
+≡ 5 10
+⇒ 5 10 5 10 5 10 5 10 5 10 5 10 5 10 5 10 5 10…
 </pre></div>
 
-<p>And since all possible definitions are bound to <code>none</code>, we can
-even design our principles in top-down manner, using definitions that
-we haven&rsquo;t defined yet.
+<p>And since all possible definitions are bound to empty principles, we
+can even design our principles in top-down manner, using definitions
+that we haven&rsquo;t defined yet.
 </p>
 <p>Now you&rsquo;re ready to create your first piece of music, but before you
 do it I should explain something about <em>top-level
@@ -1089,21 +1102,21 @@ velocity, pitch, and other parameters of voices. There may be up to
 as an exercise for the reader):
 </p>
 <div class="example">
-<pre class="example">? dur0 = 24 vel0 = 70 pch0 = c5 d5 e5 f5 g5 a5 b5
-Defined 'dur0'.
-Defined 'vel0'.
-Defined 'pch0'.
+<pre class="example">&gt; dur0 = 24 vel0 = 70 pch0 = c5 d5 e5 f5 g5 a5 b5
+• «dur0»
+• «vel0»
+• «pch0»
 </pre></div>
 
 <p>It&rsquo;s as simple as that! Other top-level definitions hold empty
-principles, so they will be ignored. Additional parameters like
-modulation, breath, aftertouch, and pitch bend may be omitted (that&rsquo;s
-why they are called &ldquo;additional&rdquo;) &ndash; in this case there will be no
-corresponding events in result MIDI file. Use &lsquo;<samp>:make</samp>&rsquo; command to
-create a MIDI file:
+principles, so their realization is bottom <code>⊥</code>, thus they will be
+ignored. Additional parameters like modulation, breath, aftertouch,
+and pitch bend may be omitted (that&rsquo;s why they are called
+&ldquo;additional&rdquo;) &ndash; in this case there will be no corresponding events
+in result MIDI file. Use &lsquo;<samp>:make</samp>&rsquo; command to create a MIDI file:
 </p>
 <div class="example">
-<pre class="example">? :make 0 24 14
+<pre class="example">&gt; :make 0 24 14
 MIDI file saved as &quot;/home/mark/foo.mid&quot;.
 </pre></div>
 
@@ -1112,7 +1125,7 @@ Here is how (make sure that you have installed <code>timidity</code>, and
 configured it correctly):
 </p>
 <div class="example">
-<pre class="example">? :prv 0 24 14
+<pre class="example">&gt; :prv 0 24 14
 MIDI file saved as &quot;/tmp/foo.mid&quot;.
 Requested buffer size 32768, fragment size 8192
 ALSA pcm 'default' set buffer size 33868, period size 3760 bytes
@@ -1158,10 +1171,12 @@ represents collection of successive natural numbers from left-side
 number to right-side number inclusively.
 </p>
 <div class="example">
-<pre class="example">? 1..3
-1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...
-? 5..2
-5 4 3 2 5 4 3 2 5 4 3 2 5 4 3 2...
+<pre class="example">&gt; 1..3
+≡ 1 2 3
+⇒ 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3…
+&gt; 5..2
+≡ 5 4 3 2
+⇒ 5 4 3 2 5 4 3 2 5 4 3 2 5 4 3 2 5 4…
 </pre></div>
 
 <p>Although you cannot specify step between resulting elements, you can
@@ -1199,8 +1214,9 @@ multivalue is a pseudo-random value chosen from all possible variants.
 of braces:
 </p>
 <div class="example">
-<pre class="example">? {1..3}
-3 3 1 2 2 2 3 1 1 2 2 3 3 2 2 1...
+<pre class="example">&gt; {1..3}
+≡ {1 2 3}
+⇒ 1 2 2 2 3 1 2 1 1 1 2 2 3 1 3 1 2 1…
 </pre></div>
 
 <p>As you can see, the same element is replicated, but its realized value
@@ -1208,10 +1224,12 @@ is different for every instance. Here we have uniform distribution,
 but you can change it with help of repetition:
 </p>
 <div class="example">
-<pre class="example">? {1 1 2 3} // 1 - 50%, 2 - 25%, 3 - 25%
-1 1 1 3 1 3 1 3 2 1 3 1 3 1 1 1...
-? {1 $ 8, 2 3} // 1 - 80%, 2 - 10%, 3 - 10%
-=&gt; 1 1 1 1 1 2 1 1 1 1 2 1 3 1 1 1...
+<pre class="example">&gt; {1 1 2 3} # 1 → 50%, 2 → 25%, 3 → 25%
+≡ {1 1 2 3}
+⇒ 1 1 1 1 2 1 3 3 1 3 3 3 1 2 1 3 3 1…
+&gt; {1 $ 8, 2 3} # 1 → 80%, 2 → 10%, 3 → 10%
+≡ {1 1 1 1 1 1 1 1 2 3}
+⇒ 1 1 2 1 3 1 1 3 1 1 3 3 1 1 1 1 1 1…
 </pre></div>
 
 <p>Basic operators work together! (&lsquo;<samp>$</samp>&rsquo; operator will be considered
@@ -1219,8 +1237,9 @@ later, see section <a href="#Repetition">Repetition</a>.) You can put a multival
 multivalue too:
 </p>
 <div class="example">
-<pre class="example">? {1 {2 3}}
-1 1 1 2 2 1 1 1 2 1 1 1 3 1 1 2...
+<pre class="example">&gt; {1 {2 3}} # 1 → 50%, 2 → 25%, 3 → 25%
+≡ {1 {2 3}}
+⇒ 3 1 1 1 1 2 1 1 1 2 1 2 1 1 3 1 3 2…
 </pre></div>
 
 <p><code>1</code> has probability 50%, and <code>{2 3}</code> has probability
@@ -1256,8 +1275,9 @@ elements that can be manipulated as one element.
 (&lsquo;<samp>[</samp>&rsquo; and &lsquo;<samp>]</samp>&rsquo;):
 </p>
 <div class="example">
-<pre class="example">? [1 2 3]
-1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1...
+<pre class="example">&gt; [1..3]
+≡ 1 2 3
+⇒ 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3…
 </pre></div>
 
 <p>Typical example of their use is in juxtaposition with
@@ -1265,8 +1285,9 @@ multivalues. With help of sections you can easily use sequence of
 elements as part of multivalue:
 </p>
 <div class="example">
-<pre class="example">? {1 2 [3..5]}
-1 3 4 5 2 2 1 3 4 5 1 1 3 4 5 3...
+<pre class="example">&gt; {1 2 [3..5]}
+≡ {1 2 [3 4 5]}
+⇒ 3 4 5 3 4 5 1 2 1 2 3 4 5 2 3 4 5 1…
 </pre></div>
 
 <p>So here we have <code>1</code> with probability <code>1/3</code>, <code>2</code> with
@@ -1307,8 +1328,9 @@ will be chosen randomly.
 logic:
 </p>
 <div class="example">
-<pre class="example">? {&lt;1&gt; 2 3 &lt;2&gt; 3 &lt;3&gt; 1}
-3 1 3 1 2 3 1 2 3 1 2 3 1 3 1 3...
+<pre class="example">&gt; {&lt;1&gt; 2 3 &lt;2&gt; 3 &lt;3&gt; 1}
+≡ {&lt;1&gt; 2 3 &lt;2&gt; 3 &lt;3&gt; 1}
+⇒ 1 3 1 3 1 2 3 1 2 3 1 2 3 1 3 1 2 3…
 </pre></div>
 
 <p>If the last element has value <code>1</code>, conditional multivalue will
@@ -1322,27 +1344,30 @@ selects realization of one of corresponding elements.
 <p>It&rsquo;s also possible to use multiple conditional elements:
 </p>
 <div class="example">
-<pre class="example">? {&lt;1 2&gt; 3 &lt;3&gt; 1 2}
-1 3 1 3 2 3 2 3 1 3 2 3 1 3 2 3...
+<pre class="example">&gt; {&lt;1 2&gt; 3 &lt;3&gt; 1 2}
+≡ {&lt;1 2&gt; 3 &lt;3&gt; 1 2}
+⇒ 3 1 3 2 3 2 3 2 3 2 3 2 3 1 3 2 3 2…
 </pre></div>
 
 <p>You can use sections to match not only on the last element, but on
 sequence of elements:
 </p>
 <div class="example">
-<pre class="example">? {&lt;[1 2 3]&gt; 4 &lt;1..4&gt; 1..3}
-=&gt; 1 1 2 3 4 1 1 3 1 1 3 2 3 3 1 1...
+<pre class="example">&gt; {&lt;[1..3]&gt; 4 &lt;1..4&gt; 1..3}
+≡ {&lt;[1 2 3]&gt; 4 &lt;1 2 3 4&gt; 1 2 3}
+⇒ 4 3 1 2 1 2 2 2 3 2 3 3 1 1 2 3 4 1…
 </pre></div>
 
 <p>Here, <code>1 2 3</code> triggers <code>4</code> while any other single element
 triggers <code>1</code>, <code>2</code>, or <code>3</code>.
 </p>
 <p>You can use multivalues in conditional clauses as sort of &lsquo;or&rsquo;
-operator, consider this example:
+operator, consider the following example:
 </p>
 <div class="example">
-<pre class="example">? {&lt;[1 {2 3}]&gt; 7 &lt;1..7&gt; 1..6}
-=&gt; 7 1 1 6 1 1 2 7 1 1 4 1 3 7 3 4 5 5 1 3 7 6 5 1 4 2 5 1 1 2 7 1 4 6 2 1...
+<pre class="example">&gt; {&lt;[1 {2 3}]&gt; 7 &lt;1..7&gt; 1..6}
+≡ {&lt;[1 {2 3}]&gt; 7 &lt;1 2 3 4 5 6 7&gt; 1 2 3 4 5 6}
+⇒ 7 1 1 6 1 1 2 7 1 1 4 1 3 7 3 4 5 5 1 3 7 6 5 1 4 2 5 1 1 2 7 1 4 6 2 1…
 </pre></div>
 
 <p>Here our first condition says &ldquo;if last but one realized element is
@@ -1385,10 +1410,6 @@ associative. All operators have the same precedence, so they are
 always applied from left to right. However, you can use parenthesis
 &lsquo;<samp>(</samp>&rsquo; and &lsquo;<samp>)</samp>&rsquo; to change order of evaluation.
 </p>
-<p>I encourage you to set variable <code>verbose</code> in your &lsquo;<tt>.mida</tt>&rsquo;
-file to enable displaying of simplified principles. Restart your MIDA
-environment after editing of the file.
-</p>
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top"><a href="#Basic-Arithmetic">6.8.1 Basic Arithmetic</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> How to add, subtract , multiply, and divide elements.
 </td></tr>
@@ -1429,21 +1450,21 @@ environment after editing of the file.
 or &lsquo;<samp>/</samp>&rsquo; between two elements.
 </p>
 <div class="example">
-<pre class="example">? 1 + 3
-= 4
-4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4...
-? 7 + (2 * 2)
-= 11
-11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11...
-? 7 / 2
-= 3
-3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3...
-? (4 - 1) / 0
-= 3
-3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3...
-? 7 - 100
-= 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0...
+<pre class="example">&gt; 1 + 3
+≡ 4
+⇒ 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4…
+&gt; 7 + (2 * 2)
+≡ 11
+⇒ 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11…
+&gt; 7 / 2
+≡ 3
+⇒ 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3…
+&gt;  (4 - 1) / 0
+≡ 3
+⇒ 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3…
+&gt; 7 - 100
+≡ 0
+⇒ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0…
 </pre></div>
 
 <p>Note that we don&rsquo;t work with negative numbers in MIDA, so subtraction
@@ -1456,24 +1477,24 @@ by zero, you will get dividend unchanged.
 of elements will produce different effects:
 </p>
 <div class="example">
-<pre class="example">? [1..3] + 10
-= [11 12 13]
-11 12 13 11 12 13 11 12 13 11 12 13 11 12 13 11...
-? [1..3] + [0 10]
-= [[1 11] [2 12] [3 13]]
-1 11 2 12 3 13 1 11 2 12 3 13 1 11 2 12...
-? [1..3] + {0 10}
-= [{1 11} {2 12} {3 13}]
-11 12 3 11 12 3 1 2 3 1 2 13 1 2 3 11...
-? {1..3} + [0 10]
-= {[1 11] [2 12] [3 13]}
-1 11 3 13 3 13 2 12 2 12 3 13 3 13 1 11...
-? {&lt;1&gt; 2 &lt;2&gt; 1} + 5
-= {&lt;6&gt; 7 &lt;7&gt; 6}
-6 7 6 7 6 7 6 7 6 7 6 7 6 7 6 7...
-? {_u, _d, _ud, _du} + 127
-= {511 639 255 383}
-511 255 383 639 383 639 383 639 255 639 383 383 511 511 639 639...
+<pre class="example">&gt; [1..3] + 10
+≡ 11 12 13
+⇒ 11 12 13 11 12 13 11 12 13 11 12 13 11 12 13 11 12 13…
+&gt; [1..3] + [0 10]
+≡ 1 11 2 12 3 13
+⇒ 1 11 2 12 3 13 1 11 2 12 3 13 1 11 2 12 3 13…
+&gt; [1..3] + {0 10}
+≡ {1 11} {2 12} {3 13}
+⇒ 1 12 13 1 12 13 11 2 3 11 12 3 1 2 13 1 2 13…
+&gt; {1..3} + [0 10]
+≡ {[1 11] [2 12] [3 13]}
+⇒ 1 11 1 11 1 11 1 11 2 12 2 12 1 11 1 11 1 11…
+&gt; {&lt;1&gt; 2 &lt;2&gt; 1} + 5
+≡ {&lt;6&gt; 7 &lt;7&gt; 6}
+⇒ 6 7 6 7 6 7 6 7 6 7 6 7 6 7 6 7 6 7…
+&gt; {_u _d _ud _du} + 127
+≡ {511 639 255 383}
+⇒ 511 255 383 639 383 639 383 639 255 639 383 383 511 511 639 639 511 255…
 </pre></div>
 
 <p>General rule for type of result element:
@@ -1516,21 +1537,21 @@ left hand operand.
 a bit different from arithmetic operators:
 </p>
 <div class="example">
-<pre class="example">? 1 $ 3, 10
-= 1 1 1 10
-1 1 1 10 1 1 1 10 1 1 1 10 1 1 1 10...
-? {1 2} $ 3, 10
-= {1 2} {1 2} {1 2} 10
-1 1 1 10 2 1 2 10 1 2 1 10 2 1 1 10...
-? [1..3] $ 3, 10
-= [1 2 3] [1 2 3] [1 2 3] 10
-1 2 3 1 2 3 1 2 3 10 1 2 3 1 2 3...
-? 1 $ {2 3}, 10
-= {[1 1] [1 1 1]} 10
-1 1 10 1 1 1 10 1 1 10 1 1 1 10 1 1...
-? [1 2 3] $ [2 3 1], 10
-= [1 1 2 2 2 3] 10
-1 1 2 2 2 3 10 1 1 2 2 2 3 10 1 1...
+<pre class="example">&gt; 1 $ 3, 10
+≡ 1 1 1 10
+⇒ 1 1 1 10 1 1 1 10 1 1 1 10 1 1 1 10 1 1…
+&gt; {1 2} $ 3, 10
+≡ {1 2} {1 2} {1 2} 10
+⇒ 1 1 1 10 2 1 2 10 1 2 1 10 2 1 1 10 1 1…
+&gt; [1..3] $ 3, 10
+≡ 1 2 3 1 2 3 1 2 3 10
+⇒ 1 2 3 1 2 3 1 2 3 10 1 2 3 1 2 3 1 2…
+&gt; 1 $ {2 3}, 10
+≡ {[1 1] [1 1 1]} 10
+⇒ 1 1 10 1 1 1 10 1 1 10 1 1 1 10 1 1 10 1…
+&gt; [1..3] $ [2 3 1], 10
+≡ 1 1 2 2 2 3 10
+⇒ 1 1 2 2 2 3 10 1 1 2 2 2 3 10 1 1 2 2…
 </pre></div>
 
 <hr>
@@ -1559,15 +1580,15 @@ removing its former elements that will appear at the end of the
 principle:
 </p>
 <div class="example">
-<pre class="example">? [1..3] ^ 1
-= [2 3 1]
-2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2...
-? [1..3] ^ {1 2}
-= {[2 3 1] [3 1 2]}
-2 3 1 2 3 1 3 1 2 2 3 1 2 3 1 3...
-? [[1..3] $ 3] ^ [0 2 1]
-= [[1 2 3] [3 1 2] [2 3 1]]
-1 2 3 3 1 2 2 3 1 1 2 3 3 1 2 2...
+<pre class="example">&gt; [1..3] ^ 1
+≡ 2 3 1
+⇒ 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1…
+&gt; [1..3] ^ {1 2}
+≡ {[2 3 1] [3 1 2]}
+⇒ 3 1 2 2 3 1 3 1 2 2 3 1 2 3 1 3 1 2…
+&gt; [[1..3] $ 3] ^ [0 2 1]
+≡ 1 2 3 3 1 2 2 3 1
+⇒ 1 2 3 3 1 2 2 3 1 1 2 3 3 1 2 2 3 1…
 </pre></div>
 
 <p>This is so-called left rotation, but you can emulate right-rotation
@@ -1600,12 +1621,12 @@ precedence, this means that it is evaluated before all other
 operators:
 </p>
 <div class="example">
-<pre class="example">? @[1..3]
-= [3 2 1]
-3 2 1 3 2 1 3 2 1 3 2 1 3 2 1 3...
-? @{[1 2] [3 4]}
-= {[2 1] [4 3]}
-4 3 2 1 4 3 4 3 2 1 4 3 4 3 2 1...
+<pre class="example">&gt; @[1..3]
+≡ 3 2 1
+⇒ 3 2 1 3 2 1 3 2 1 3 2 1 3 2 1 3 2 1…
+&gt; @{[1 2] [3 4]}
+≡ {[2 1] [4 3]}
+⇒ 4 3 2 1 4 3 4 3 2 1 4 3 4 3 2 1 4 3…
 </pre></div>
 
 <p>As always, arbitrary complex elements can be reversed.
@@ -2314,7 +2335,7 @@ to permit their use in free software.
 <h1>About This Document</h1>
 
 <p>
-  This document was generated on <i>March 28, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>April 15, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
 </p>
 <p>
   The buttons in the navigation panels have the following meaning:
@@ -2416,7 +2437,7 @@ to permit their use in free software.
 <hr>
 <p>
  <font size="-1">
-  This document was generated on <i>March 28, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>April 15, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
  </font>
  <br>
 
