@@ -57,8 +57,8 @@ prop_valid_probe = probeMida . showStatement
 
 prop_pp_consistency :: Statement -> Bool
 prop_pp_consistency = id &&& (parseMida "" . showStatement) >>> check
-    where check (x, Right (y:[])) = x == y
-          check _                 = False
+    where check (x, Right [y]) = x == y
+          check _              = False
 
 instance Arbitrary Statement where
     arbitrary =
