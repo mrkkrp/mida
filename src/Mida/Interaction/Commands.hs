@@ -31,9 +31,10 @@ where
 import Control.Exception (SomeException, try)
 import Control.Monad (void)
 import Control.Monad.IO.Class
-import Data.Char (isDigit, isSpace)
+import Data.Char (isSpace)
 import Data.Foldable (find)
 import Data.List (elemIndex, isPrefixOf)
+import Data.Maybe (fromMaybe, listToMaybe)
 import System.Directory
     ( canonicalizePath
     , doesDirectoryExist
@@ -167,9 +168,9 @@ loadOne given = do
 cmdMake' :: String -> MidaIO ()
 cmdMake' arg =
     let (s:q:b:f:_) = words arg ++ repeat ""
-    in cmdMake (parseInt s dfltSeed)
-               (parseInt q dfltQuarter)
-               (parseInt b dfltBeats)
+    in cmdMake (parseNum s dfltSeed)
+               (parseNum q dfltQuarter)
+               (parseNum b dfltBeats)
                f
 
 cmdMake :: Int -> Int -> Int -> String -> MidaIO ()
@@ -184,7 +185,7 @@ cmdMake s q b f = do
 cmdProg :: String -> MidaIO ()
 cmdProg arg = do
   prog <- getProg
-  setProg $ parseInt (trim arg) prog
+  setProg $ parseNum (trim arg) prog
 
 cmdPrv :: String -> MidaIO ()
 cmdPrv arg = do
@@ -198,15 +199,15 @@ cmdPrv arg = do
   let (s:q:b:_) = words arg ++ repeat ""
       file      = temp </> takeFileName f
       cmd       = unwords [prvcmd, progOp, prog, tempoOp, tempo, file]
-  cmdMake (parseInt s dfltSeed)
-          (parseInt q dfltQuarter)
-          (parseInt b dfltBeats)
+  cmdMake (parseNum s dfltSeed)
+          (parseNum q dfltQuarter)
+          (parseNum b dfltBeats)
           file
   (_, _, _, ph) <- liftIO $ createProcess (shell cmd) { delegate_ctlc = True }
   liftIO . void $ waitForProcess ph
 
 cmdLength :: String -> MidaIO ()
-cmdLength x = getPrevLen >>= setPrevLen . parseInt x
+cmdLength x = getPrevLen >>= setPrevLen . parseNum x
 
 cmdPurge :: String -> MidaIO ()
 cmdPurge _ = do
@@ -232,7 +233,7 @@ cmdSave given = do
 cmdTempo :: String -> MidaIO ()
 cmdTempo arg = do
   tempo <- getTempo
-  setTempo $ parseInt (trim arg) tempo
+  setTempo $ parseNum (trim arg) tempo
 
 cmdUdef :: String -> MidaIO ()
 cmdUdef arg = mapM_ f (words arg)
@@ -240,11 +241,8 @@ cmdUdef arg = mapM_ f (words arg)
             liftEnv (remDef name)
             liftIO (F.print "Definition for '{}' removed.\n" (F.Only name))
 
-parseInt :: String -> Int -> Int
-parseInt s x
-    | null s        = x
-    | all isDigit s = read s :: Int
-    | otherwise     = x
+parseNum :: (Num a, Read a) => String -> a -> a
+parseNum s x = fromMaybe x $ fst <$> listToMaybe (reads s)
 
 output :: String -> String -> MidaIO String
 output given ext = do
