@@ -148,8 +148,8 @@ options = Opts
   <> help "Set name of output file" )
   <*> switch
   ( long "license"
-  <> help "Show license of the program." )
+  <> help "Show license of the program" )
   <*> switch
   ( long "version"
-  <> help "Show version of the program." )
+  <> help "Show version of the program" )
   <*> many (strArgument $ metavar "FILES")
