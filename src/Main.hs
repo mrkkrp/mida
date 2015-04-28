@@ -67,7 +67,7 @@ notice =
 
 license :: T.Text
 license =
-    "MIDA - realization of MIDA, language for generation of MIDI files.\n\
+    "MIDA — realization of MIDA, language for generation of MIDI files.\n\
     \Copyright © 2014, 2015 Mark Karpov\n\
     \\n\
     \MIDA is free software: you can redistribute it and/or modify it under the\n\
@@ -114,7 +114,7 @@ opts :: ParserInfo Opts
 opts =  info (helper <*> options)
       ( fullDesc
      <> progDesc "starts MIDA interpreter or translates source into MIDI file"
-     <> header "mida - interpreter for MIDA language" )
+     <> header "mida — interpreter for MIDA language" )
 
 options :: Parser Opts
 options = Opts
