@@ -152,6 +152,7 @@ loop :: Elt -> Elt -> Principle
 loop x       (Val y) = replicate y x
 loop x       (Mul y) = [Mul $ Sec . loop x <$> y]
 loop (Sec x) (Sec y) = [Sec . concat $ zipWith loop x (cycle y)]
+loop (Mul x) (Sec y) = [Mul . concat $ zipWith loop x (cycle y)]
 loop x       _       = [x]
 
 rotate :: Elt -> Elt -> Elt
