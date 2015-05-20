@@ -115,13 +115,13 @@ pExpression = buildExpressionParser optTable (parens pExpression <|> pElement)
 
 optTable :: [[Operator T.Text () Identity Sel]]
 optTable =
-    [[ Prefix (reservedOp B.reverseOp >> return Reverse ) ]
-     , [ Infix (reservedOp B.productOp  >> return Product ) AssocLeft
-       , Infix (reservedOp B.divisionOp >> return Division) AssocLeft
-       , Infix (reservedOp B.sumOp      >> return Sum     ) AssocLeft
-       , Infix (reservedOp B.diffOp     >> return Diff    ) AssocLeft
-       , Infix (reservedOp B.loopOp     >> return Loop    ) AssocLeft
-       , Infix (reservedOp B.rotationOp >> return Rotation) AssocLeft ]]
+    [[ Prefix (reservedOp B.reverseOp *> pure Reverse ) ]
+     , [ Infix (reservedOp B.productOp  *> pure Product ) AssocLeft
+       , Infix (reservedOp B.divisionOp *> pure Division) AssocLeft
+       , Infix (reservedOp B.sumOp      *> pure Sum     ) AssocLeft
+       , Infix (reservedOp B.diffOp     *> pure Diff    ) AssocLeft
+       , Infix (reservedOp B.loopOp     *> pure Loop    ) AssocLeft
+       , Infix (reservedOp B.rotationOp *> pure Rotation) AssocLeft ]]
 
 lang :: GenLanguageDef T.Text () Identity
 lang = Token.LanguageDef
