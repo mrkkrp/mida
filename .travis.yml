@@ -1,0 +1,6 @@
+language: haskell
+ghc: 7.10
+script:
+  - cabal configure --enable-tests && cabal build && cabal test --test-option="--maximum-test-size=50"
+notifications:
+  email: false
