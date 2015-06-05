@@ -204,9 +204,9 @@ Command that will be used to invoke external program for preview. You
 can use this variable to supply some options as well. Default value
 is @samp{timidity}.
 @item prvlen
-How many elements is displayed after evaluation of given
-principle. Default value is @samp{18}. You can also interactively
-change the value form interactive REPL (@pxref{Interactive REPL}).
+How many elements are displayed after evaluation of given
+principle. Default value is @samp{18}. You can also interactively change
+the value form interactive REPL (@pxref{Interactive REPL}).
 @item src
 Default name of currently active file. If you load some file, this
 value is automatically set to its file name. It's used to generate
@@ -425,10 +425,10 @@ Save the current environment in MIDA source file. As you compose music
 with MIDA, you will need to save all existing definitions to hard
 disk. You can then edit them or load them into MIDA to continue your
 work. It's quite easy to accomplish with @samp{:save} command. This
-command takes an optional argument -- file name. If you don't supply
-the file name, the system will try to guess it. It will be file name
-of loaded source file, last used file name, or default value (it can
-be specified in configuration file (@pxref{Configuration File}). I
+command takes an optional argument — file name. If you don't supply the
+file name, the system will try to guess it. It will be file name of
+loaded source file, last used file name, or default value (it can be
+specified in configuration file (@pxref{Configuration File}). I
 recommend @samp{.da} as file name extension for MIDA source files.
 @cindex tempo
 @item :tempo
@@ -680,7 +680,7 @@ In the next section we will see other rôle of bottom.
 @cindex definition
 @cindex identifier
 
-I said that it's quite hard to write an incorrect statement in
+I've said that it's quite hard to write an incorrect statement in
 MIDA. Let's prove it. Here's my attempt:
 
 @example
@@ -755,19 +755,19 @@ The names are as following:
 
 @itemize
 @item
-@code{dur_} -- duration;
+@code{dur_} — duration;
 @item
-@code{vel_} -- velocity;
+@code{vel_} — velocity;
 @item
-@code{pch_} -- pitch;
+@code{pch_} — pitch;
 @item
-@code{mod_} -- modulation;
+@code{mod_} — modulation;
 @item
-@code{bth_} -- breath;
+@code{bth_} — breath;
 @item
-@code{aft_} -- aftertouch;
+@code{aft_} — aftertouch;
 @item
-@code{bnd_} -- pitch bend.
+@code{bnd_} — pitch bend.
 @end itemize
 
 Replace @samp{_} with index of desired voice, valid values are from
@@ -822,12 +822,12 @@ REPL}). Try to define several voices that sound simultaneously (define
 @section Ranges
 @cindex range
 
-Now that you know all the basics, we can talk about advanced methods
-of element manipulation. Simplest such a method is @dfn{range}. Range
-in MIDA is written as two numbers (or note alias) separated by two
-commas @samp{..} (without space between them). Range notation
-represents collection of successive natural numbers from left-side
-number to right-side number inclusively.
+Now that you know all the basics, we can talk about advanced methods of
+element manipulation. Simplest such a method is @dfn{range}. Range in
+MIDA is written as two numbers separated by two commas @samp{..}
+(without space between them). Range notation represents collection of
+successive natural numbers from left-side number to right-side number
+inclusively.
 
 @example
 > 1..3
@@ -846,11 +846,11 @@ elements by given number. How? Keep reading!
 @section Multivalues
 @cindex multivalue
 
-So far, we worked only with literal values. But MIDA knows one more
+So far, we've worked only with literal values. But MIDA knows one more
 kind of element: @dfn{multivalue}. Multivalue is such an element that
-has many values at the same time. You know, just like electron exists
-in different positions around atomic nucleus. Realization of
-multivalue is a pseudo-random value chosen from all possible variants.
+has many values at the same time. You know, just like electron exists in
+different positions around atomic nucleus. Realization of multivalue is
+a pseudo-random value chosen from all possible variants.
 
 Multivalue is written as collection of possible values inside
 of braces:
@@ -969,7 +969,7 @@ sequence of elements:
 Here, @code{1 2 3} triggers @code{4} while any other single element
 triggers @code{1}, @code{2}, or @code{3}.
 
-You can use multivalues in conditional clauses as sort of `or'
+You can use multivalues in conditional clauses as a sort of `or'
 operator, consider the following example:
 
 @example
@@ -985,6 +985,13 @@ Here our first condition says ``if last but one realized element is
 As always, you can use conditional multivalues inside of any part of
 other conditional multivalues, but sometimes such complex structures
 are difficult to understand for human living being.
+
+Be careful when using empty principles in conditional multivalues! Once
+conditional multivalue happens to choose empty principle, it may hang,
+because this principle won't add any elements and last element will
+remain the same. This may be a desirable situation only when you have
+other elements in your principle, not single repeating conditional
+multivalue.
 
 @node Polymorphic Operators
 @section Polymorphic Operators
