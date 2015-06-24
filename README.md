@@ -4,6 +4,7 @@
 [![Hackage](https://img.shields.io/hackage/v/mida.svg?style=flat)](https://hackage.haskell.org/package/mida)
 [![Build Status](https://travis-ci.org/mrkkrp/mida.svg?branch=master)](https://travis-ci.org/mrkkrp/mida)
 
+
 MIDA is a minimalistic declarative language for algorithmic generation of
 MIDI files. MIDA is not interactive in sense that you cannot control result
 of its activity in real time, it is intended for producers and should be
@@ -65,7 +66,7 @@ vel1 = vel0
 
 See [MIDA Manual](https://mrkkrp.github.io/mida/) for more information.
 
-## How to control any parameter of any instrument / plugin?
+## How to control other things?
 
 If you're into this sort of thing, you may like my another project, called
 [ALGA](https://github.com/mrkkrp/alga). It allows to control automation in
