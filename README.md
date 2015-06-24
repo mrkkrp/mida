@@ -4,7 +4,6 @@
 [![Hackage](https://img.shields.io/hackage/v/mida.svg?style=flat)](https://hackage.haskell.org/package/mida)
 [![Build Status](https://travis-ci.org/mrkkrp/mida.svg?branch=master)](https://travis-ci.org/mrkkrp/mida)
 
-
 MIDA is a minimalistic declarative language for algorithmic generation of
 MIDI files. MIDA is not interactive in sense that you cannot control result
 of its activity in real time, it is intended for producers and should be
