@@ -96,43 +96,43 @@ runMidaInt m st cfg =
     runMidaEnv (runReaderT (evalStateT (unMidaInt m) st) cfg)
 
 getPrevLen :: MidaIO Int
-getPrevLen = stPrevLen <$> get
+getPrevLen = gets stPrevLen
 
 setPrevLen :: Int -> MidaIO ()
 setPrevLen x = modify $ \e -> e { stPrevLen = x }
 
 getSrcFile :: MidaIO String
-getSrcFile = stSrcFile <$> get
+getSrcFile = gets stSrcFile
 
 setSrcFile :: String -> MidaIO ()
 setSrcFile x = modify $ \e -> e { stSrcFile = x }
 
 getProg :: MidaIO Int
-getProg = stProg <$> get
+getProg = gets stProg
 
 setProg :: Int -> MidaIO ()
 setProg x = modify $ \e -> e { stProg = x }
 
 getTempo :: MidaIO Int
-getTempo = stTempo <$> get
+getTempo = gets stTempo
 
 setTempo :: Int -> MidaIO ()
 setTempo x = modify $ \e -> e { stTempo = x }
 
 getPrompt :: MidaIO String
-getPrompt = cfgPrompt <$> ask
+getPrompt = asks cfgPrompt
 
 getVerbose :: MidaIO Bool
-getVerbose = cfgVerbose <$> ask
+getVerbose = asks cfgVerbose
 
 getPrvCmd :: MidaIO String
-getPrvCmd = cfgPrvCmd <$> ask
+getPrvCmd = asks cfgPrvCmd
 
 getProgOp :: MidaIO String
-getProgOp = cfgProgOp <$> ask
+getProgOp = asks cfgProgOp
 
 getTempoOp :: MidaIO String
-getTempoOp = cfgTempoOp <$> ask
+getTempoOp = asks cfgTempoOp
 
 dfltSeed :: Int
 dfltSeed = 0

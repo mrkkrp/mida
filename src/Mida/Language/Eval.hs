@@ -74,7 +74,7 @@ runCalc clc gen = evalState (unCalc clc)
 choice :: [a] -> Calc (Maybe a)
 choice [] = return Nothing
 choice xs = do
-  (n, g) <- randomInt . clcRandGen <$> get
+  (n, g) <- randomInt <$> gets clcRandGen
   modify $ \c -> c { clcRandGen = g }
   return . Just $ xs !! (abs n `rem` length xs)
 
@@ -90,7 +90,7 @@ toMul xs = Mul (xs >>= snd)
 
 matchHistory :: [Elt] -> Calc Bool
 matchHistory x = do
-  hs <- clcHistory <$> get
+  hs <- gets clcHistory
   return . or $ condMatch hs <$> x
 
 addHistory :: Int -> Calc ()

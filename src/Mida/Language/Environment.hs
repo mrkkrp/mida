@@ -76,7 +76,7 @@ defaultDefs = M.fromList $ zip noteAlias (f <$> [0..])
     where f = return . Value
 
 getDefs :: Monad m => MidaEnv m Defs
-getDefs = stDefs <$> get
+getDefs = gets stDefs
 
 setDefs :: Monad m => Defs -> MidaEnv m ()
 setDefs x = modify $ \e -> e { stDefs = x }
@@ -134,7 +134,7 @@ setRandGen x = modify $ \e -> e { stRandGen = pureMT (fromIntegral x) }
 
 newRandGen :: Monad m => MidaEnv m PureMT
 newRandGen = do
-  (n, g) <- (randomWord64 . stRandGen) <$> get
+  (n, g) <- randomWord64 <$> gets stRandGen
   modify $ \e -> e { stRandGen = pureMT n }
   return . pureMT . fst . randomWord64 $ g
 
