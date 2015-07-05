@@ -41,10 +41,11 @@ import Control.Arrow ((***), (>>>))
 import Control.Monad.State.Strict
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
+import System.Random (split)
 import qualified Data.Map.Strict as M
 import qualified Data.Text.Lazy as T
 
-import System.Random.Mersenne.Pure64
+import System.Random.TF (TFGen, mkTFGen)
 
 import Mida.Language.SyntaxTree
 import Mida.Representation.Base (noteAlias, modifiers)
@@ -52,7 +53,7 @@ import Mida.Representation.Show (showDefinition)
 
 data MidaEnvSt = MidaEnvSt
     { stDefs    :: Defs
-    , stRandGen :: PureMT }
+    , stRandGen :: TFGen }
 
 type Defs = M.Map String SyntaxTree
 
@@ -68,7 +69,7 @@ newtype MidaEnv m a = MidaEnv
 runMidaEnv :: Monad m => MidaEnv m a -> m a
 runMidaEnv e = evalStateT (unMidaEnv e) MidaEnvSt
                { stDefs    = defaultDefs
-               , stRandGen = pureMT 0 }
+               , stRandGen = mkTFGen 0 }
 
 defaultDefs :: Defs
 defaultDefs = M.fromList $ zip noteAlias (f <$> [0..])
@@ -130,13 +131,13 @@ checkRecur name tree = check <$> getDefs
     where check = elem name . tDefs name . M.insert name tree
 
 setRandGen :: Monad m => Int -> MidaEnv m ()
-setRandGen x = modify $ \e -> e { stRandGen = pureMT (fromIntegral x) }
+setRandGen x = modify $ \e -> e { stRandGen = mkTFGen x }
 
-newRandGen :: Monad m => MidaEnv m PureMT
+newRandGen :: Monad m => MidaEnv m TFGen
 newRandGen = do
-  (n, g) <- randomWord64 <$> gets stRandGen
-  modify $ \e -> e { stRandGen = pureMT n }
-  return . pureMT . fst . randomWord64 $ g
+  (g, g') <- split <$> gets stRandGen
+  modify $ \e -> e { stRandGen = g' }
+  return g
 
 toDefs :: [String] -> Defs
 toDefs = M.fromList . fmap (, [])

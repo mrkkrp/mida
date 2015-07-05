@@ -32,8 +32,9 @@ import Control.Monad.State.Lazy
 import Data.List (tails)
 import Data.Maybe (listToMaybe)
 import Data.Monoid ((<>))
+import System.Random (next)
 
-import System.Random.Mersenne.Pure64
+import System.Random.TF (TFGen)
 
 import Mida.Language.SyntaxTree
 import Mida.Language.Element
@@ -41,7 +42,7 @@ import Mida.Language.Environment
 
 data CalcSt = CalcSt
     { clcHistory :: [Int]
-    , clcRandGen :: PureMT }
+    , clcRandGen :: TFGen }
 
 newtype Calc a = Calc
     { unCalc :: State CalcSt a }
@@ -66,7 +67,7 @@ resolve xs = concat <$> mapM f xs
           f (CMul x) = listToMaybe <$> filterM (matchHistory . fst) x >>=
                        maybe (f . toMul $ x) (f . Mul . snd)
 
-runCalc :: Calc a -> PureMT -> a
+runCalc :: Calc a -> TFGen -> a
 runCalc clc gen = evalState (unCalc clc)
                   CalcSt { clcHistory = mempty
                          , clcRandGen = gen }
@@ -74,7 +75,7 @@ runCalc clc gen = evalState (unCalc clc)
 choice :: [a] -> Calc (Maybe a)
 choice [] = return Nothing
 choice xs = do
-  (n, g) <- randomInt <$> gets clcRandGen
+  (n, g) <- next <$> gets clcRandGen
   modify $ \c -> c { clcRandGen = g }
   return . Just $ xs !! (abs n `rem` length xs)
 
