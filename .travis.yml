@@ -19,6 +19,7 @@ script:
  - cabal configure --enable-tests -v2
  - cabal build
  - cabal test --test-option="--maximum-test-size=50"
+ - cabal sdist
 
 notifications:
   email: false
