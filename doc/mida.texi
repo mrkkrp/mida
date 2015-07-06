@@ -105,7 +105,7 @@ Install @uref{https://www.haskell.org/cabal/,Cabal};
 @item
 Download and untar git repository of MIDA, or clone it:
 @example
-$ git clone https://github.com/mrkkrp/mida.git master
+$ git clone https://github.com/mrkkrp/mida.git
 @end example
 @item
 Go to the root directory of the repository and execute:

@@ -29,7 +29,7 @@ MIDA is a
 3. Download and untar git repository of MIDA, or clone it:
 
    ```
-   $ git clone https://github.com/mrkkrp/mida.git master
+   $ git clone https://github.com/mrkkrp/mida.git
    ```
 
 4. Go to the root directory of the repository and execute:
