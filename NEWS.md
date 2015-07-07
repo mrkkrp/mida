@@ -1,5 +1,13 @@
 # History of changes
 
+## MIDA 0.4.3
+
+* various corrections and cosmetic changes;
+
+* improved printing of syntax trees;
+
+* allow more flexible looping expressions.
+
 ## MIDA 0.4.2
 
 * introduced simplifications on the level of internal language;
