@@ -78,21 +78,21 @@ data CompletionScheme = None | Files | Names deriving (Eq, Show)
 
 commands :: [Cmd]
 commands =
-    [ Cmd "cd"      cmdCd      "Change working directory."             Files
-    , Cmd "clear"   cmdClear   "Restore default state of environment." None
-    , Cmd "def"     cmdDef     "Print definition of given symbol."     Names
-    , Cmd "help"    cmdHelp    "Show this help text."                  None
-    , Cmd "load"    cmdLoad'   "Load definitions from given file."     Files
-    , Cmd "make"    cmdMake'   "Generate and save MIDI file."          Files
-    , Cmd "prog"    cmdProg    "Set program for preview."              None
-    , Cmd "prv"     cmdPrv     "Play the score with external program." None
-    , Cmd "prvlen"  cmdLength  "Set length of displayed results."      None
-    , Cmd "purge"   cmdPurge   "Remove redundant definitions."         None
-    , Cmd "pwd"     cmdPwd     "Print working directory."              None
-    , Cmd "quit"    cmdQuit    "Quit the interactive environment."     None
-    , Cmd "save"    cmdSave    "Save current environment in file."     Files
-    , Cmd "tempo"   cmdTempo   "Set tempo for preview."                None
-    , Cmd "udef"    cmdUdef    "Remove definition of given symbol."    Names ]
+    [ Cmd "cd"      cmdCd      "Change working directory"             Files
+    , Cmd "clear"   cmdClear   "Restore default state of environment" None
+    , Cmd "def"     cmdDef     "Print definition of given symbol"     Names
+    , Cmd "help"    cmdHelp    "Show this help text"                  None
+    , Cmd "load"    cmdLoad'   "Load definitions from given file"     Files
+    , Cmd "make"    cmdMake'   "Generate and save MIDI file"          Files
+    , Cmd "prog"    cmdProg    "Set program for preview"              None
+    , Cmd "prv"     cmdPrv     "Play the score with external program" None
+    , Cmd "prvlen"  cmdLength  "Set length of displayed results"      None
+    , Cmd "purge"   cmdPurge   "Remove redundant definitions"         None
+    , Cmd "pwd"     cmdPwd     "Print working directory"              None
+    , Cmd "quit"    cmdQuit    "Quit the interactive environment"     None
+    , Cmd "save"    cmdSave    "Save current environment in file"     Files
+    , Cmd "tempo"   cmdTempo   "Set tempo for preview"                None
+    , Cmd "udef"    cmdUdef    "Remove definition of given symbol"    Names ]
 
 processCmd :: T.Text -> MidaIO ()
 processCmd txt =
