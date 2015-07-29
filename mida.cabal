@@ -51,7 +51,7 @@ maintainer:          Mark Karpov
 copyright:           Copyright © 2014, 2015 Mark Karpov
 category:            Language
 build-type:          Simple
-extra-source-files:  README.md
+extra-source-files:  README.md, CHANGELOG.md
 cabal-version:       >= 1.10
 
 library
