@@ -18,10 +18,7 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE StandaloneDeriving         #-}
-{-# OPTIONS  -fno-warn-orphans          #-}
+{-# OPTIONS -fno-warn-orphans #-}
 
 module Mida.Interaction.Base
     ( MidaIO
