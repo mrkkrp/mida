@@ -1,1 +1,2 @@
-((test "--test-option=--maximum-test-size=50"))
+((test "--test-option=--maximum-test-size=50"
+       "--test-option=--threads=2"))

@@ -23,7 +23,9 @@ install:
 script:
  - cabal configure --enable-tests -v2
  - cabal build
- - cabal test --test-option="--maximum-test-size=50"
+ - cabal test --show-details=always
+              --test-option=--threads=2
+              --test-option=--maximum-test-size=50
  - cabal sdist
 
 notifications:
