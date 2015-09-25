@@ -21,30 +21,30 @@
 {-# OPTIONS -fno-warn-orphans #-}
 
 module Mida.Interaction.Base
-    ( MidaIO
-    , MidaInt
-    , runMidaInt
-    , MidaSt (..)
-    , MidaCfg (..)
-    , lift
-    , liftEnv
-    , getPrevLen
-    , setPrevLen
-    , getSrcFile
-    , setSrcFile
-    , getProg
-    , setProg
-    , getTempo
-    , setTempo
-    , getPrompt
-    , getVerbose
-    , getPrvCmd
-    , getProgOp
-    , getTempoOp
-    , dfltSeed
-    , dfltQuarter
-    , dfltBeats
-    , processDef )
+  ( MidaIO
+  , MidaInt
+  , runMidaInt
+  , MidaSt (..)
+  , MidaCfg (..)
+  , lift
+  , liftEnv
+  , getPrevLen
+  , setPrevLen
+  , getSrcFile
+  , setSrcFile
+  , getProg
+  , setProg
+  , getTempo
+  , setTempo
+  , getPrompt
+  , getVerbose
+  , getPrvCmd
+  , getProgOp
+  , getTempoOp
+  , dfltSeed
+  , dfltQuarter
+  , dfltBeats
+  , processDef )
 where
 
 import Control.Monad.Reader
@@ -58,16 +58,16 @@ import Mida.Language
 type MidaIO = MidaInt IO
 
 newtype MidaInt m a = MidaInt
-    { unMidaInt :: StateT MidaSt (ReaderT MidaCfg (MidaEnv m)) a }
-    deriving ( Functor
-             , Applicative
-             , Monad
-             , MonadState MidaSt
-             , MonadReader MidaCfg
-             , MonadIO )
+  { unMidaInt :: StateT MidaSt (ReaderT MidaCfg (MidaEnv m)) a }
+  deriving ( Functor
+           , Applicative
+           , Monad
+           , MonadState MidaSt
+           , MonadReader MidaCfg
+           , MonadIO )
 
 instance MonadTrans MidaInt where
-    lift = MidaInt . lift . lift . lift
+  lift = MidaInt . lift . lift . lift
 
 liftEnv :: (Monad m) => MidaEnv m a -> MidaInt m a
 liftEnv = MidaInt . lift . lift
@@ -76,21 +76,20 @@ deriving instance L.MonadException m => L.MonadException (MidaEnv m)
 deriving instance L.MonadException m => L.MonadException (MidaInt m)
 
 data MidaSt = MidaSt
-    { stPrevLen :: Int
-    , stSrcFile :: String
-    , stProg    :: Int
-    , stTempo   :: Int }
+  { stPrevLen :: Int
+  , stSrcFile :: String
+  , stProg    :: Int
+  , stTempo   :: Int }
 
 data MidaCfg = MidaCfg
-    { cfgPrompt  :: String
-    , cfgVerbose :: Bool
-    , cfgPrvCmd  :: String
-    , cfgProgOp  :: String
-    , cfgTempoOp :: String }
+  { cfgPrompt  :: String
+  , cfgVerbose :: Bool
+  , cfgPrvCmd  :: String
+  , cfgProgOp  :: String
+  , cfgTempoOp :: String }
 
 runMidaInt :: Monad m => MidaInt m a -> MidaSt -> MidaCfg -> m a
-runMidaInt m st cfg =
-    runMidaEnv (runReaderT (evalStateT (unMidaInt m) st) cfg)
+runMidaInt m st cfg = runMidaEnv (runReaderT (evalStateT (unMidaInt m) st) cfg)
 
 getPrevLen :: MidaIO Int
 getPrevLen = gets stPrevLen

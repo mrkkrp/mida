@@ -19,19 +19,19 @@
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module Mida.Language.Environment
-    ( MidaEnv (..)
-    , runMidaEnv
-    , addDef
-    , remDef
-    , clearDefs
-    , getPrin
-    , getSrc
-    , fullSrc
-    , getRefs
-    , purgeEnv
-    , checkRecur
-    , setRandGen
-    , newRandGen )
+  ( MidaEnv (..)
+  , runMidaEnv
+  , addDef
+  , remDef
+  , clearDefs
+  , getPrin
+  , getSrc
+  , fullSrc
+  , getRefs
+  , purgeEnv
+  , checkRecur
+  , setRandGen
+  , newRandGen )
 where
 
 import Control.Arrow ((***), (>>>))
@@ -49,19 +49,19 @@ import Mida.Representation.Base (noteAlias, modifiers)
 import Mida.Representation.Show (showDefinition)
 
 data MidaEnvSt = MidaEnvSt
-    { stDefs    :: Defs
-    , stRandGen :: TFGen }
+  { stDefs    :: Defs
+  , stRandGen :: TFGen }
 
 type Defs = M.Map String SyntaxTree
 
 newtype MidaEnv m a = MidaEnv
-    { unMidaEnv :: StateT MidaEnvSt m a }
-    deriving ( Functor
-             , Applicative
-             , Monad
-             , MonadState MidaEnvSt
-             , MonadTrans
-             , MonadIO )
+  { unMidaEnv :: StateT MidaEnvSt m a }
+  deriving ( Functor
+           , Applicative
+           , Monad
+           , MonadState MidaEnvSt
+           , MonadTrans
+           , MonadIO )
 
 runMidaEnv :: Monad m => MidaEnv m a -> m a
 runMidaEnv e = evalStateT (unMidaEnv e) MidaEnvSt
@@ -70,8 +70,8 @@ runMidaEnv e = evalStateT (unMidaEnv e) MidaEnvSt
 
 defaultDefs :: Defs
 defaultDefs = M.fromList $ zip noteAlias (f <$> [0..])
-              <> zip modifiers (f <$> [128,256..])
-    where f = return . Value
+            <> zip modifiers (f <$> [128,256..])
+  where f = return . Value
 
 getDefs :: Monad m => MidaEnv m Defs
 getDefs = gets stDefs
@@ -102,30 +102,30 @@ getRefs = M.keys <$> getDefs
 
 tDefs :: String -> Defs -> [String]
 tDefs name defs = maybe mzero cm $ name `M.lookup` defs
-    where cm               = (>>= f)
-          f (Value      _) = mempty
-          f (Section    x) = cm x
-          f (Multi      x) = cm x
-          f (CMulti     x) = x >>= (cm *** cm >>> uncurry (<>))
-          f (Reference  x) = return x <> tDefs x defs
-          f (Range    _ _) = mempty
-          f (Product  x y) = f x <> f y
-          f (Division x y) = f x <> f y
-          f (Sum      x y) = f x <> f y
-          f (Diff     x y) = f x <> f y
-          f (Loop     x y) = f x <> f y
-          f (Rotation x y) = f x <> f y
-          f (Reverse    x) = f x
+  where cm               = (>>= f)
+        f (Value      _) = mempty
+        f (Section    x) = cm x
+        f (Multi      x) = cm x
+        f (CMulti     x) = x >>= (cm *** cm >>> uncurry (<>))
+        f (Reference  x) = return x <> tDefs x defs
+        f (Range    _ _) = mempty
+        f (Product  x y) = f x <> f y
+        f (Division x y) = f x <> f y
+        f (Sum      x y) = f x <> f y
+        f (Diff     x y) = f x <> f y
+        f (Loop     x y) = f x <> f y
+        f (Rotation x y) = f x <> f y
+        f (Reverse    x) = f x
 
 purgeEnv :: Monad m => [String] -> MidaEnv m ()
 purgeEnv tops = f <$> getDefs >>= setDefs
-    where f defs = M.intersection defs $ M.unions [ts, ms defs, defaultDefs]
-          ms     = M.unions . fmap toDefs . zipWith tDefs tops . repeat
-          ts     = toDefs tops
+  where f defs = M.intersection defs $ M.unions [ts, ms defs, defaultDefs]
+        ms     = M.unions . fmap toDefs . zipWith tDefs tops . repeat
+        ts     = toDefs tops
 
 checkRecur :: Monad m => String -> SyntaxTree -> MidaEnv m Bool
 checkRecur name tree = check <$> getDefs
-    where check = elem name . tDefs name . M.insert name tree
+  where check = elem name . tDefs name . M.insert name tree
 
 setRandGen :: Monad m => Int -> MidaEnv m ()
 setRandGen x = modify $ \e -> e { stRandGen = mkTFGen x }

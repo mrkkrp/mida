@@ -19,11 +19,11 @@
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module Mida.Interaction.Commands
-    ( processCmd
-    , completionFunc
-    , cmdLoad
-    , cmdMake
-    , cmdPrefix )
+  ( processCmd
+  , completionFunc
+  , cmdLoad
+  , cmdMake
+  , cmdPrefix )
 where
 
 import Control.Exception (SomeException, try)
@@ -34,26 +34,26 @@ import Data.Foldable (find)
 import Data.List (elemIndex, isPrefixOf)
 import Data.Maybe (fromMaybe, listToMaybe)
 import System.Directory
-    ( canonicalizePath
-    , doesDirectoryExist
-    , doesFileExist
-    , getCurrentDirectory
-    , getHomeDirectory
-    , getTemporaryDirectory
-    , setCurrentDirectory )
+  ( canonicalizePath
+  , doesDirectoryExist
+  , doesFileExist
+  , getCurrentDirectory
+  , getHomeDirectory
+  , getTemporaryDirectory
+  , setCurrentDirectory )
 import System.Exit (exitSuccess)
 import System.FilePath
-    ( addTrailingPathSeparator
-    , joinPath
-    , replaceExtension
-    , splitDirectories
-    , takeFileName
-    , (</>) )
+  ( addTrailingPathSeparator
+  , joinPath
+  , replaceExtension
+  , splitDirectories
+  , takeFileName
+  , (</>) )
 import System.Process
-    ( shell
-    , createProcess
-    , waitForProcess
-    , delegate_ctlc )
+  ( shell
+  , createProcess
+  , waitForProcess
+  , delegate_ctlc )
 import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.IO as T
 
@@ -67,39 +67,39 @@ import Mida.Midi
 import Mida.Representation
 
 data Cmd = Cmd
-    { cmdName :: String
-    , cmdFunc :: String -> MidaIO ()
-    , cmdDesc :: T.Text
-    , cmdComp :: CompletionScheme }
+  { cmdName :: String
+  , cmdFunc :: String -> MidaIO ()
+  , cmdDesc :: T.Text
+  , cmdComp :: CompletionScheme }
 
 data CompletionScheme = None | Files | Names deriving (Eq, Show)
 
 commands :: [Cmd]
 commands =
-    [ Cmd "cd"      cmdCd      "Change working directory"             Files
-    , Cmd "clear"   cmdClear   "Restore default state of environment" None
-    , Cmd "def"     cmdDef     "Print definition of given symbol"     Names
-    , Cmd "help"    cmdHelp    "Show this help text"                  None
-    , Cmd "load"    cmdLoad'   "Load definitions from given file"     Files
-    , Cmd "make"    cmdMake'   "Generate and save MIDI file"          Files
-    , Cmd "prog"    cmdProg    "Set program for preview"              None
-    , Cmd "prv"     cmdPrv     "Play the score with external program" None
-    , Cmd "prvlen"  cmdLength  "Set length of displayed results"      None
-    , Cmd "purge"   cmdPurge   "Remove redundant definitions"         None
-    , Cmd "pwd"     cmdPwd     "Print working directory"              None
-    , Cmd "quit"    cmdQuit    "Quit the interactive environment"     None
-    , Cmd "save"    cmdSave    "Save current environment in file"     Files
-    , Cmd "tempo"   cmdTempo   "Set tempo for preview"                None
-    , Cmd "udef"    cmdUdef    "Remove definition of given symbol"    Names ]
+  [ Cmd "cd"      cmdCd      "Change working directory"             Files
+  , Cmd "clear"   cmdClear   "Restore default state of environment" None
+  , Cmd "def"     cmdDef     "Print definition of given symbol"     Names
+  , Cmd "help"    cmdHelp    "Show this help text"                  None
+  , Cmd "load"    cmdLoad'   "Load definitions from given file"     Files
+  , Cmd "make"    cmdMake'   "Generate and save MIDI file"          Files
+  , Cmd "prog"    cmdProg    "Set program for preview"              None
+  , Cmd "prv"     cmdPrv     "Play the score with external program" None
+  , Cmd "prvlen"  cmdLength  "Set length of displayed results"      None
+  , Cmd "purge"   cmdPurge   "Remove redundant definitions"         None
+  , Cmd "pwd"     cmdPwd     "Print working directory"              None
+  , Cmd "quit"    cmdQuit    "Quit the interactive environment"     None
+  , Cmd "save"    cmdSave    "Save current environment in file"     Files
+  , Cmd "tempo"   cmdTempo   "Set tempo for preview"                None
+  , Cmd "udef"    cmdUdef    "Remove definition of given symbol"    Names ]
 
 processCmd :: T.Text -> MidaIO ()
 processCmd txt =
-    case find g commands of
-      Just Cmd { cmdFunc = f } -> f . T.unpack . T.strip $ args
-      Nothing -> liftIO $ F.print "Unknown command, try {}help.\n"
-                         (F.Only cmdPrefix)
-    where g Cmd { cmdName = c } = c == dropCmdPrefix (T.unpack cmd)
-          (cmd, args)           = T.break isSpace (T.strip txt)
+  case find g commands of
+    Just Cmd { cmdFunc = f } -> f . T.unpack . T.strip $ args
+    Nothing -> liftIO $ F.print "Unknown command, try {}help.\n"
+                       (F.Only cmdPrefix)
+  where g Cmd { cmdName = c } = c == dropCmdPrefix (T.unpack cmd)
+        (cmd, args)           = T.break isSpace (T.strip txt)
 
 completionFunc :: L.CompletionFunc MidaIO
 completionFunc = L.completeWordWithPrev Nothing " " getCompletions
@@ -134,12 +134,12 @@ cmdClear _ = liftEnv clearDefs >> liftIO (T.putStrLn "Environment cleared.")
 
 cmdDef :: String -> MidaIO ()
 cmdDef arg = mapM_ f (words arg)
-    where f name = liftEnv (getSrc name) >>= liftIO . T.putStr
+  where f name = liftEnv (getSrc name) >>= liftIO . T.putStr
 
 cmdHelp :: String -> MidaIO ()
 cmdHelp _ = liftIO (T.putStrLn "Available commands:") >> mapM_ f commands
-    where f Cmd { cmdName = c, cmdDesc = d } =
-              liftIO $ F.print "  {}{}{}\n" (cmdPrefix, F.right 24 ' ' c, d)
+  where f Cmd { cmdName = c, cmdDesc = d } =
+          liftIO $ F.print "  {}{}{}\n" (cmdPrefix, F.right 24 ' ' c, d)
 
 cmdLoad' :: String -> MidaIO ()
 cmdLoad' = cmdLoad . words
@@ -165,11 +165,11 @@ loadOne given = do
 
 cmdMake' :: String -> MidaIO ()
 cmdMake' arg =
-    let (s:q:b:f:_) = words arg ++ repeat ""
-    in cmdMake (parseNum s dfltSeed)
-               (parseNum q dfltQuarter)
-               (parseNum b dfltBeats)
-               f
+  let (s:q:b:f:_) = words arg ++ repeat ""
+  in cmdMake (parseNum s dfltSeed)
+             (parseNum q dfltQuarter)
+             (parseNum b dfltBeats)
+             f
 
 cmdMake :: Int -> Int -> Int -> String -> MidaIO ()
 cmdMake s q b f = do
@@ -235,9 +235,9 @@ cmdTempo arg = do
 
 cmdUdef :: String -> MidaIO ()
 cmdUdef arg = mapM_ f (words arg)
-    where f name = do
-            liftEnv (remDef name)
-            liftIO (F.print "Definition for '{}' removed.\n" (F.Only name))
+  where f name = do
+          liftEnv (remDef name)
+          liftIO (F.print "Definition for '{}' removed.\n" (F.Only name))
 
 parseNum :: (Num a, Read a) => String -> a -> a
 parseNum s x = fromMaybe x $ fst <$> listToMaybe (reads s)
@@ -256,8 +256,8 @@ setFileName path = (</> path) <$> liftIO getCurrentDirectory >>= setSrcFile
 
 dropCmdPrefix :: String -> String
 dropCmdPrefix arg
-    | cmdPrefix `isPrefixOf` arg = drop (length cmdPrefix) arg
-    | otherwise = arg
+  | cmdPrefix `isPrefixOf` arg = drop (length cmdPrefix) arg
+  | otherwise = arg
 
 cmdPrefix :: String
 cmdPrefix = ":"
@@ -267,4 +267,4 @@ spitExc = liftIO . F.print "× {}.\n" . F.Only . show
 
 trim :: String -> String
 trim = f . f
-    where f = reverse . dropWhile isSpace
+  where f = reverse . dropWhile isSpace

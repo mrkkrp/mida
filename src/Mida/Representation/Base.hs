@@ -18,24 +18,24 @@
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module Mida.Representation.Base
-    ( noteAlias
-    , commentLine
-    , productOp
-    , divisionOp
-    , sumOp
-    , diffOp
-    , loopOp
-    , rotationOp
-    , reverseOp
-    , rangeOp
-    , defOp
-    , modifiers )
+  ( noteAlias
+  , commentLine
+  , productOp
+  , divisionOp
+  , sumOp
+  , diffOp
+  , loopOp
+  , rotationOp
+  , reverseOp
+  , rangeOp
+  , defOp
+  , modifiers )
 where
 
 noteAlias :: [String]
 noteAlias = zipWith f names ([0..127] :: [Int])
-    where names = cycle ["c","cs","d","ds","e","f","fs","g","gs","a","as","b"]
-          f n i = n ++ show (i `div` 12)
+  where names = cycle ["c","cs","d","ds","e","f","fs","g","gs","a","as","b"]
+        f n i = n ++ show (i `div` 12)
 
 commentLine :: String
 commentLine = "#"

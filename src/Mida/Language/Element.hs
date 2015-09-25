@@ -19,9 +19,9 @@
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module Mida.Language.Element
-    ( Principle
-    , Elt
-    , Element (..) )
+  ( Principle
+  , Elt
+  , Element (..) )
 where
 
 import Control.Arrow ((***))
@@ -30,15 +30,15 @@ type Principle = [Elt]
 type Elt       = Element Int
 
 data Element a
-    = Val  a
-    | Sec  [Element a]
-    | Mul  [Element a]
-    | CMul [([Element a], [Element a])]
-      deriving (Eq, Show, Functor, Foldable)
+  = Val  a
+  | Sec  [Element a]
+  | Mul  [Element a]
+  | CMul [([Element a], [Element a])]
+    deriving (Eq, Show, Functor, Foldable)
 
 instance Applicative Element where
-    pure           = Val
-    (Val  f) <*> x = f <$> x
-    (Sec  f) <*> x = Sec  $ (<*> x) <$> f
-    (Mul  f) <*> x = Mul  $ (<*> x) <$> f
-    (CMul f) <*> x = CMul $ (((<*> x) <$>) *** ((<*> x) <$>)) <$> f
+  pure           = Val
+  (Val  f) <*> x = f <$> x
+  (Sec  f) <*> x = Sec  $ (<*> x) <$> f
+  (Mul  f) <*> x = Mul  $ (<*> x) <$> f
+  (CMul f) <*> x = CMul $ (((<*> x) <$>) *** ((<*> x) <$>)) <$> f

@@ -18,24 +18,24 @@
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module Mida.Language.SyntaxTree
-    ( SyntaxTree
-    , Sel (..) )
+  ( SyntaxTree
+  , Sel (..) )
 where
 
 type SyntaxTree = [Sel]
 
 data Sel -- syntactic element
-    = Value     Int
-    | Section   [Sel]
-    | Multi     [Sel]
-    | CMulti    [([Sel], [Sel])]
-    | Reference String
-    | Range     Int Int
-    | Product   Sel Sel
-    | Division  Sel Sel
-    | Sum       Sel Sel
-    | Diff      Sel Sel
-    | Loop      Sel Sel
-    | Rotation  Sel Sel
-    | Reverse   Sel
-      deriving (Eq, Show)
+  = Value     Int
+  | Section   [Sel]
+  | Multi     [Sel]
+  | CMulti    [([Sel], [Sel])]
+  | Reference String
+  | Range     Int Int
+  | Product   Sel Sel
+  | Division  Sel Sel
+  | Sum       Sel Sel
+  | Diff      Sel Sel
+  | Loop      Sel Sel
+  | Rotation  Sel Sel
+  | Reverse   Sel
+    deriving (Eq, Show)
