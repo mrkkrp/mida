@@ -18,9 +18,9 @@
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module Mida.Configuration
-    ( Params
-    , parseConfig
-    , lookupCfg )
+  ( Params
+  , parseConfig
+  , lookupCfg )
 where
 
 import Control.Applicative
@@ -36,18 +36,18 @@ import qualified Text.Megaparsec.Lexer as L
 type Params = M.Map String String
 
 class Parsable a where
-    parseValue :: String -> Maybe a
+  parseValue :: String -> Maybe a
 
 instance Parsable String where
-    parseValue = Just
+  parseValue = Just
 
 instance Parsable Int where
-    parseValue = parseNum
+  parseValue = parseNum
 
 instance Parsable Bool where
-    parseValue "true"  = Just True
-    parseValue "false" = Just False
-    parseValue _       = Nothing
+  parseValue "true"  = Just True
+  parseValue "false" = Just False
+  parseValue _       = Nothing
 
 lookupCfg :: Parsable a => Params -> String -> a -> a
 lookupCfg cfg v d = fromMaybe d $ M.lookup v cfg >>= parseValue

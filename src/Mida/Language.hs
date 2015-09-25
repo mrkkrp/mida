@@ -18,27 +18,27 @@
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module Mida.Language
-    ( SyntaxTree
-    , Sel (..)
-    , Principle
-    , Elt
-    , Element (..)
-    , MidaEnv (..)
-    , runMidaEnv
-    , addDef
-    , remDef
-    , clearDefs
-    , getPrin
-    , getSrc
-    , fullSrc
-    , getRefs
-    , purgeEnv
-    , checkRecur
-    , setRandGen
-    , newRandGen
-    , evalDef
-    , eval
-    , toPrin )
+  ( SyntaxTree
+  , Sel (..)
+  , Principle
+  , Elt
+  , Element (..)
+  , MidaEnv (..)
+  , runMidaEnv
+  , addDef
+  , remDef
+  , clearDefs
+  , getPrin
+  , getSrc
+  , fullSrc
+  , getRefs
+  , purgeEnv
+  , checkRecur
+  , setRandGen
+  , newRandGen
+  , evalDef
+  , eval
+  , toPrin )
 where
 
 import Mida.Language.SyntaxTree (SyntaxTree, Sel (..))

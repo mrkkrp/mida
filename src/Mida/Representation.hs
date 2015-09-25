@@ -19,12 +19,12 @@
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module Mida.Representation
-    ( Statement (..)
-    , probeMida
-    , parseMida
-    , showStatement
-    , showSyntaxTree
-    , showPrinciple )
+  ( Statement (..)
+  , probeMida
+  , parseMida
+  , showStatement
+  , showSyntaxTree
+  , showPrinciple )
 where
 
 import Mida.Representation.Parser

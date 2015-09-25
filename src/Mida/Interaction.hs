@@ -19,17 +19,17 @@
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module Mida.Interaction
-    ( MidaIO
-    , MidaInt
-    , runMidaInt
-    , MidaSt (..)
-    , MidaCfg (..)
-    , cmdLoad
-    , cmdMake
-    , interaction
-    , dfltSeed
-    , dfltQuarter
-    , dfltBeats )
+  ( MidaIO
+  , MidaInt
+  , runMidaInt
+  , MidaSt (..)
+  , MidaCfg (..)
+  , cmdLoad
+  , cmdMake
+  , interaction
+  , dfltSeed
+  , dfltQuarter
+  , dfltBeats )
 where
 
 import Control.Monad.Reader

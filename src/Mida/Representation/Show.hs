@@ -19,10 +19,10 @@
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module Mida.Representation.Show
-    ( showStatement
-    , showDefinition
-    , showSyntaxTree
-    , showPrinciple )
+  ( showStatement
+  , showDefinition
+  , showSyntaxTree
+  , showPrinciple )
 where
 
 import Control.Arrow ((***), (>>>))
@@ -55,36 +55,36 @@ showDefinition' n t = T.fromString n <> pad B.defOp <> showSyntaxTree' t
 
 showSyntaxTree' :: SyntaxTree -> T.Builder
 showSyntaxTree' t = cm f t <> "\n"
-    where
-      cm g xs           = mconcat . intersperse " " $ g <$> xs
-      p x@(Value     _) = f x
-      p x@(Section   _) = f x
-      p x@(Multi     _) = f x
-      p x@(CMulti    _) = f x
-      p x@(Reference _) = f x
-      p x@(Range   _ _) = f x
-      p x               = "(" <> f x <> ")"
-      f (Value       x) = T.decimal x
-      f (Section     x) = "[" <> cm f x <> "]"
-      f (Multi       x) = "{" <> cm f x <> "}"
-      f (CMulti      x) = "{" <> cm (c *** cm f >>> uncurry (<>)) x <> "}"
-      f (Reference   x) = T.fromString x
-      f (Range     x y) = T.decimal x <> T.fromString B.rangeOp <> T.decimal y
-      f (Product   x y) = f x <> pad B.productOp   <> p y
-      f (Division  x y) = f x <> pad B.divisionOp  <> p y
-      f (Sum       x y) = f x <> pad B.sumOp       <> p y
-      f (Diff      x y) = f x <> pad B.diffOp      <> p y
-      f (Loop      x y) = f x <> pad B.loopOp      <> p y
-      f (Rotation  x y) = f x <> pad B.rotationOp  <> p y
-      f (Reverse     x) = T.fromString B.reverseOp <> p x
-      c xs              = "<" <> cm f xs <> "> "
+  where
+    cm g xs           = mconcat . intersperse " " $ g <$> xs
+    p x@(Value     _) = f x
+    p x@(Section   _) = f x
+    p x@(Multi     _) = f x
+    p x@(CMulti    _) = f x
+    p x@(Reference _) = f x
+    p x@(Range   _ _) = f x
+    p x               = "(" <> f x <> ")"
+    f (Value       x) = T.decimal x
+    f (Section     x) = "[" <> cm f x <> "]"
+    f (Multi       x) = "{" <> cm f x <> "}"
+    f (CMulti      x) = "{" <> cm (c *** cm f >>> uncurry (<>)) x <> "}"
+    f (Reference   x) = T.fromString x
+    f (Range     x y) = T.decimal x <> T.fromString B.rangeOp <> T.decimal y
+    f (Product   x y) = f x <> pad B.productOp   <> p y
+    f (Division  x y) = f x <> pad B.divisionOp  <> p y
+    f (Sum       x y) = f x <> pad B.sumOp       <> p y
+    f (Diff      x y) = f x <> pad B.diffOp      <> p y
+    f (Loop      x y) = f x <> pad B.loopOp      <> p y
+    f (Rotation  x y) = f x <> pad B.rotationOp  <> p y
+    f (Reverse     x) = T.fromString B.reverseOp <> p x
+    c xs              = "<" <> cm f xs <> "> "
 
 toSyntaxTree :: Principle -> SyntaxTree
 toSyntaxTree = (f <$>)
-    where f (Val  x) = Value x
-          f (Sec  x) = Section $ f <$> x
-          f (Mul  x) = Multi   $ f <$> x
-          f (CMul x) = CMulti  $ (toSyntaxTree *** toSyntaxTree) <$> x
+  where f (Val  x) = Value x
+        f (Sec  x) = Section $ f <$> x
+        f (Mul  x) = Multi   $ f <$> x
+        f (CMul x) = CMulti  $ (toSyntaxTree *** toSyntaxTree) <$> x
 
 pad :: String -> T.Builder
 pad op = " " <> T.fromString op <> " "
