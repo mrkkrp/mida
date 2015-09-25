@@ -38,63 +38,63 @@ import Test.QuickCheck
 
 import Mida.Language (Sel (..))
 import Mida.Representation
-    ( Statement (..)
-    , probeMida
-    , parseMida
-    , showStatement )
+  ( Statement (..)
+  , probeMida
+  , parseMida
+  , showStatement )
 
 main :: IO ()
 main = defaultMain tests
 
 tests :: [Test]
 tests =
-    [ testGroup "Printer and Parser"
-      [ testProperty "Valid MIDA Probe"               prop_valid_probe
-      , testProperty "Printer and Parser Consistency" prop_pp_consistency ] ]
+  [ testGroup "Printer and Parser"
+    [ testProperty "Valid MIDA Probe"               prop_valid_probe
+    , testProperty "Printer and Parser Consistency" prop_pp_consistency ] ]
 
 prop_valid_probe :: Statement -> Bool
 prop_valid_probe = probeMida . showStatement
 
 prop_pp_consistency :: Statement -> Bool
 prop_pp_consistency = id &&& (parseMida "" . showStatement) >>> check
-    where check (x, Right [y]) = x == y
-          check _              = False
+  where check (x, Right [y]) = x == y
+        check _              = False
 
 instance Arbitrary Statement where
-    arbitrary =
-        oneof [ Definition <$> alphaNumIdentifier <*> arbitrary
-              , Exposition <$> arbitrary ]
+  arbitrary =
+    oneof [ Definition <$> identifier <*> arbitrary
+          , Exposition <$> arbitrary ]
 
 instance Arbitrary Sel where
-    arbitrary = sized arbitrarySel
+  arbitrary = sized arbitrarySel
 
 arbitrarySel :: Int -> Gen Sel
 arbitrarySel 0 =
-    oneof [ Value     <$> positive
-          , Reference <$> alphaNumIdentifier
-          , Range     <$> positive <*> positive ]
-    where positive = arbitrary `suchThat` (>= 0)
+  oneof [ Value     <$> nonNegative
+        , Reference <$> identifier
+        , Range     <$> nonNegative <*> nonNegative ]
+  where nonNegative = getNonNegative <$> arbitrary
 arbitrarySel n =
-    oneof [ Section  <$> listSel
-          , Multi    <$> listSel
-          , CMulti   <$> listCnd
-          , Product  <$> leafSel <*> leafSel
-          , Division <$> leafSel <*> leafSel
-          , Sum      <$> leafSel <*> leafSel
-          , Diff     <$> leafSel <*> leafSel
-          , Loop     <$> leafSel <*> leafSel
-          , Rotation <$> leafSel <*> leafSel
-          , Reverse  <$> leafSel ]
-    where cnSel d = arbitrarySel (n `div` d)
-          vcSel d = arbitrarySizedIntegral `suchThat` (>= 0)
-                    >>= \s -> vectorOf s (cnSel $ d * s)
-          leafSel = cnSel 2
-          listSel = vcSel 1
-          listCnd = arbitrarySizedIntegral `suchThat` (>= 1)
-                    >>= \s -> vectorOf s $ (,) <$> vcSel s <*> vcSel s
+  oneof [ Section  <$> listSel
+        , Multi    <$> listSel
+        , CMulti   <$> listCnd
+        , Product  <$> leafSel <*> leafSel
+        , Division <$> leafSel <*> leafSel
+        , Sum      <$> leafSel <*> leafSel
+        , Diff     <$> leafSel <*> leafSel
+        , Loop     <$> leafSel <*> leafSel
+        , Rotation <$> leafSel <*> leafSel
+        , Reverse  <$> leafSel ]
+  where cnSel d = arbitrarySel (n `div` d)
+        vcSel d = (getNonNegative <$> arbitrary)
+                  >>= \s -> vectorOf s (cnSel $ d * s)
+        leafSel = cnSel 2
+        listSel = vcSel 1
+        listCnd = (getPositive <$> arbitrary)
+                  >>= \s -> vectorOf s $ (,) <$> vcSel s <*> vcSel s
 
-alphaNumIdentifier :: Gen String
-alphaNumIdentifier = (:) <$> ch0 <*> chN
-    where ch0 = arbitrary `suchThat` underscoreOr isLetter
-          chN = arbitrary `suchThat` all (underscoreOr isAlphaNum)
-          underscoreOr f x = x == '_' || f x
+identifier :: Gen String
+identifier = (:) <$> ch0 <*> chN
+  where ch0 = u isLetter
+        chN = listOf $ u isAlphaNum
+        u f = frequency [(1, return '_'), (74, arbitrary `suchThat` f)]
