@@ -54,7 +54,7 @@ main = execParser opts >>= f
                , opOutput  = out
                , opFiles   = ns   } = g $ cmdLoad ns >> cmdMake s q b out
         g x     = T.putStrLn notice >> runMida x
-        version = "0.4.3"
+        version = "0.4.4"
 
 notice :: T.Text
 notice =

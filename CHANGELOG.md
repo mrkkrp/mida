@@ -1,5 +1,11 @@
 # History of changes
 
+## MIDA 0.4.4
+
+* cosmetic corrections in source code;
+
+* switch to better libraries libraries.
+
 ## MIDA 0.4.3
 
 * various corrections and cosmetic changes;

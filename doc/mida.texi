@@ -2,11 +2,11 @@
 @comment %**start of header (This is for running Texinfo on a region.)
 @setfilename mida.info
 @settitle MIDA Manual
-@set EDITION 0.4.3
-@set VERSION 0.4.3
-@set UPDATED 4 June 2015
-@set UPDATED-MONTH June 2015
-@set LASTCHANGE Thu June 4 22:57:18 EST 2015
+@set EDITION 0.4.4
+@set VERSION 0.4.4
+@set UPDATED 25 September 2015
+@set UPDATED-MONTH September 2015
+@set LASTCHANGE Fri September 25 22:57:18 EST 2015
 
 @comment %**end of header (This is for running Texinfo on a region.)
 @synindex vr fn
@@ -474,7 +474,7 @@ This program comes with ABSOLUTELY NO WARRANTY. This is free software,
 and you are welcome to redistribute it under certain conditions; see
 GNU General Public License for details.
 
-MIDA Interactive Environment 0.4.3
+MIDA Interactive Environment 0.4.4
 >
 @end example
 
