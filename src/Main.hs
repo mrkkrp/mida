@@ -20,7 +20,9 @@
 module Main (main) where
 
 import Control.Monad
+import Data.Version (showVersion)
 import Options.Applicative
+import Paths_mida (version)
 import System.Directory (getHomeDirectory, doesFileExist, getCurrentDirectory)
 import System.FilePath
 import qualified Data.Map as M
@@ -44,17 +46,17 @@ data Opts = Opts
 main :: IO ()
 main = execParser opts >>= f
   where f Opts { opLicense = True } = T.putStr license
-        f Opts { opVersion = True } = F.print "MIDA {}\n" (F.Only version)
-        f Opts { opFiles   = []   } = g $ interaction version
+        f Opts { opVersion = True } = F.print "MIDA {}\n" (F.Only ver)
+        f Opts { opFiles   = []   } = g $ interaction ver
         f Opts { opInterac = True
-               , opFiles   = ns   } = g $ cmdLoad ns >> interaction version
+               , opFiles   = ns   } = g $ cmdLoad ns >> interaction ver
         f Opts { opSeed    = s
                , opQuarter = q
                , opBeats   = b
                , opOutput  = out
                , opFiles   = ns   } = g $ cmdLoad ns >> cmdMake s q b out
-        g x     = T.putStrLn notice >> runMida x
-        version = "0.4.4"
+        g x = T.putStrLn notice >> runMida x
+        ver = showVersion version
 
 notice :: T.Text
 notice =
