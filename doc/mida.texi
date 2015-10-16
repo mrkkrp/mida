@@ -115,9 +115,27 @@ $ cabal install --only-dependencies
 $ cabal build
 # sh install.sh
 @end example
+or (if you use Stack):
+@example
+$ stack build
+@end example
 @item
 Done (you can use @code{uninstall.sh} to uninstall the program).
 @end enumerate
+
+Alternatively, instead of steps 3–5, you can just:
+
+@example
+$ cabal install mida
+@end example
+
+In this case you will need to add @file{~/.cabal/bin} to your
+@code{PATH}:
+
+@example
+# in .bashrc or similar
+export PATH=$HOME/.cabal/bin:$PATH
+@end example
 
 @node Invocation
 @chapter Invocation

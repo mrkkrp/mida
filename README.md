@@ -42,7 +42,26 @@ MIDA is a
    # sh install.sh
    ```
 
+   or (if you use Stack):
+
+   ```
+   $ stack build
+   ```
+
 5. Done (you can use `uninstall.sh` to uninstall the program).
+
+Alternatively, instead of steps 3–5, you can just:
+
+```
+$ cabal install mida
+```
+
+In this case you will need to add `~/.cabal/bin` directory to your `PATH`:
+
+```
+# in .bashrc or similar
+export PATH=$HOME/.cabal/bin:$PATH
+```
 
 ## Example
 
