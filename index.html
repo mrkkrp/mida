@@ -206,9 +206,27 @@ $ cabal install --only-dependencies
 $ cabal build
 # sh install.sh
 </pre></div>
+<p>or (if you use Stack):
+</p><div class="example">
+<pre class="example">$ stack build
+</pre></div>
 </li><li>
 Done (you can use <code>uninstall.sh</code> to uninstall the program).
 </li></ol>
+
+<p>Alternatively, instead of steps 3–5, you can just:
+</p>
+<div class="example">
+<pre class="example">$ cabal install mida
+</pre></div>
+
+<p>In this case you will need to add &lsquo;<tt>~/.cabal/bin</tt>&rsquo; to your
+<code>PATH</code>:
+</p>
+<div class="example">
+<pre class="example"># in .bashrc or similar
+export PATH=$HOME/.cabal/bin:$PATH
+</pre></div>
 
 <hr>
 <a name="Invocation"></a>
@@ -688,7 +706,7 @@ This program comes with ABSOLUTELY NO WARRANTY. This is free software,
 and you are welcome to redistribute it under certain conditions; see
 GNU General Public License for details.
 
-MIDA Interactive Environment 0.4.4
+MIDA Interactive Environment 0.4.5
 &gt;
 </pre></div>
 
