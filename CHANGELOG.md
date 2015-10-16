@@ -1,10 +1,16 @@
 # History of changes
 
+## MIDA 0.4.5
+
+* various cosmetic changes;
+
+* make the executable Cabal-installable.
+
 ## MIDA 0.4.4
 
 * cosmetic corrections in source code;
 
-* switch to better libraries libraries.
+* switch to better libraries.
 
 ## MIDA 0.4.3
 
