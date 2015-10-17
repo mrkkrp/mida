@@ -122,9 +122,21 @@ executable mida
                    , StandaloneDeriving
                    , TupleSections
                    , TypeSynonymInstances
-  other-modules:     Mida.Interaction
+  other-modules:     Mida.Configuration
+                   , Mida.Interaction
                    , Mida.Interaction.Base
                    , Mida.Interaction.Commands
+                   , Mida.Language
+                   , Mida.Language.Element
+                   , Mida.Language.Environment
+                   , Mida.Language.Eval
+                   , Mida.Language.SyntaxTree
+                   , Mida.Midi
+                   , Mida.Representation
+                   , Mida.Representation.Base
+                   , Mida.Representation.Parser
+                   , Mida.Representation.Show
+                   , Paths_mida
   default-language:  Haskell2010
 
 test-suite tests
