@@ -1050,7 +1050,7 @@ To perform arithmetic operation, put @samp{+}, @samp{-}, @samp{*}, or
 @end example
 
 Note that we don't work with negative numbers in MIDA, so subtraction
-and division work a bit different than you might expect: if difference
+and division work a bit differently than you might expect: if difference
 between two values is negative, it will be substituted with
 @code{0}. This is example of “saturation”. If you divide something by
 zero, you will get dividend unchanged.
