@@ -57,8 +57,8 @@ import System.Process
 import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.IO as T
 
+import Formatting
 import qualified Codec.Midi as Midi
-import qualified Data.Text.Format as F
 import qualified System.Console.Haskeline as L
 
 import Mida.Interaction.Base
@@ -96,8 +96,8 @@ processCmd :: T.Text -> MidaIO ()
 processCmd txt =
   case find g commands of
     Just Cmd { cmdFunc = f } -> f . T.unpack . T.strip $ args
-    Nothing -> liftIO $ F.print "Unknown command, try {}help.\n"
-                       (F.Only cmdPrefix)
+    Nothing -> liftIO $
+               fprint ("Unknown command, try " % string % "help.\n") cmdPrefix
   where g Cmd { cmdName = c } = c == dropCmdPrefix (T.unpack cmd)
         (cmd, args)           = T.break isSpace (T.strip txt)
 
@@ -126,8 +126,8 @@ cmdCd path = liftIO $ do
   if present
   then do corrected <- canonicalizePath new
           setCurrentDirectory corrected
-          F.print "Changed to \"{}\".\n" (F.Only corrected)
-  else F.print "Cannot cd to \"{}\".\n" (F.Only new)
+          fprint ("Changed to \"" % string % "\".\n") corrected
+  else fprint ("Cannot cd to \"" % string % "\".\n") new
 
 cmdClear :: String -> MidaIO ()
 cmdClear _ = liftEnv clearDefs >> liftIO (T.putStrLn "Environment cleared.")
@@ -138,8 +138,8 @@ cmdDef arg = mapM_ f (words arg)
 
 cmdHelp :: String -> MidaIO ()
 cmdHelp _ = liftIO (T.putStrLn "Available commands:") >> mapM_ f commands
-  where f Cmd { cmdName = c, cmdDesc = d } =
-          liftIO $ F.print "  {}{}{}\n" (cmdPrefix, F.right 24 ' ' c, d)
+  where f Cmd { cmdName = c, cmdDesc = d } = liftIO $ fprint fmt cmdPrefix c d
+        fmt = ("  " % string % (right 24 ' ' %. string) % text % "\n")
 
 cmdLoad' :: String -> MidaIO ()
 cmdLoad' = cmdLoad . words
@@ -156,10 +156,11 @@ loadOne given = do
           case parseMida (takeFileName file) contents of
             Right x -> do mapM_ f x
                           setFileName file
-                          liftIO $ F.print "\"{}\" loaded successfully.\n"
-                                 (F.Only file)
-            Left  x -> liftIO $ F.print "Parse error in {}.\n" (F.Only x)
-  else liftIO $ F.print "Could not find \"{}\".\n" (F.Only file)
+                          liftIO $ fprint
+                                 ("\"" % string % "\" loaded successfully.\n")
+                                 file
+            Left  x -> liftIO $ fprint (string % "\n") x
+  else liftIO $ fprint ("Could not find \"" % string % "\".\n") file
     where f (Definition n t) = processDef n t
           f (Exposition   _) = return ()
 
@@ -177,7 +178,7 @@ cmdMake s q b f = do
   midi   <- liftEnv $ genMidi s q b
   result <- liftIO $ try (Midi.exportFile file midi)
   case result of
-    Right _ -> liftIO $ F.print "MIDI file saved as \"{}\".\n" (F.Only file)
+    Right _ -> liftIO $ fprint ("MIDI file saved as \"" % string % "\".\n") file
     Left  e -> spitExc e
 
 cmdProg :: String -> MidaIO ()
@@ -223,9 +224,10 @@ cmdSave given = do
   file   <- output given ""
   src    <- liftEnv fullSrc
   result <- liftIO (try (T.writeFile file src) :: IO (Either SomeException ()))
+  let fmt = "Environment saved as \"" % string % "\".\n"
   case result of
-    Right _ -> setFileName file >>
-               liftIO (F.print "Environment saved as \"{}\".\n" (F.Only file))
+    Right _ -> do setFileName file
+                  liftIO $ fprint fmt file
     Left  e -> spitExc e
 
 cmdTempo :: String -> MidaIO ()
@@ -235,9 +237,9 @@ cmdTempo arg = do
 
 cmdUdef :: String -> MidaIO ()
 cmdUdef arg = mapM_ f (words arg)
-  where f name = do
-          liftEnv (remDef name)
-          liftIO (F.print "Definition for '{}' removed.\n" (F.Only name))
+  where f name = do liftEnv $ remDef name
+                    liftIO $ fprint fmt name
+        fmt = "Definition for «" % string % "» removed.\n"
 
 parseNum :: (Num a, Read a) => String -> a -> a
 parseNum s x = fromMaybe x $ fst <$> listToMaybe (reads s)
@@ -263,7 +265,7 @@ cmdPrefix :: String
 cmdPrefix = ":"
 
 spitExc :: SomeException -> MidaIO ()
-spitExc = liftIO . F.print "× {}.\n" . F.Only . show
+spitExc = liftIO . fprint ("× " % string % ".\n") . show
 
 trim :: String -> String
 trim = f . f

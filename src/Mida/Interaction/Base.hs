@@ -50,7 +50,7 @@ where
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 
-import qualified Data.Text.Format as F
+import Formatting
 import qualified System.Console.Haskeline as L
 
 import Mida.Language
@@ -143,5 +143,7 @@ processDef :: String -> SyntaxTree -> MidaIO ()
 processDef n t = do
   recursive <- liftEnv $ checkRecur n t
   if recursive
-  then liftIO $ F.print "Rejected recursive definition for «{}».\n" (F.Only n)
-  else liftEnv (addDef n t) >> liftIO (F.print "• «{}»\n" (F.Only n))
+  then liftIO $
+       fprint ("Rejected recursive definition for «" % string % "».\n") n
+  else do liftEnv $ addDef n t
+          liftIO $ fprint ("• «" % string % "»\n") n

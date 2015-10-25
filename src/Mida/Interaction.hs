@@ -38,7 +38,7 @@ import System.IO
 import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.IO as T
 
-import qualified Data.Text.Format as F
+import Formatting
 import qualified System.Console.Haskeline as L
 
 import Mida.Interaction.Base
@@ -49,7 +49,7 @@ import Mida.Representation
 interaction :: String -> MidaIO ()
 interaction version = do
   liftIO $ hSetBuffering stdin LineBuffering
-  liftIO $ F.print "MIDA Interactive Environment {}\n" (F.Only version)
+  liftIO $ fprint ("MIDA Interactive Environment " % string % "\n") version
   L.runInputT (L.setComplete completionFunc L.defaultSettings) midaRepl
 
 midaRepl :: L.InputT MidaIO ()
@@ -79,17 +79,18 @@ processExpr expr = do
   file <- getSrcFile
   case parseMida file expr of
     Right x -> mapM_ f x
-    Left  x -> liftIO $ F.print "Parse error in {}.\n" (F.Only x)
+    Left  x -> liftIO $ fprint (string % "\n") x
     where f (Definition n t) = processDef n t
           f (Exposition   t) =
               do len     <- getPrevLen
                  verbose <- getVerbose
                  result  <- liftEnv $ eval t
                  prin    <- liftEnv $ toPrin t
-                 liftIO $ when verbose
-                            (F.print "≡ {}" (F.Only $ showPrinciple prin))
+                 liftIO $ when verbose $
+                            fprint ("≡ " % text) (showPrinciple prin)
                  spitList $ take len result
 
 spitList :: [Int] -> MidaIO ()
 spitList [] = liftIO $ T.putStrLn "⇒ ⊥"
-spitList xs = liftIO $ F.print "⇒ {}…\n" (F.Only $ unwords (show <$> xs))
+spitList xs = liftIO $ fprint ("⇒ " % string % "…\n") l
+  where l = unwords $ show <$> xs
