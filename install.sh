@@ -41,8 +41,14 @@ echo 'ok'
 
 # 2. check if there is compiled executable
 
+mida_app="$(find .stack-work/dist/ -name mida -type f)"
+
+if test -z $mida_app
+then mida_app=dist/build/mida/mida
+fi
+
 echo -n 'searching for executable...'
-test -f dist/build/mida/mida || bad_exit
+test -f $mida_app || bad_exit
 echo 'ok'
 
 # 3. creating directories
@@ -57,10 +63,10 @@ fi
 # 4. copying new files
 
 echo 'copying new files...'
-install -vsDm755 dist/build/mida/mida /usr/bin/
-install -vDm644  LICENSE.md           /usr/share/licenses/mida/
-install -vDm644  doc/*.{texi,html}    /usr/share/doc/mida/
-install -vDm644  doc/mida.1.gz        /usr/share/man/man1/
+install -vsDm755 $mida_app         /usr/bin/
+install -vDm644  LICENSE.md        /usr/share/licenses/mida/
+install -vDm644  doc/*.{texi,html} /usr/share/doc/mida/
+install -vDm644  doc/mida.1.gz     /usr/share/man/man1/
 echo 'copying new files: ok'
 
 # 5. done
