@@ -24,43 +24,54 @@ module Mida.Representation.Parser
   , parseMida )
 where
 
-import Control.Applicative
+import Control.Applicative (empty)
 import Control.Monad (void)
-import qualified Data.Text.Lazy as T
-
+import Data.Text.Lazy (Text)
+import Mida.Language.SyntaxTree (SyntaxTree, Sel (..))
+import Numeric.Natural
 import Text.Megaparsec
 import Text.Megaparsec.Expr
 import Text.Megaparsec.Text.Lazy
+import qualified Data.Text.Lazy as T
+import qualified Mida.Representation.Base as B
 import qualified Text.Megaparsec.Lexer as L
 
-import Mida.Language.SyntaxTree (SyntaxTree, Sel (..))
-import qualified Mida.Representation.Base as B
+-- | Statement can be either definition or exposition. Expositions are only
+-- used in REPL.
 
 data Statement
   = Definition String SyntaxTree
   | Exposition SyntaxTree
     deriving (Eq, Show)
 
-probeMida :: T.Text -> Bool
-probeMida txt = not $ or ["," `T.isSuffixOf` stripped
-                       , f ("[", "]")
-                       , f ("{", "}")
-                       , f ("<", ">")
-                       , f ("(", ")") ]
+-- | Test if given fragment of MIDA code is finished and self-contained.
+
+probeMida :: Text -> Bool
+probeMida txt = not $ or
+  ["," `T.isSuffixOf` stripped
+  , f ("[", "]")
+  , f ("{", "}")
+  , f ("<", ">")
+  , f ("(", ")") ]
   where stripped = T.strip txt
         f (x, y) = (&&) <$> (> 0) <*> (/= g y) $ g x
-        g x      = T.count x stripped
+        g x = T.count x stripped
 
-parseMida :: String -> T.Text -> Either String [Statement]
+-- | Entry point for MIDA parsing.
+
+parseMida
+  :: String            -- ^ Name of file
+  -> Text              -- ^ Text to parse
+  -> Either String [Statement] -- ^ Error message or parsed statements
 parseMida file txt =
   case parse parser file txt of
     Right x -> if null x
-               then Left $ '\"' : file ++ "\":\ninvalid definition syntax"
-               else Right x
-    Left  x -> Left . show $ x
+      then Left ('\"' : file ++ "\":\ninvalid definition syntax")
+      else Right x
+    Left  e -> Left (show e)
   where parser = if T.pack B.defOp `T.isInfixOf` txt
-                 then pSource
-                 else return <$> pExposition
+         then pSource
+         else pure <$> pExposition
 
 pSource :: Parser [Statement]
 pSource = sc *> many pDefinition <* eof
@@ -83,13 +94,14 @@ pPrinciple :: Parser SyntaxTree
 pPrinciple = sepBy (pExpression <|> pElement) (optional comma)
 
 pElement :: Parser Sel
-pElement =  try pRange
-        <|> pValue
-        <|> try pReference
-        <|> pSection
-        <|> try pMulti
-        <|> pCMulti
-        <?> "element"
+pElement
+  =   try pRange
+  <|> pValue
+  <|> try pReference
+  <|> pSection
+  <|> try pMulti
+  <|> pCMulti
+  <?> "element"
 
 pRange :: Parser Sel
 pRange = Range <$> pNatural <* pOperator B.rangeOp <*> pNatural
@@ -97,7 +109,7 @@ pRange = Range <$> pNatural <* pOperator B.rangeOp <*> pNatural
 pValue :: Parser Sel
 pValue = Value <$> pNatural
 
-pNatural :: Parser Int
+pNatural :: Parser Natural
 pNatural = fromIntegral <$> natural <?> "literal value"
 
 pReference :: Parser Sel
@@ -135,7 +147,7 @@ brackets :: Parser a -> Parser a
 brackets = between (symbol "[") (symbol "]")
 
 comma :: Parser ()
-comma = void $ symbol ","
+comma = void . hidden . symbol $ ","
 
 natural :: Parser Integer
 natural = lexeme L.integer

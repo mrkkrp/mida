@@ -32,6 +32,8 @@ module Mida.Representation.Base
   , modifiers )
 where
 
+-- | All recognized note alias in ascending order.
+
 noteAlias :: [String]
 noteAlias = zipWith f names ([0..127] :: [Int])
   where names = cycle ["c","cs","d","ds","e","f","fs","g","gs","a","as","b"]
@@ -66,6 +68,8 @@ rangeOp = ".."
 
 defOp :: String
 defOp = "="
+
+-- | Modifiers specifying how to modulate some parameters.
 
 modifiers :: [String]
 modifiers = ["_ud","_du","_u","_d"]
