@@ -1,5 +1,11 @@
 # History of changes
 
+## MIDA 0.4.6
+
+* support for Stack and other maintenance stuff;
+
+* refactoring, more type-safe code and better libraries used.
+
 ## MIDA 0.4.5
 
 * various cosmetic changes;
