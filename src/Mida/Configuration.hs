@@ -17,6 +17,9 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+
 module Mida.Configuration
   ( Params
   , parseConfig
@@ -26,11 +29,11 @@ where
 import Control.Applicative
 import Control.Monad
 import Data.Maybe (fromMaybe, listToMaybe)
-import qualified Data.Map as M
-import qualified Data.Text.Lazy as T
-
+import Data.Text.Lazy (Text)
+import Numeric.Natural
 import Text.Megaparsec
 import Text.Megaparsec.Text.Lazy
+import qualified Data.Map as M
 import qualified Text.Megaparsec.Lexer as L
 
 type Params = M.Map String String
@@ -41,8 +44,8 @@ class Parsable a where
 instance Parsable String where
   parseValue = Just
 
-instance Parsable Int where
-  parseValue = parseNum
+instance Parsable Natural where
+  parseValue = fmap fst . listToMaybe . reads
 
 instance Parsable Bool where
   parseValue "true"  = Just True
@@ -52,10 +55,9 @@ instance Parsable Bool where
 lookupCfg :: Parsable a => Params -> String -> a -> a
 lookupCfg cfg v d = fromMaybe d $ M.lookup v cfg >>= parseValue
 
-parseNum :: (Num a, Read a) => String -> Maybe a
-parseNum = fmap fst . listToMaybe . reads
+-- | Parse configuration file.
 
-parseConfig :: String -> T.Text -> Either String Params
+parseConfig :: String -> Text -> Either String Params
 parseConfig file = either (Left . show) Right . parse pConfig file
 
 pConfig :: Parser Params
@@ -76,7 +78,7 @@ pString :: Parser String
 pString = lexeme $ char '"' >> manyTill L.charLiteral (char '"')
 
 pThing :: Parser String
-pThing = lexeme $ some alphaNumChar
+pThing = lexeme (some alphaNumChar)
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
