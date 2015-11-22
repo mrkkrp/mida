@@ -20,53 +20,61 @@
 module Main (main) where
 
 import Control.Monad
+import Data.Text.Lazy (Text)
 import Data.Version (showVersion)
-import Paths_mida (version)
-import System.Directory (getHomeDirectory, doesFileExist, getCurrentDirectory)
-import System.FilePath
-import qualified Data.Map as M
-import qualified Data.Text.Lazy as T
-import qualified Data.Text.Lazy.IO as T
-
 import Formatting
-import Options.Applicative
-
 import Mida.Configuration
 import Mida.Interaction
+import Numeric.Natural
+import Options.Applicative
+import Path
+import Paths_mida (version)
+import System.Directory (getHomeDirectory, doesFileExist, getCurrentDirectory)
+import qualified Data.Map as M
+import qualified Data.Text.Lazy.IO as T
+
+-- | MIDA application command line options.
 
 data Opts = Opts
-  { opInterac :: Bool
-  , opSeed    :: Int
-  , opQuarter :: Int
-  , opBeats   :: Int
-  , opOutput  :: String
-  , opLicense :: Bool
-  , opVersion :: Bool
-  , opFiles   :: [String] }
+  { opInterac :: Bool  -- ^ Do we run in interactive mode?
+  , opSeed    :: Natural -- ^ Seed for random number generator
+  , opQuarter :: Natural -- ^ Number of ticks per quarter note
+  , opBeats   :: Natural -- ^ Duration as number of quarter notes
+  , opOutput  :: FilePath -- ^ Where to save generate MIDI file
+  , opLicense :: Bool  -- ^ Whether to show license
+  , opVersion :: Bool  -- ^ Whether to show program's version
+  , opFiles   :: [FilePath] -- ^ Source files to load
+  }
+
+-- | Entry point for the whole thing.
 
 main :: IO ()
 main = execParser opts >>= f
   where f Opts { opLicense = True } = T.putStr license
         f Opts { opVersion = True } = fprint ("MIDA " % string % "\n") ver
-        f Opts { opFiles   = []   } = g $ interaction ver
+        f Opts { opFiles   = []   } = g interaction
         f Opts { opInterac = True
-               , opFiles   = ns   } = g $ cmdLoad ns >> interaction ver
+               , opFiles   = ns   } = g $ cmdLoad ns >> interaction
         f Opts { opSeed    = s
                , opQuarter = q
                , opBeats   = b
                , opOutput  = out
                , opFiles   = ns   } = g $ cmdLoad ns >> cmdMake s q b out
-        g x = T.putStrLn notice >> runMida x
+        g x = T.putStrLn notice >> runMida' x
         ver = showVersion version
 
-notice :: T.Text
+-- | Shortish copyright notice.
+
+notice :: Text
 notice =
   "MIDA Copyright © 2014, 2015 Mark Karpov\n\n\
   \This program comes with ABSOLUTELY NO WARRANTY. This is free software,\n\
   \and you are welcome to redistribute it under certain conditions; see\n\
   \GNU General Public License for details.\n"
 
-license :: T.Text
+-- | Longer copyright notice.
+
+license :: Text
 license =
   "MIDA — realization of MIDA, language for generation of MIDI files.\n\
   \Copyright © 2014, 2015 Mark Karpov\n\
@@ -84,13 +92,18 @@ license =
   \You should have received a copy of the GNU General Public License along\n\
   \with this program. If not, see <http://www.gnu.org/licenses/>.\n"
 
-runMida :: MidaIO () -> IO ()
-runMida e = do
+-- | Read configuration file if present and run MIDA monad.
+
+runMida' :: Mida () -> IO ()
+runMida' e = do
   params <- loadConfig
-  wdir   <- getCurrentDirectory
-  void $ runMidaInt e
+  wdir   <- getCurrentDirectory >>= parseAbsDir
+  dfname <- parseRelFile "foo.da"
+  let dfltSrcFile = fromAbsFile (wdir </> dfname)
+  srcFile <- parseAbsFile (lookupCfg params "src" dfltSrcFile)
+  void $ runMida e
     MidaSt { stPrevLen = lookupCfg params "prvlen" 18
-           , stSrcFile = lookupCfg params "src"    wdir </> "foo.da"
+           , stSrcFile = srcFile
            , stProg    = lookupCfg params "prog"   0
            , stTempo   = lookupCfg params "tempo"  120 }
     MidaCfg { cfgPrompt  = lookupCfg params "prompt"  "> "
@@ -99,10 +112,13 @@ runMida e = do
             , cfgProgOp  = lookupCfg params "progop"  "--force-program"
             , cfgTempoOp = lookupCfg params "tempop"  "--adjust-tempo" }
 
+-- | Read configuration file.
+
 loadConfig :: IO Params
 loadConfig = do
-  home <- getHomeDirectory
-  let file = home </> ".mida"
+  home  <- getHomeDirectory >>= parseAbsDir
+  cfn   <- parseRelFile ".mida"
+  let file = fromAbsFile (home </> cfn)
   exist <- doesFileExist file
   if exist
   then do params <- parseConfig file <$> T.readFile file
@@ -111,11 +127,15 @@ loadConfig = do
             Left  _ -> return M.empty
   else return M.empty
 
+-- | Some information about the program.
+
 opts :: ParserInfo Opts
 opts =  info (helper <*> options)
       ( fullDesc
      <> progDesc "starts MIDA interpreter or translates source into MIDI file"
      <> header "mida — interpreter for MIDA language" )
+
+-- | Description of command line options.
 
 options :: Parser Opts
 options = Opts
@@ -127,20 +147,20 @@ options = Opts
   ( long "seed"
   <> short 's'
   <> metavar "SEED"
-  <> value dfltSeed
-  <> help ("Set seed for MIDI generation, default is " ++ show dfltSeed) )
+  <> value defaultSeed
+  <> help ("Set seed for MIDI generation, default is " ++ show defaultSeed) )
   <*> option auto
   ( long "quarter"
   <> short 'q'
   <> metavar "TICKS"
-  <> value dfltQuarter
-  <> help ("Set ticks per quarter note, default is " ++ show dfltQuarter) )
+  <> value defaultQuarter
+  <> help ("Set ticks per quarter note, default is " ++ show defaultQuarter) )
   <*> option auto
   ( long "beats"
   <> short 'b'
   <> metavar "BEATS"
-  <> value dfltBeats
-  <> help ("Set total time in quarter notes, default is " ++ show dfltBeats) )
+  <> value defaultBeats
+  <> help ("Set total time in quarter notes, default is " ++ show defaultBeats) )
   <*> strOption
   ( long "output"
   <> short 'o'
