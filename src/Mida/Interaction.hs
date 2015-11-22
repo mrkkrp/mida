@@ -19,40 +19,47 @@
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module Mida.Interaction
-  ( MidaIO
-  , MidaInt
-  , runMidaInt
-  , MidaSt (..)
+  ( MidaSt  (..)
   , MidaCfg (..)
+  , Mida
+  , runMida
   , cmdLoad
   , cmdMake
   , interaction
-  , dfltSeed
-  , dfltQuarter
-  , dfltBeats )
+  , defaultSeed
+  , defaultQuarter
+  , defaultBeats )
 where
 
 import Control.Monad.Reader
-import Prelude hiding (mapM_)
-import System.IO
-import qualified Data.Text.Lazy as T
-import qualified Data.Text.Lazy.IO as T
-
+import Control.Monad.State.Strict
+import Data.Text.Lazy (Text)
+import Data.Version (showVersion)
 import Formatting
-import qualified System.Console.Haskeline as L
-
 import Mida.Interaction.Base
 import Mida.Interaction.Commands
 import Mida.Language
 import Mida.Representation
+import Numeric.Natural
+import Path
+import Paths_mida (version)
+import System.IO
+import qualified Data.Text.Lazy as T
+import qualified Data.Text.Lazy.IO as T
+import qualified System.Console.Haskeline as L
 
-interaction :: String -> MidaIO ()
-interaction version = do
+-- | Entry point for REPL interaction.
+
+interaction :: Mida ()
+interaction = do
   liftIO $ hSetBuffering stdin LineBuffering
-  liftIO $ fprint ("MIDA Interactive Environment " % string % "\n") version
+  liftIO $ fprint
+    ("MIDA Interactive Environment " % string % "\n") (showVersion version)
   L.runInputT (L.setComplete completionFunc L.defaultSettings) midaRepl
 
-midaRepl :: L.InputT MidaIO ()
+-- | Infinite REPL loop inside Haskeline's 'InputT' monad transformer.
+
+midaRepl :: L.InputT Mida ()
 midaRepl = do
   input <- getMultiline ""
   case input of
@@ -62,9 +69,11 @@ midaRepl = do
                   midaRepl
     Nothing -> return ()
 
-getMultiline :: T.Text -> L.InputT MidaIO (Maybe T.Text)
+-- | Read multi-line.
+
+getMultiline :: Text -> L.InputT Mida (Maybe Text)
 getMultiline prv = do
-  prompt <- lift getPrompt
+  prompt <- lift (asks cfgPrompt)
   input  <- L.getInputLine $
             if T.null prv then prompt else replicate (length prompt) ' '
   case input of
@@ -74,23 +83,27 @@ getMultiline prv = do
                  else getMultiline r
     Nothing -> return Nothing
 
-processExpr :: T.Text -> MidaIO ()
+-- | Process expression.
+
+processExpr :: Text -> Mida ()
 processExpr expr = do
-  file <- getSrcFile
-  case parseMida file expr of
+  file <- gets stSrcFile
+  case parseMida (toFilePath file) expr of
     Right x -> mapM_ f x
     Left  x -> liftIO $ fprint (string % "\n") x
     where f (Definition n t) = processDef n t
           f (Exposition   t) =
-              do len     <- getPrevLen
-                 verbose <- getVerbose
-                 result  <- liftEnv $ eval t
-                 prin    <- liftEnv $ toPrin t
+              do len     <- gets stPrevLen
+                 verbose <- asks cfgVerbose
+                 result  <- eval t
+                 prin    <- toPrin t
                  liftIO $ when verbose $
                             fprint ("≡ " % text) (showPrinciple prin)
-                 spitList $ take len result
+                 spitList $ take (fromIntegral len) result
 
-spitList :: [Int] -> MidaIO ()
+-- | Pretty-print stream of naturals.
+
+spitList :: [Natural] -> Mida ()
 spitList [] = liftIO $ T.putStrLn "⇒ ⊥"
 spitList xs = liftIO $ fprint ("⇒ " % string % "…\n") l
   where l = unwords $ show <$> xs

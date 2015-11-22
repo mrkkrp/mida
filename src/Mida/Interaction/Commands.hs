@@ -18,6 +18,8 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
+{-# LANGUAGE RecordWildCards #-}
+
 module Mida.Interaction.Commands
   ( processCmd
   , completionFunc
@@ -26,56 +28,65 @@ module Mida.Interaction.Commands
   , cmdPrefix )
 where
 
-import Control.Exception (SomeException, try)
-import Control.Monad (void)
+import Control.Exception (SomeException)
+import Control.Monad.Catch (try, MonadThrow, MonadMask, fromException, throwM)
 import Control.Monad.IO.Class
+import Control.Monad.Reader
+import Control.Monad.State.Class
 import Data.Char (isSpace)
 import Data.Foldable (find)
 import Data.List (elemIndex, isPrefixOf)
 import Data.Maybe (fromMaybe, listToMaybe)
+import Data.Text.Lazy (Text)
+import Formatting
+import Mida.Interaction.Base
+import Mida.Language
+import Mida.Midi
+import Mida.Representation
+import Numeric.Natural
+import Path
 import System.Directory
-  ( canonicalizePath
-  , doesDirectoryExist
+  ( doesDirectoryExist
   , doesFileExist
   , getCurrentDirectory
   , getHomeDirectory
-  , getTemporaryDirectory
+  , makeAbsolute
   , setCurrentDirectory )
-import System.Exit (exitSuccess)
-import System.FilePath
-  ( addTrailingPathSeparator
-  , joinPath
-  , replaceExtension
-  , splitDirectories
-  , takeFileName
-  , (</>) )
+import System.Exit (exitSuccess, ExitCode)
+import System.IO.Temp (withSystemTempDirectory)
 import System.Process
   ( shell
   , createProcess
   , waitForProcess
   , delegate_ctlc )
+import qualified Codec.Midi as Midi
 import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.IO as T
-
-import Formatting
-import qualified Codec.Midi as Midi
 import qualified System.Console.Haskeline as L
+import qualified System.FilePath as FP
 
-import Mida.Interaction.Base
-import Mida.Language
-import Mida.Midi
-import Mida.Representation
+-- | Description of REPL command.
 
 data Cmd = Cmd
-  { cmdName :: String
-  , cmdFunc :: String -> MidaIO ()
-  , cmdDesc :: T.Text
-  , cmdComp :: CompletionScheme }
+  { cmdName :: String  -- ^ Name of command
+  , cmdFunc :: String -> Mida () -- ^ Action it performs
+  , cmdDesc :: Text    -- ^ Description of command
+  , cmdComp :: CompletionScheme -- ^ How to complete arguments of the command
+  }
 
-data CompletionScheme = None | Files | Names deriving (Eq, Show)
+-- | How to complete arguments of command.
+
+data CompletionScheme
+  = None               -- ^ Don't complete at all
+  | Files              -- ^ Complete as file names
+  | Names              -- ^ Complete as definition names
+    deriving (Eq, Show)
+
+-- | All defined commands.
 
 commands :: [Cmd]
 commands =
+  --    name      action     description                            completion
   [ Cmd "cd"      cmdCd      "Change working directory"             Files
   , Cmd "clear"   cmdClear   "Restore default state of environment" None
   , Cmd "def"     cmdDef     "Print definition of given symbol"     Names
@@ -92,181 +103,299 @@ commands =
   , Cmd "tempo"   cmdTempo   "Set tempo for preview"                None
   , Cmd "udef"    cmdUdef    "Remove definition of given symbol"    Names ]
 
-processCmd :: T.Text -> MidaIO ()
+-- | Process command (with its arguments).
+
+processCmd :: Text -> Mida ()
 processCmd txt =
   case find g commands of
-    Just Cmd { cmdFunc = f } -> f . T.unpack . T.strip $ args
+    Just Cmd { cmdFunc = f } -> do
+      result <- try . f . T.unpack . T.strip $ args
+                :: Mida (Either SomeException ())
+      case result of
+        Left  e ->
+          case fromException e :: Maybe ExitCode of
+            Just  _ -> throwM e
+            Nothing -> spitExc e
+        Right _ -> return ()
     Nothing -> liftIO $
-               fprint ("Unknown command, try " % string % "help.\n") cmdPrefix
+      fprint ("Unknown command, try " % string % "help.\n") cmdPrefix
   where g Cmd { cmdName = c } = c == dropCmdPrefix (T.unpack cmd)
         (cmd, args)           = T.break isSpace (T.strip txt)
 
-completionFunc :: L.CompletionFunc MidaIO
+-- | Completion function to work with Haskeline.
+
+completionFunc
+  :: (HasEnv m, MonadIO m, MonadReader MidaCfg m, MonadState MidaSt m)
+  => L.CompletionFunc m
 completionFunc = L.completeWordWithPrev Nothing " " getCompletions
 
-getCompletions :: String -> String -> MidaIO [L.Completion]
+-- | Generate completions.
+
+getCompletions
+  :: (HasEnv m, MonadIO m, MonadReader MidaCfg m, MonadState MidaSt m)
+  => String            -- ^ Contents of line before cursor, reversed
+  -> String            -- ^ Contents of line after cursor
+  -> m [L.Completion]  -- ^ List of completions
 getCompletions prev word = do
-  names <- liftEnv getRefs
+  names <- getRefs
   files <- L.listFiles word
   let cmds    = (cmdPrefix ++) . cmdName <$> commands
+      f = fmap L.simpleCompletion . filter (word `isPrefixOf`)
       g None  = []
       g Files = files
       g Names = f names
-  return $ case words . reverse $ prev of
-             []    -> f $ cmds ++ names
-             (c:_) -> case c `elemIndex` cmds of
-                        Just i  -> g . cmdComp $ commands !! i
-                        Nothing -> f names
-    where f = fmap L.simpleCompletion . filter (word `isPrefixOf`)
+  return $
+    case words . reverse $ prev of
+      []    -> f $ cmds ++ names
+      (c:_) ->
+        case c `elemIndex` cmds of
+          Just i  -> g . cmdComp $ commands !! i
+          Nothing -> f names
 
-cmdCd :: String -> MidaIO ()
-cmdCd path = liftIO $ do
-  new     <- addTrailingPathSeparator . (</> path) <$> getCurrentDirectory
-  present <- doesDirectoryExist new
+-- | Change working directory.
+
+cmdCd :: MonadIO m => String -> m ()
+cmdCd next' = liftIO $ do
+  next    <- fixPath next' >>= parseAbsDir
+  let npath = fromAbsDir next
+  present <- doesDirectoryExist npath
   if present
-  then do corrected <- canonicalizePath new
-          setCurrentDirectory corrected
-          fprint ("Changed to \"" % string % "\".\n") corrected
-  else fprint ("Cannot cd to \"" % string % "\".\n") new
+  then do setCurrentDirectory npath
+          fprint ("Changed to \"" % string % "\".\n") npath
+  else fprint ("Cannot cd to \"" % string % "\".\n") npath
 
-cmdClear :: String -> MidaIO ()
-cmdClear _ = liftEnv clearDefs >> liftIO (T.putStrLn "Environment cleared.")
+-- | Restore default state of environment.
 
-cmdDef :: String -> MidaIO ()
+cmdClear :: (HasEnv m, MonadIO m) => String -> m ()
+cmdClear _ = do
+  clearDefs
+  liftIO (T.putStrLn "Environment cleared.")
+
+-- | Print definition of given symbol.
+
+cmdDef :: (HasEnv m, MonadIO m) => String -> m ()
 cmdDef arg = mapM_ f (words arg)
-  where f name = liftEnv (getSrc name) >>= liftIO . T.putStr
+  where f name = getSrc name >>= liftIO . T.putStr
 
-cmdHelp :: String -> MidaIO ()
-cmdHelp _ = liftIO (T.putStrLn "Available commands:") >> mapM_ f commands
-  where f Cmd { cmdName = c, cmdDesc = d } = liftIO $ fprint fmt cmdPrefix c d
-        fmt = ("  " % string % (right 24 ' ' %. string) % text % "\n")
+-- | Show help with list of all available commands.
 
-cmdLoad' :: String -> MidaIO ()
+cmdHelp :: MonadIO m => String -> m ()
+cmdHelp _ = liftIO $ do
+  T.putStrLn "Available commands:"
+  mapM_ f commands
+  where f Cmd {..} = fprint fmt cmdPrefix cmdName cmdDesc
+        fmt = "  " % string % (right 24 ' ' %. string) % text % "\n"
+
+-- | Load definitions from given file. Note that this version of the command
+-- is used in REPL, not 'cmdLoad'.
+
+cmdLoad'
+  :: (HasEnv m, MonadIO m, MonadState MidaSt m, MonadThrow m)
+  => String
+  -> m ()
 cmdLoad' = cmdLoad . words
 
-cmdLoad :: [String] -> MidaIO()
+-- | Alternative interface to loading functionality. This one is used in
+-- main module.
+
+cmdLoad
+  :: (HasEnv m, MonadIO m, MonadState MidaSt m, MonadThrow m)
+  => [FilePath]
+  -> m ()
 cmdLoad = mapM_ loadOne
 
-loadOne :: String -> MidaIO ()
+-- | Load single source file.
+
+loadOne
+  :: (HasEnv m, MonadIO m, MonadState MidaSt m, MonadThrow m)
+  => FilePath
+  -> m ()
 loadOne given = do
   file <- output given ""
-  b    <- liftIO $ doesFileExist file
+  let fpath = fromAbsFile file
+  b    <- liftIO $ doesFileExist fpath
   if b
-  then do contents <- liftIO $ T.readFile file
-          case parseMida (takeFileName file) contents of
-            Right x -> do mapM_ f x
-                          setFileName file
-                          liftIO $ fprint
-                                 ("\"" % string % "\" loaded successfully.\n")
-                                 file
+  then do contents <- liftIO $ T.readFile fpath
+          case parseMida fpath contents of
+            Right x -> do
+              mapM_ f x
+              setFileName file
+              liftIO $ fprint
+                ("\"" % string % "\" loaded successfully.\n")
+                fpath
             Left  x -> liftIO $ fprint (string % "\n") x
-  else liftIO $ fprint ("Could not find \"" % string % "\".\n") file
+  else liftIO $ fprint ("Could not find \"" % string % "\".\n") fpath
     where f (Definition n t) = processDef n t
           f (Exposition   _) = return ()
 
-cmdMake' :: String -> MidaIO ()
+-- | Version of 'cmdMake' used by REPL.
+
+cmdMake' :: (HasEnv m, MonadIO m, MonadState MidaSt m, MonadThrow m)
+  => String
+  -> m ()
 cmdMake' arg =
   let (s:q:b:f:_) = words arg ++ repeat ""
-  in cmdMake (parseNum s dfltSeed)
-             (parseNum q dfltQuarter)
-             (parseNum b dfltBeats)
+  in cmdMake (parseNum s defaultSeed)
+             (parseNum q defaultQuarter)
+             (parseNum b defaultBeats)
              f
 
-cmdMake :: Int -> Int -> Int -> String -> MidaIO ()
+-- | Generate and save MIDI file.
+
+cmdMake :: (HasEnv m, MonadIO m, MonadState MidaSt m, MonadThrow m)
+  => Natural           -- ^ Seed for random number generator
+  -> Natural           -- ^ Q value: number of ticks per quarter note
+  -> Natural           -- ^ Desired duration in number of quarter notes
+  -> FilePath          -- ^ Where to save MIDI file
+  -> m ()
 cmdMake s q b f = do
   file   <- output f "mid"
-  midi   <- liftEnv $ genMidi s q b
-  result <- liftIO $ try (Midi.exportFile file midi)
-  case result of
-    Right _ -> liftIO $ fprint ("MIDI file saved as \"" % string % "\".\n") file
-    Left  e -> spitExc e
+  let fpath = fromAbsFile file
+  midi   <- genMidi s q b
+  liftIO $ Midi.exportFile fpath midi
+  liftIO $ fprint ("MIDI file saved as \"" % string % "\".\n") fpath
 
-cmdProg :: String -> MidaIO ()
+-- | Set program for preview.
+
+cmdProg :: MonadState MidaSt m => String -> m ()
 cmdProg arg = do
-  prog <- getProg
-  setProg $ parseNum (trim arg) prog
+  prog <- gets stProg
+  modify $ \st -> st { stProg = parseNum (trim arg) prog }
 
-cmdPrv :: String -> MidaIO ()
+-- | Preview with help of external program.
+
+cmdPrv :: ( HasEnv m
+          , MonadIO m
+          , MonadReader MidaCfg m
+          , MonadState MidaSt m
+          , MonadThrow m
+          , MonadMask m )
+  => String -> m ()
 cmdPrv arg = do
-  prvcmd  <- getPrvCmd
-  progOp  <- getProgOp
-  prog    <- show <$> getProg
-  tempoOp <- getTempoOp
-  tempo   <- show <$> getTempo
-  temp    <- liftIO getTemporaryDirectory
-  f       <- output "" "mid"
-  let (s:q:b:_) = words arg ++ repeat ""
-      file      = temp </> takeFileName f
-      cmd       = unwords [prvcmd, progOp, prog, tempoOp, tempo, file]
-  cmdMake (parseNum s dfltSeed)
-          (parseNum q dfltQuarter)
-          (parseNum b dfltBeats)
-          file
-  (_, _, _, ph) <- liftIO $ createProcess (shell cmd) { delegate_ctlc = True }
-  liftIO . void $ waitForProcess ph
+  prvcmd  <- asks cfgPrvCmd
+  progOp  <- asks cfgProgOp
+  prog    <- show <$> gets stProg
+  tempoOp <- asks cfgTempoOp
+  tempo   <- show <$> gets stTempo
+  withSystemTempDirectory "mida" $ \tdir -> do
+    tpath <- parseAbsDir tdir
+    f     <- filename <$> output "" "mid"
+    let (s:q:b:_) = words arg ++ repeat ""
+        file      = fromAbsFile (tpath </> f)
+        cmd       = unwords [prvcmd, progOp, prog, tempoOp, tempo, file]
+    cmdMake (parseNum s defaultSeed)
+            (parseNum q defaultQuarter)
+            (parseNum b defaultBeats)
+            file
+    (_, _, _, ph) <- liftIO $ createProcess (shell cmd) { delegate_ctlc = True }
+    liftIO . void . waitForProcess $ ph
 
-cmdLength :: String -> MidaIO ()
-cmdLength x = getPrevLen >>= setPrevLen . parseNum x
+-- | Set length of displayed results.
 
-cmdPurge :: String -> MidaIO ()
+cmdLength :: MonadState MidaSt m => String -> m ()
+cmdLength arg = do
+  len <- gets stPrevLen
+  modify $ \st -> st { stPrevLen = parseNum (trim arg) len }
+
+-- | Remove redundant definitions.
+
+cmdPurge :: (HasEnv m, MonadIO m) => String -> m ()
 cmdPurge _ = do
-  liftEnv $ purgeEnv topDefs
+  purgeEnv topDefs
   liftIO $ T.putStrLn "Environment purged."
 
-cmdPwd :: String -> MidaIO ()
+-- | Print working directory.
+
+cmdPwd :: MonadIO m => String -> m ()
 cmdPwd _ = liftIO (getCurrentDirectory >>= putStrLn)
 
-cmdQuit :: String -> MidaIO ()
+-- | Quit the interactive environment.
+
+cmdQuit :: MonadIO m => String -> m ()
 cmdQuit _ = liftIO exitSuccess
 
-cmdSave :: String -> MidaIO ()
+-- | Save current environment in file.
+
+cmdSave
+  :: (HasEnv m, MonadIO m, MonadState MidaSt m, MonadThrow m)
+  => String
+  -> m ()
 cmdSave given = do
   file   <- output given ""
-  src    <- liftEnv fullSrc
-  result <- liftIO (try (T.writeFile file src) :: IO (Either SomeException ()))
-  let fmt = "Environment saved as \"" % string % "\".\n"
-  case result of
-    Right _ -> do setFileName file
-                  liftIO $ fprint fmt file
-    Left  e -> spitExc e
+  src    <- fullSrc
+  liftIO $ T.writeFile (toFilePath file) src
+  setFileName file
+  liftIO $
+    fprint ("Environment saved as \"" % string % "\".\n") (fromAbsFile file)
 
-cmdTempo :: String -> MidaIO ()
+-- | Set tempo for preview.
+
+cmdTempo :: MonadState MidaSt m => String -> m ()
 cmdTempo arg = do
-  tempo <- getTempo
-  setTempo $ parseNum (trim arg) tempo
+  tempo <- gets stTempo
+  modify $ \st -> st { stTempo = parseNum (trim arg) tempo }
 
-cmdUdef :: String -> MidaIO ()
+-- | Undefine definitions.
+
+cmdUdef :: (HasEnv m, MonadIO m) => String -> m ()
 cmdUdef arg = mapM_ f (words arg)
-  where f name = do liftEnv $ remDef name
-                    liftIO $ fprint fmt name
+  where f name = do
+          remDef name
+          liftIO $ fprint fmt name
         fmt = "Definition for «" % string % "» removed.\n"
 
-parseNum :: (Num a, Read a) => String -> a -> a
+-- | Parse a number defaulting to given value.
+
+parseNum :: (Num a, Read a)
+  => String            -- ^ String to parse
+  -> a                 -- ^ Default value
+  -> a                 -- ^ Result
 parseNum s x = fromMaybe x $ fst <$> listToMaybe (reads s)
 
-output :: String -> String -> MidaIO String
-output given ext = do
-  actual <- getSrcFile
-  home   <- liftIO getHomeDirectory
-  let a = if null ext then actual else replaceExtension actual ext
-      g = joinPath . fmap f . splitDirectories $ given
-      f x = if x == "~" then home else x
-  return $ if null given then a else g
+-- | Generate file name from given base name and extension.
 
-setFileName :: FilePath -> MidaIO ()
-setFileName path = (</> path) <$> liftIO getCurrentDirectory >>= setSrcFile
+output :: (MonadIO m, MonadThrow m, MonadState MidaSt m)
+  => FilePath            -- ^ Base name
+  -> String              -- ^ Extension
+  -> m (Path Abs File)   -- ^ Absolute path to output file
+output given' ext = do
+  given  <- liftIO (fixPath given')
+  actual <- fromAbsFile <$> gets stSrcFile
+  let a = if null ext then actual else FP.replaceExtension actual ext
+  parseAbsFile (if null given' then a else given)
+
+-- | Make path absolute resolving tilde (that's actually shell-functionality,
+-- but we do it for convenience).
+
+fixPath :: FilePath -> IO FilePath
+fixPath path = do
+  home <- getHomeDirectory
+  let f x = if x == "~" then home else x
+  makeAbsolute . FP.joinPath . fmap f . FP.splitDirectories $ path
+
+-- | Change current file name.
+
+setFileName :: MonadState MidaSt m => Path Abs File -> m ()
+setFileName fpath = modify $ \st -> st { stSrcFile = fpath }
+
+-- | Drop command prefix if it's present.
 
 dropCmdPrefix :: String -> String
 dropCmdPrefix arg
   | cmdPrefix `isPrefixOf` arg = drop (length cmdPrefix) arg
   | otherwise = arg
 
+-- | All REPL commands are prefixed with this.
+
 cmdPrefix :: String
 cmdPrefix = ":"
 
-spitExc :: SomeException -> MidaIO ()
+-- | Print out an exception.
+
+spitExc :: MonadIO m => SomeException -> m ()
 spitExc = liftIO . fprint ("× " % string % ".\n") . show
 
+-- | Stupid trimming for strings.
+
 trim :: String -> String
-trim = f . f
-  where f = reverse . dropWhile isSpace
+trim = let f = reverse . dropWhile isSpace in f . f
