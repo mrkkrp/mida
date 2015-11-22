@@ -19,11 +19,11 @@
 
 module Mida.Language
   ( SyntaxTree
-  , Sel (..)
+  , Sel     (..)
   , Principle
-  , Elt
   , Element (..)
-  , MidaEnv (..)
+  , MidaEnv
+  , HasEnv  (..)
   , runMidaEnv
   , addDef
   , remDef
@@ -34,14 +34,12 @@ module Mida.Language
   , getRefs
   , purgeEnv
   , checkRecur
-  , setRandGen
-  , newRandGen
   , evalDef
   , eval
   , toPrin )
 where
 
 import Mida.Language.SyntaxTree (SyntaxTree, Sel (..))
-import Mida.Language.Element (Principle, Elt, Element (..))
+import Mida.Language.Element (Principle, Element (..))
 import Mida.Language.Environment
 import Mida.Language.Eval (evalDef, eval, toPrin)

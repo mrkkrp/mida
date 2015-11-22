@@ -18,22 +18,29 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
+{-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE DeriveFunctor  #-}
+
 module Mida.Language.Element
   ( Principle
-  , Elt
   , Element (..) )
 where
 
 import Control.Arrow ((***))
+import Numeric.Natural
 
-type Principle = [Elt]
-type Elt       = Element Int
+-- | Collection of elements for evaluation, representation of some aspect of
+-- voice.
+
+type Principle = [Element Natural]
+
+-- | Fundamental type representing an atom for evaluation.
 
 data Element a
-  = Val  a
-  | Sec  [Element a]
-  | Mul  [Element a]
-  | CMul [([Element a], [Element a])]
+  = Val  a             -- ^ Single value, evaluates to itself
+  | Sec  [Element a]   -- ^ Universal container for other values
+  | Mul  [Element a]   -- ^ Multivalue, the way to introduce varying elements
+  | CMul [([Element a], [Element a])] -- ^ Conditional multivalue
     deriving (Eq, Show, Functor, Foldable)
 
 instance Applicative Element where
