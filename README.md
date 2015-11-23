@@ -71,15 +71,23 @@ declarative nature of the language.
 ```
 #
 # Example of MIDA program
-# Recommended tempo is 60
+# Tempo ≈ 50
 #
 
-dur0 = 12 6 6
-dur1 = @[dur0]
-pch0 = {0 5 7} + [c5 {e5 d5} c6 {f5 g5}]
-pch1 = pch0
-vel0 = {7..11} * 10
-vel1 = vel0
+dur0   = 6
+dur1   = dur0
+dur2   = dur0
+dur3   = {96 $ 2, 24}
+pch0   = c5 {e5 d5 [a5 a5]} $ 2, g5
+pch1   = pch0
+pch2   = {c2 c3}
+pch3   = {c6 d6 e6 f6 g6 a6 b6 c7 e7}
+quiet  = {40..80}
+normal = quiet + 30
+vel0   = quiet
+vel1   = quiet
+vel2   = 0, normal $ 2, 0
+vel3   = normal
 ```
 
 See [MIDA Manual](https://mrkkrp.github.io/mida/) for more information.
@@ -87,8 +95,8 @@ See [MIDA Manual](https://mrkkrp.github.io/mida/) for more information.
 ## How to control other things?
 
 If you're into this sort of thing, you may like my another project, called
-[ALGA](https://github.com/mrkkrp/alga). It allows to control automation in
-various DAWs.
+[ALGA](https://github.com/mrkkrp/alga). It allows to control automation
+natively in various DAWs.
 
 ## License
 
