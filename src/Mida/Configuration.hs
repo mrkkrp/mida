@@ -30,13 +30,17 @@ import Control.Applicative
 import Control.Monad
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Text.Lazy (Text)
+import Data.Map (Map)
 import Numeric.Natural
 import Text.Megaparsec
 import Text.Megaparsec.Text.Lazy
 import qualified Data.Map as M
 import qualified Text.Megaparsec.Lexer as L
 
-type Params = M.Map String String
+-- | Collection of configuration parameters. They are kept as 'String's and
+-- then converted on request.
+
+type Params = Map String String
 
 class Parsable a where
   parseValue :: String -> Maybe a
@@ -52,7 +56,14 @@ instance Parsable Bool where
   parseValue "false" = Just False
   parseValue _       = Nothing
 
-lookupCfg :: Parsable a => Params -> String -> a -> a
+-- | Lookup a value from configuration parameters. Type of result determines
+-- how value will be interpreted.
+
+lookupCfg :: Parsable a
+  => Params            -- ^ Collection of configuration parameters
+  -> String            -- ^ Name of parameter to lookup
+  -> a                 -- ^ Fallback value
+  -> a                 -- ^ Result
 lookupCfg cfg v d = fromMaybe d $ M.lookup v cfg >>= parseValue
 
 -- | Parse configuration file.

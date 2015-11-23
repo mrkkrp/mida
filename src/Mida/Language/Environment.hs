@@ -54,7 +54,7 @@ import System.Random (split)
 import System.Random.TF (TFGen, mkTFGen)
 import qualified Data.Map.Strict as M
 
--- | Mida environment state. Basically this amounts to collection of
+-- | MIDA environment state. Basically this amounts to collection of
 -- definitions and random number generator.
 
 data MidaEnvSt = MidaEnvSt
@@ -66,6 +66,8 @@ data MidaEnvSt = MidaEnvSt
 -- pair of variable name and corresponding AST.
 
 type Defs = Map String SyntaxTree
+
+-- | Monad that implements MIDA environment.
 
 newtype MidaEnv m a = MidaEnv
   { unMidaEnv :: StateT MidaEnvSt m a }

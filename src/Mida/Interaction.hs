@@ -63,10 +63,11 @@ midaRepl :: L.InputT Mida ()
 midaRepl = do
   input <- getMultiline ""
   case input of
-    Just x  -> do if T.pack cmdPrefix `T.isPrefixOf` T.strip x
-                  then lift $ processCmd x
-                  else lift $ processExpr x
-                  midaRepl
+    Just x  -> do
+      if T.pack cmdPrefix `T.isPrefixOf` T.strip x
+      then lift $ processCmd x
+      else lift $ processExpr x
+      midaRepl
     Nothing -> return ()
 
 -- | Read multi-line.
@@ -88,18 +89,18 @@ getMultiline prv = do
 processExpr :: Text -> Mida ()
 processExpr expr = do
   file <- gets stSrcFile
-  case parseMida (toFilePath file) expr of
+  case parseMida (fromAbsFile file) expr of
     Right x -> mapM_ f x
     Left  x -> liftIO $ fprint (string % "\n") x
     where f (Definition n t) = processDef n t
-          f (Exposition   t) =
-              do len     <- gets stPrevLen
-                 verbose <- asks cfgVerbose
-                 result  <- eval t
-                 prin    <- toPrin t
-                 liftIO $ when verbose $
-                            fprint ("≡ " % text) (showPrinciple prin)
-                 spitList $ take (fromIntegral len) result
+          f (Exposition   t) = do
+            len     <- gets stPrevLen
+            verbose <- asks cfgVerbose
+            result  <- eval t
+            prin    <- toPrin t
+            liftIO . when verbose $
+              fprint ("≡ " % text) (showPrinciple prin)
+            spitList $ take (fromIntegral len) result
 
 -- | Pretty-print stream of naturals.
 

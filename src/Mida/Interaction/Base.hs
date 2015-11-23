@@ -86,8 +86,8 @@ defaultBeats = 16
 -- | Process a principle definition.
 
 processDef :: (HasEnv m, MonadIO m)
-  => String
-  -> SyntaxTree
+  => String            -- ^ Definition name
+  -> SyntaxTree        -- ^ AST for that definition
   -> m ()
 processDef n t = do
   recursive <- checkRecur n t

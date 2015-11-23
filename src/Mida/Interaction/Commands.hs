@@ -82,7 +82,7 @@ data CompletionScheme
   | Names              -- ^ Complete as definition names
     deriving (Eq, Show)
 
--- | All defined commands.
+-- | All defined REPL commands.
 
 commands :: [Cmd]
 commands =
@@ -140,7 +140,7 @@ getCompletions prev word = do
   names <- getRefs
   files <- L.listFiles word
   let cmds    = (cmdPrefix ++) . cmdName <$> commands
-      f = fmap L.simpleCompletion . filter (word `isPrefixOf`)
+      f       = fmap L.simpleCompletion . filter (word `isPrefixOf`)
       g None  = []
       g Files = files
       g Names = f names
@@ -189,27 +189,21 @@ cmdHelp _ = liftIO $ do
 -- | Load definitions from given file. Note that this version of the command
 -- is used in REPL, not 'cmdLoad'.
 
-cmdLoad'
-  :: (HasEnv m, MonadIO m, MonadState MidaSt m, MonadThrow m)
-  => String
-  -> m ()
+cmdLoad' :: (HasEnv m, MonadIO m, MonadState MidaSt m, MonadThrow m)
+  => String -> m ()
 cmdLoad' = cmdLoad . words
 
 -- | Alternative interface to loading functionality. This one is used in
 -- main module.
 
-cmdLoad
-  :: (HasEnv m, MonadIO m, MonadState MidaSt m, MonadThrow m)
-  => [FilePath]
-  -> m ()
+cmdLoad :: (HasEnv m, MonadIO m, MonadState MidaSt m, MonadThrow m)
+  => [FilePath] -> m ()
 cmdLoad = mapM_ loadOne
 
 -- | Load single source file.
 
-loadOne
-  :: (HasEnv m, MonadIO m, MonadState MidaSt m, MonadThrow m)
-  => FilePath
-  -> m ()
+loadOne :: (HasEnv m, MonadIO m, MonadState MidaSt m, MonadThrow m)
+  => FilePath -> m ()
 loadOne given = do
   file <- output given ""
   let fpath = fromAbsFile file
@@ -231,8 +225,7 @@ loadOne given = do
 -- | Version of 'cmdMake' used by REPL.
 
 cmdMake' :: (HasEnv m, MonadIO m, MonadState MidaSt m, MonadThrow m)
-  => String
-  -> m ()
+  => String -> m ()
 cmdMake' arg =
   let (s:q:b:f:_) = words arg ++ repeat ""
   in cmdMake (parseNum s defaultSeed)
@@ -316,17 +309,15 @@ cmdQuit _ = liftIO exitSuccess
 
 -- | Save current environment in file.
 
-cmdSave
-  :: (HasEnv m, MonadIO m, MonadState MidaSt m, MonadThrow m)
-  => String
-  -> m ()
+cmdSave :: (HasEnv m, MonadIO m, MonadState MidaSt m, MonadThrow m)
+  => String -> m ()
 cmdSave given = do
   file   <- output given ""
+  let fpath = fromAbsFile file
   src    <- fullSrc
-  liftIO $ T.writeFile (toFilePath file) src
+  liftIO $ T.writeFile fpath src
   setFileName file
-  liftIO $
-    fprint ("Environment saved as \"" % string % "\".\n") (fromAbsFile file)
+  liftIO $ fprint ("Environment saved as \"" % string % "\".\n") fpath
 
 -- | Set tempo for preview.
 
@@ -341,8 +332,7 @@ cmdUdef :: (HasEnv m, MonadIO m) => String -> m ()
 cmdUdef arg = mapM_ f (words arg)
   where f name = do
           remDef name
-          liftIO $ fprint fmt name
-        fmt = "Definition for «" % string % "» removed.\n"
+          liftIO $ fprint ("Definition for «" % string % "» removed.\n") name
 
 -- | Parse a number defaulting to given value.
 
@@ -355,7 +345,7 @@ parseNum s x = fromMaybe x $ fst <$> listToMaybe (reads s)
 -- | Generate file name from given base name and extension.
 
 output :: (MonadIO m, MonadThrow m, MonadState MidaSt m)
-  => FilePath            -- ^ Base name
+  => FilePath            -- ^ Given file name
   -> String              -- ^ Extension
   -> m (Path Abs File)   -- ^ Absolute path to output file
 output given' ext = do

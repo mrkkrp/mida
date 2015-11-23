@@ -128,9 +128,7 @@ matchHistory xs = do
 
 -- | Add evaluated value to history.
 
-addHistory :: MonadState CalcSt m
-  => Natural
-  -> m ()
+addHistory :: MonadState CalcSt m => Natural -> m ()
 addHistory x = modify $ \c -> c { clHistory = return x <> clHistory c }
 
 -- | Transform 'SyntaxTree' into 'Principle' applying all necessary
@@ -199,7 +197,7 @@ sdiv :: Natural -> Natural -> Natural
 sdiv x 0 = x
 sdiv x y = x `div` y
 
--- | Saturation subtraction.
+-- | Saturated subtraction.
 
 sdif :: Natural -> Natural -> Natural
 sdif x y

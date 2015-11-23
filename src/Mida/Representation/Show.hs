@@ -102,7 +102,7 @@ showSyntaxTree' t = cm f t <> "\n"
 -- | Convert principle to syntax tree to show it.
 
 toSyntaxTree :: Principle -> SyntaxTree
-toSyntaxTree = (f <$>)
+toSyntaxTree = fmap f
   where f (Val  x) = Value x
         f (Sec  x) = Section $ f <$> x
         f (Mul  x) = Multi   $ f <$> x
