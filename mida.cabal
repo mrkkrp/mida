@@ -56,7 +56,7 @@ cabal-version:        >= 1.10
 
 library
   hs-source-dirs:     src
-  ghc-options:        -O2 -Wall
+  ghc-options:        -O2 -Wall -Werror
   ghc-prof-options:   -O2 -Wall -prof -fprof-cafs -rtsopts
   build-depends:      HCodecs                >= 0.5
                     , base                   >= 4.8 && < 5
@@ -90,7 +90,7 @@ executable mida
   main-is:            Main.hs
   hs-source-dirs:     src
   other-modules:      Mida.Interaction
-  ghc-options:        -O2 -Wall
+  ghc-options:        -O2 -Wall -Werror
   ghc-prof-options:   -O2 -Wall -prof -fprof-cafs -rtsopts
   build-depends:      HCodecs                >= 0.5
                     , base                   >= 4.8 && < 5
@@ -136,7 +136,7 @@ test-suite tests
   main-is:            Main.hs
   hs-source-dirs:     tests
   type:               exitcode-stdio-1.0
-  ghc-options:        -O2 -Wall -rtsopts
+  ghc-options:        -O2 -Wall -Werror
   default-language:   Haskell2010
   build-depends:      HCodecs                    >= 0.5
                     , QuickCheck                 >= 2.4 && < 3
