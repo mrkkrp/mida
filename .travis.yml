@@ -17,7 +17,7 @@ before_install:
 - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
 
 script:
- - stack $ARGS --no-terminal --install-ghc test
+ - stack $ARGS --no-terminal --install-ghc test --flag mida:dev
                --test-arguments=--threads=2\ --maximum-test-size=50
  - stack $ARGS sdist
 
