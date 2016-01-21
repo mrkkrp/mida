@@ -76,7 +76,7 @@ library
                     , random
                     , text                   >= 1.2.0.4
                     , tf-random              >= 0.5
-                    , transformers           >= 0.2.0.0 && < 0.5
+                    , transformers           >= 0.2.0.0
   default-extensions: FlexibleContexts
                     , FlexibleInstances
                     , OverloadedStrings
@@ -121,7 +121,7 @@ executable mida
                     , temporary              >= 1.2
                     , text                   >= 1.2.0.4
                     , tf-random              >= 0.5
-                    , transformers           >= 0.2.0.0 && < 0.5
+                    , transformers           >= 0.2.0.0
   default-extensions: FlexibleContexts
                     , FlexibleInstances
                     , OverloadedStrings
@@ -164,7 +164,7 @@ test-suite tests
                     , test-framework-quickcheck2 >= 0.3 && < 0.4
                     , text                       >= 1.2.0.4
                     , tf-random                  >= 0.5
-                    , transformers               >= 0.2.0.0 && < 0.5
+                    , transformers               >= 0.2.0.0
 
 source-repository head
   type:               git
