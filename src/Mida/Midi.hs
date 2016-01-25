@@ -1,4 +1,3 @@
--- -*- Mode: Haskell; -*-
 --
 -- This module describes how to create MIDI file from MIDA environment.
 --

@@ -1,4 +1,3 @@
--- -*- Mode: Haskell; -*-
 --
 -- This module describes how to build syntax tree from textual
 -- representation of MIDA statements.

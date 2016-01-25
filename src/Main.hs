@@ -1,4 +1,3 @@
--- -*- Mode: Haskell; -*-
 --
 -- Main module of MIDA describes logic of the program on top level.
 --

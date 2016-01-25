@@ -1,4 +1,3 @@
--- -*- Mode: Haskell; -*-
 --
 -- This module describes how MIDA processes commands in interactive
 -- mode. These commands are also used in batch mode.

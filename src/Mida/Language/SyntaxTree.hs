@@ -1,4 +1,3 @@
--- -*- Mode: Haskell; -*-
 --
 -- This module defines abstract syntax tree of MIDA language.
 --

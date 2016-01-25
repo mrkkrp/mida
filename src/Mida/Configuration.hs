@@ -1,4 +1,3 @@
--- -*- Mode: Haskell; -*-
 --
 -- This module describes how to parse Unix-style configuration files.
 --

@@ -1,4 +1,3 @@
--- -*- Mode: Haskell; -*-
 --
 -- This module describes process of evaluation of definitions and arbitrary
 -- principles. Result of evaluation is infinite list of natural numbers or

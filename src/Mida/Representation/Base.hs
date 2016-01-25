@@ -1,4 +1,3 @@
--- -*- Mode: Haskell; -*-
 --
 -- Textual representation of basic elements in MIDA language.
 --

@@ -1,4 +1,3 @@
--- -*- Mode: Haskell; -*-
 --
 -- Here we describe how to build textual representation of syntax trees and
 -- principles.

@@ -1,4 +1,3 @@
--- -*- Mode: Haskell; -*-
 --
 -- This module describes monad for interactive REPL and some basic
 -- functions.

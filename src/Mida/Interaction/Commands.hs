@@ -1,4 +1,3 @@
--- -*- Mode: Haskell; -*-
 --
 -- This module describes all supported MIDA commands. It also provides all
 -- the functionality to load source files and generate / save MIDI files.

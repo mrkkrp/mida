@@ -1,4 +1,3 @@
--- -*- Mode: Haskell; -*-
 --
 -- Environment is formed via evaluation of definitions. This module
 -- describes minimal MIDA environment in form of monad transformer.

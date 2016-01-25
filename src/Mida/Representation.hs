@@ -1,4 +1,3 @@
--- -*- Mode: Haskell; -*-
 --
 -- This module binds together syntax tree and textual representation of MIDA
 -- language.
