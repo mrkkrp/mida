@@ -16,9 +16,9 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
-name:                mida
-version:             0.4.6
-synopsis:            Language for algorithmic generation of MIDI files
+name:                 mida
+version:              0.4.6
+synopsis:             Language for algorithmic generation of MIDI files
 description:
 
   MIDA is a minimalistic language for algorithmic generation of MIDI
@@ -54,9 +54,9 @@ extra-source-files:   README.md, CHANGELOG.md
 cabal-version:        >= 1.10
 
 flag dev
-  description:       Turn on development settings.
-  manual:            True
-  default:           False
+  description:        Turn on development settings.
+  manual:             True
+  default:            False
 
 library
   hs-source-dirs:     src
