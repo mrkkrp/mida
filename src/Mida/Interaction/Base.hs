@@ -91,7 +91,8 @@ processDef :: (HasEnv m, MonadIO m)
 processDef n t = do
   recursive <- checkRecur n t
   if recursive
-  then liftIO $
-    fprint ("Rejected recursive definition for «" % string % "».\n") n
-  else do addDef n t
-          liftIO $ fprint ("• «" % string % "»\n") n
+    then liftIO $
+      fprint ("Rejected recursive definition for ‘" % string % "’\n") n
+    else do
+      addDef n t
+      liftIO $ fprint ("• ‘" % string % "’\n") n

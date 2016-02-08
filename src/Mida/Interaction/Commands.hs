@@ -27,8 +27,7 @@ module Mida.Interaction.Commands
   , cmdPrefix )
 where
 
-import Control.Exception (SomeException)
-import Control.Monad.Catch (try, MonadThrow, MonadMask, fromException, throwM)
+import Control.Monad.Catch
 import Control.Monad.IO.Class
 import Control.Monad.Reader
 import Control.Monad.State.Class
@@ -44,15 +43,8 @@ import Mida.Midi
 import Mida.Representation
 import Numeric.Natural
 import Path
-import System.Directory
-  ( doesDirectoryExist
-  , doesFileExist
-  , getCurrentDirectory
-  , getHomeDirectory
-  , makeAbsolute
-  , setCurrentDirectory )
+import Path.IO
 import System.Exit (exitSuccess, ExitCode)
-import System.IO.Temp (withSystemTempDirectory)
 import System.Process
   ( shell
   , createProcess
@@ -117,7 +109,7 @@ processCmd txt =
             Nothing -> spitExc e
         Right _ -> return ()
     Nothing -> liftIO $
-      fprint ("Unknown command, try " % string % "help.\n") cmdPrefix
+      fprint ("Unknown command, try " % string % "help\n") cmdPrefix
   where g Cmd { cmdName = c } = c == dropCmdPrefix (T.unpack cmd)
         (cmd, args)           = T.break isSpace (T.strip txt)
 
@@ -153,22 +145,21 @@ getCompletions prev word = do
 
 -- | Change working directory.
 
-cmdCd :: MonadIO m => String -> m ()
-cmdCd next' = liftIO $ do
-  next    <- fixPath next' >>= parseAbsDir
-  let npath = fromAbsDir next
-  present <- doesDirectoryExist npath
-  if present
-  then do setCurrentDirectory npath
-          fprint ("Changed to \"" % string % "\".\n") npath
-  else fprint ("Cannot cd to \"" % string % "\".\n") npath
+cmdCd :: (MonadIO m, MonadCatch m) => String -> m ()
+cmdCd next' = do
+  mnext <- forgivingAbsence (resolveDir' next')
+  case mnext of
+    Nothing -> liftIO $ fprint ("Cannot cd to \"" % string % "\"\n") next'
+    Just next -> do
+      setCurrentDir next
+      liftIO $ fprint ("Changed to \"" % string % "\"\n") (fromAbsDir next)
 
 -- | Restore default state of environment.
 
 cmdClear :: (HasEnv m, MonadIO m) => String -> m ()
 cmdClear _ = do
   clearDefs
-  liftIO (T.putStrLn "Environment cleared.")
+  liftIO (T.putStrLn "Environment cleared")
 
 -- | Print definition of given symbol.
 
@@ -206,20 +197,21 @@ loadOne :: (HasEnv m, MonadIO m, MonadState MidaSt m, MonadThrow m)
 loadOne given = do
   file <- output given ""
   let fpath = fromAbsFile file
-  b    <- liftIO $ doesFileExist fpath
+  b    <- doesFileExist file
   if b
-  then do contents <- liftIO $ T.readFile fpath
-          case parseMida fpath contents of
-            Right x -> do
-              mapM_ f x
-              setFileName file
-              liftIO $ fprint
-                ("\"" % string % "\" loaded successfully.\n")
-                fpath
-            Left  x -> liftIO $ fprint (string % "\n") x
-  else liftIO $ fprint ("Could not find \"" % string % "\".\n") fpath
-    where f (Definition n t) = processDef n t
-          f (Exposition   _) = return ()
+    then do
+      contents <- liftIO (T.readFile fpath)
+      case parseMida fpath contents of
+        Right x -> do
+          mapM_ f x
+          setFileName file
+          liftIO $ fprint
+            ("\"" % string % "\" loaded successfully\n")
+            fpath
+        Left  x -> liftIO $ fprint (string % "\n") x
+    else liftIO $ fprint ("Could not find \"" % string % "\"\n") fpath
+      where f (Definition n t) = processDef n t
+            f (Exposition   _) = return ()
 
 -- | Version of 'cmdMake' used by REPL.
 
@@ -241,11 +233,11 @@ cmdMake :: (HasEnv m, MonadIO m, MonadState MidaSt m, MonadThrow m)
   -> FilePath          -- ^ Where to save MIDI file
   -> m ()
 cmdMake s q b f = do
-  file   <- output f "mid"
+  file <- output f "mid"
   let fpath = fromAbsFile file
-  midi   <- genMidi s q b
+  midi <- genMidi s q b
   liftIO $ Midi.exportFile fpath midi
-  liftIO $ fprint ("MIDI file saved as \"" % string % "\".\n") fpath
+  liftIO $ fprint ("MIDI file saved as \"" % string % "\"\n") fpath
 
 -- | Set program for preview.
 
@@ -260,7 +252,6 @@ cmdPrv :: ( HasEnv m
           , MonadIO m
           , MonadReader MidaCfg m
           , MonadState MidaSt m
-          , MonadThrow m
           , MonadMask m )
   => String -> m ()
 cmdPrv arg = do
@@ -269,11 +260,10 @@ cmdPrv arg = do
   prog    <- show <$> gets stProg
   tempoOp <- asks cfgTempoOp
   tempo   <- show <$> gets stTempo
-  withSystemTempDirectory "mida" $ \tdir -> do
-    tpath <- parseAbsDir tdir
+  withSystemTempDir "mida" $ \tdir -> do
     f     <- filename <$> output "" "mid"
     let (s:q:b:_) = words arg ++ repeat ""
-        file      = fromAbsFile (tpath </> f)
+        file      = fromAbsFile (tdir </> f)
         cmd       = unwords [prvcmd, progOp, prog, tempoOp, tempo, file]
     cmdMake (parseNum s defaultSeed)
             (parseNum q defaultQuarter)
@@ -294,12 +284,12 @@ cmdLength arg = do
 cmdPurge :: (HasEnv m, MonadIO m) => String -> m ()
 cmdPurge _ = do
   purgeEnv topDefs
-  liftIO $ T.putStrLn "Environment purged."
+  liftIO $ T.putStrLn "Environment purged"
 
 -- | Print working directory.
 
 cmdPwd :: MonadIO m => String -> m ()
-cmdPwd _ = liftIO (getCurrentDirectory >>= putStrLn)
+cmdPwd _ = liftIO (getCurrentDir >>= putStrLn . fromAbsDir)
 
 -- | Quit the interactive environment.
 
@@ -316,7 +306,7 @@ cmdSave given = do
   src    <- fullSrc
   liftIO $ T.writeFile fpath src
   setFileName file
-  liftIO $ fprint ("Environment saved as \"" % string % "\".\n") fpath
+  liftIO $ fprint ("Environment saved as \"" % string % "\"\n") fpath
 
 -- | Set tempo for preview.
 
@@ -331,7 +321,7 @@ cmdUdef :: (HasEnv m, MonadIO m) => String -> m ()
 cmdUdef arg = mapM_ f (words arg)
   where f name = do
           remDef name
-          liftIO $ fprint ("Definition for «" % string % "» removed.\n") name
+          liftIO $ fprint ("Definition for ‘" % string % "’ removed\n") name
 
 -- | Parse a number defaulting to given value.
 
@@ -348,19 +338,11 @@ output :: (MonadIO m, MonadThrow m, MonadState MidaSt m)
   -> String              -- ^ Extension
   -> m (Path Abs File)   -- ^ Absolute path to output file
 output given' ext = do
-  given  <- liftIO (fixPath given')
+  given  <- resolveFile' given'
   actual <- fromAbsFile <$> gets stSrcFile
-  let a = if null ext then actual else FP.replaceExtension actual ext
-  parseAbsFile (if null given' then a else given)
-
--- | Make path absolute resolving tilde (that's actually shell-functionality,
--- but we do it for convenience).
-
-fixPath :: FilePath -> IO FilePath
-fixPath path = do
-  home <- getHomeDirectory
-  let f x = if x == "~" then home else x
-  makeAbsolute . FP.joinPath . fmap f . FP.splitDirectories $ path
+  a      <- parseAbsFile $
+    if null ext then actual else FP.replaceExtension actual ext
+  return (if null given' then a else given)
 
 -- | Change current file name.
 
@@ -382,7 +364,7 @@ cmdPrefix = ":"
 -- | Print out an exception.
 
 spitExc :: MonadIO m => SomeException -> m ()
-spitExc = liftIO . fprint ("× " % string % ".\n") . show
+spitExc = liftIO . fprint ("× " % string % "\n") . show
 
 -- | Stupid trimming for strings.
 
