@@ -2,7 +2,7 @@
 -- Environment is formed via evaluation of definitions. This module
 -- describes minimal MIDA environment in form of monad transformer.
 --
--- Copyright © 2014, 2015 Mark Karpov
+-- Copyright © 2014–2016 Mark Karpov
 --
 -- MIDA is free software: you can redistribute it and/or modify it under the
 -- terms of the GNU General Public License as published by the Free Software

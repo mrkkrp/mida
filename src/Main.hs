@@ -1,7 +1,7 @@
 --
 -- Main module of MIDA describes logic of the program on top level.
 --
--- Copyright © 2014, 2015 Mark Karpov
+-- Copyright © 2014–2016 Mark Karpov
 --
 -- MIDA is free software: you can redistribute it and/or modify it under the
 -- terms of the GNU General Public License as published by the Free Software
@@ -68,7 +68,7 @@ main = execParser opts >>= f
 
 notice :: Text
 notice =
-  "MIDA Copyright © 2014, 2015 Mark Karpov\n\n\
+  "MIDA Copyright © 2014–2016 Mark Karpov\n\n\
   \This program comes with ABSOLUTELY NO WARRANTY. This is free software,\n\
   \and you are welcome to redistribute it under certain conditions; see\n\
   \GNU General Public License for details.\n"
@@ -78,7 +78,7 @@ notice =
 license :: Text
 license =
   "MIDA — realization of MIDA, language for generation of MIDI files.\n\
-  \Copyright © 2014, 2015 Mark Karpov\n\
+  \Copyright © 2014–2016 Mark Karpov\n\
   \\n\
   \MIDA is free software: you can redistribute it and/or modify it under the\n\
   \terms of the GNU General Public License as published by the Free Software\n\

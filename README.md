@@ -100,6 +100,6 @@ natively in various DAWs.
 
 ## License
 
-Copyright © 2014, 2015 Mark Karpov
+Copyright © 2014–2016 Mark Karpov
 
 Distributed under GNU GPL, version 3.
