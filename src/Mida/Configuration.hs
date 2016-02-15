@@ -71,7 +71,7 @@ instance FromJSON MidaConfig where
         τ :: Int -> Parser Natural
         τ x = if x >= 0
                 then return (fromIntegral x)
-                else fail $ "the value must be positive: " ++ show x
+                else fail $ "the value must be non-negative: " ++ show x
     configPrevLen <- ω configPrevLen τ "prevlen"
     configSrcFile <- ω configSrcFile ξ "src"
     configProg    <- ω configProg    τ "prog"
@@ -82,6 +82,8 @@ instance FromJSON MidaConfig where
     configProgOp  <- ω configProgOp  return "progop"
     configTempoOp <- ω configTempoOp return "tempop"
     return MidaConfig {..}
+
+-- | Parse configuration from specified YAML file.
 
 parseMidaConfig :: MonadIO m => Path b File -> m (Either String MidaConfig)
 parseMidaConfig path = liftIO $
