@@ -89,53 +89,30 @@ MIDA language works.
 @node Installation
 @chapter Installation
 
-It's possible to use MIDA on any platform on which
-@uref{https://www.haskell.org/platform/,Haskell Platform} is
-supported. Here we describe how to compile and install MIDA on
-Posix-compatible systems.
-
 @enumerate
 @item
-@cindex Haskell Platform
-Install @uref{https://www.haskell.org/platform/,Haskell Platform};
+@cindex Stack
+Install the @uref{http://haskellstack.org,Haskell Tool Stack};
 @item
-@cindex Cabal
-Install @uref{https://www.haskell.org/cabal/,Cabal};
-@item
-Download and untar git repository of MIDA, or clone it:
-@example
-$ git clone https://github.com/mrkkrp/mida.git
-@end example
-@item
-Go to the root directory of the repository and execute:
-@example
-$ cabal update
-$ cabal configure
-$ cabal install --only-dependencies
-$ cabal build
-# sh install.sh
-@end example
-or (if you use Stack):
-@example
-$ stack build
-@end example
-@item
-Done (you can use @code{uninstall.sh} to uninstall the program).
-@end enumerate
-
-Alternatively, instead of steps 3–5, you can just:
-
-@example
-$ cabal install mida
-@end example
-
-In this case you will need to add @file{~/.cabal/bin} to your
-@code{PATH}:
-
+Add @file{~/.local/bin} directory to your @code{PATH}, like this:
 @example
 # in .bashrc or similar
-export PATH=$HOME/.cabal/bin:$PATH
+export PATH=$HOME/.local/bin:$PATH
 @end example
+@item
+Clone the repo, @code{cd} into it, and let @code{stack} do its thing:
+@example
+$ git clone https://github.com/mrkkrp/mida.git
+$ cd mida
+$ stack build --copy-bins
+@end example
+@item
+Check it out:
+@example
+$ mida --version
+MIDA 1.0.0
+@end example
+@end enumerate
 
 @node Invocation
 @chapter Invocation

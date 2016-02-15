@@ -24,44 +24,29 @@ MIDA is a
 
 ## Installation
 
-1. Install [Haskell Platform](https://www.haskell.org/platform/);
-2. Install [Cabal](https://www.haskell.org/cabal/);
-3. Download and untar git repository of MIDA, or clone it:
+1. Install the [Haskell Tool Stack](http://haskellstack.org).
+
+2. Add `~/.local/bin` directory to your `PATH`, like this:
+
+   ```
+   # in .bashrc or similar
+   export PATH=$HOME/.local/bin:$PATH
+   ```
+
+3. Clone the repo, `cd` into it, and let `stack` do its thing:
 
    ```
    $ git clone https://github.com/mrkkrp/mida.git
+   $ cd mida
+   $ stack build --copy-bins
    ```
 
-4. Go to the root directory of the repository and execute:
+4. Check it out:
 
    ```
-   $ cabal update
-   $ cabal configure
-   $ cabal install --only-dependencies
-   $ cabal build
-   # sh install.sh
+   $ mida --version
+   MIDA 1.0.0
    ```
-
-   or (if you use Stack):
-
-   ```
-   $ stack build
-   ```
-
-5. Done (you can use `uninstall.sh` to uninstall the program).
-
-Alternatively, instead of steps 3–5, you can just:
-
-```
-$ cabal install mida
-```
-
-In this case you will need to add `~/.cabal/bin` directory to your `PATH`:
-
-```
-# in .bashrc or similar
-export PATH=$HOME/.cabal/bin:$PATH
-```
 
 ## Example
 
