@@ -187,19 +187,14 @@ Show version of the program.
 MIDA can be customized to some extent with help of configuration
 file. One should create the file in his/her home directory. This
 directory will be different on different operating systems. On GNU/Linux
-machines it would be something like @file{/home/username/.mida}, while
-Windows users should create the file @file{C:\Users\username\.mida}.
+machines it would be something like @file{/home/username/.mida.yaml},
+while Windows users should create the file
+@file{C:\Users\username\.mida.yaml}.
 
 @cindex configuration file variables
 
-The configuration file uses syntax similar to that of Unix shell. That
-is, you can use @samp{#} for line comments, and @samp{=} to assign new
-values (spaces before and after @samp{=} are ignored). Currently, all
-variables must be strings, integers, or Boolean values. If a string
-should contain space, enclose it into double quotes: @samp{"}. Inside
-the quotes you can escape characters with backslash @samp{\}. Integers
-must be written as decimal numbers. Boolean values can only have values
-of @samp{true} or @samp{false}. Everything is case-sensitive.
+The configuration file is a plain
+@uref{https://en.wikipedia.org/wiki/YAML,YAML file}.
 
 The following table describes all variables that can be assigned in the
 configuration file.
@@ -240,16 +235,16 @@ This indicates whether or not display simplified principle before
 printing the final result of evaluation. Default value is @samp{true}.
 @end table
 
-Here is complete example of @file{.mida} file:
+Here is complete example of @file{.mida.yaml} file:
 
 @example
 #
 # MIDA Configuration File
 #
 
-prompt = "mida> "
-prvlen = 20
-verbose = false
+prompt: "mida> "
+prvlen: 20
+verbose: false
 @end example
 
 @node Interactive REPL
