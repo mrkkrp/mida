@@ -1,9 +1,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <!-- This manual describes MIDA language and its realization (version
-0.4.6, 21 November 2015).
+1.0.0, 16 February 2016).
 
-Copyright (C) 2014, 2015 Mark Karpov
+Copyright (C) 2014–2016 Mark Karpov
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
@@ -12,9 +12,8 @@ Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.  A
 copy of the license is included in the section entitled “GNU Free
 Documentation License”.
 
-
  -->
-<!-- Created on November 21, 2015 by texi2html 5.0
+<!-- Created on February 15, 2016 by texi2html 5.0
 texi2html was written by:
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -62,21 +61,19 @@ hr { display: none }
 -->
 </style>
 
-
 </head>
 
 <body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
 
 <h1>MIDA Manual</h1>
-<h3 align="right">Edition 0.4.6, for <code>MIDA</code> Version 0.4.6.</h3>
-<h3 align="right">November 2015</h3>
+<h3 align="right">Edition 1.0.0, for <code>MIDA</code> Version 1.0.0.</h3>
+<h3 align="right">February 2016</h3>
 <strong>Mark Karpov</strong><br>
 
-
 <p>This manual describes MIDA language and its realization (version
-0.4.6, 21 November 2015).
+1.0.0, 16 February 2016).
 </p>
-<p>Copyright &copy; 2014, 2015 Mark Karpov
+<p>Copyright &copy; 2014–2016 Mark Karpov
 </p>
 <blockquote>
 <p>Permission is granted to copy, distribute and/or modify this document
@@ -180,53 +177,30 @@ MIDA language works.
 <a name="Installation-1"></a>
 <h1 class="chapter">2 Installation</h1>
 
-<p>It&rsquo;s possible to use MIDA on any platform on which
-<a href="https://www.haskell.org/platform/">Haskell Platform</a> is
-supported. Here we describe how to compile and install MIDA on
-Posix-compatible systems.
-</p>
 <ol>
 <li>
-<a name="index-Haskell-Platform"></a>
-Install <a href="https://www.haskell.org/platform/">Haskell Platform</a>;
+<a name="index-Stack"></a>
+Install the <a href="http://haskellstack.org">Haskell Tool Stack</a>;
 </li><li>
-<a name="index-Cabal"></a>
-Install <a href="https://www.haskell.org/cabal/">Cabal</a>;
-</li><li>
-Download and untar git repository of MIDA, or clone it:
-<div class="example">
-<pre class="example">$ git clone https://github.com/mrkkrp/mida.git
-</pre></div>
-</li><li>
-Go to the root directory of the repository and execute:
-<div class="example">
-<pre class="example">$ cabal update
-$ cabal configure
-$ cabal install --only-dependencies
-$ cabal build
-# sh install.sh
-</pre></div>
-<p>or (if you use Stack):
-</p><div class="example">
-<pre class="example">$ stack build
-</pre></div>
-</li><li>
-Done (you can use <code>uninstall.sh</code> to uninstall the program).
-</li></ol>
-
-<p>Alternatively, instead of steps 3–5, you can just:
-</p>
-<div class="example">
-<pre class="example">$ cabal install mida
-</pre></div>
-
-<p>In this case you will need to add &lsquo;<tt>~/.cabal/bin</tt>&rsquo; to your
-<code>PATH</code>:
-</p>
+Add &lsquo;<tt>~/.local/bin</tt>&rsquo; directory to your <code>PATH</code>, like this:
 <div class="example">
 <pre class="example"># in .bashrc or similar
-export PATH=$HOME/.cabal/bin:$PATH
+export PATH=$HOME/.local/bin:$PATH
 </pre></div>
+</li><li>
+Clone the repo, <code>cd</code> into it, and let <code>stack</code> do its thing:
+<div class="example">
+<pre class="example">$ git clone https://github.com/mrkkrp/mida.git
+$ cd mida
+$ stack build --copy-bins
+</pre></div>
+</li><li>
+Check it out:
+<div class="example">
+<pre class="example">$ mida --version
+MIDA 1.0.0
+</pre></div>
+</li></ol>
 
 <hr>
 <a name="Invocation"></a>
@@ -320,19 +294,14 @@ supplied file and extension &lsquo;<samp>.mid</samp>&rsquo;.
 <p>MIDA can be customized to some extent with help of configuration
 file. One should create the file in his/her home directory. This
 directory will be different on different operating systems. On GNU/Linux
-machines it would be something like &lsquo;<tt>/home/username/.mida</tt>&rsquo;, while
-Windows users should create the file &lsquo;<tt>C:\Users\username\.mida</tt>&rsquo;.
+machines it would be something like &lsquo;<tt>/home/username/.mida.yaml</tt>&rsquo;,
+while Windows users should create the file
+&lsquo;<tt>C:\Users\username\.mida.yaml</tt>&rsquo;.
 </p>
 <a name="index-configuration-file-variables"></a>
 
-<p>The configuration file uses syntax similar to that of Unix shell. That
-is, you can use &lsquo;<samp>#</samp>&rsquo; for line comments, and &lsquo;<samp>=</samp>&rsquo; to assign new
-values (spaces before and after &lsquo;<samp>=</samp>&rsquo; are ignored). Currently, all
-variables must be strings, integers, or Boolean values. If a string
-should contain space, enclose it into double quotes: &lsquo;<samp>&quot;</samp>&rsquo;. Inside
-the quotes you can escape characters with backslash &lsquo;<samp>\</samp>&rsquo;. Integers
-must be written as decimal numbers. Boolean values can only have values
-of &lsquo;<samp>true</samp>&rsquo; or &lsquo;<samp>false</samp>&rsquo;. Everything is case-sensitive.
+<p>The configuration file is a plain
+<a href="https://en.wikipedia.org/wiki/YAML">YAML file</a>.
 </p>
 <p>The following table describes all variables that can be assigned in the
 configuration file.
@@ -382,16 +351,16 @@ printing the final result of evaluation. Default value is &lsquo;<samp>true</sam
 </p></dd>
 </dl>
 
-<p>Here is complete example of &lsquo;<tt>.mida</tt>&rsquo; file:
+<p>Here is complete example of &lsquo;<tt>.mida.yaml</tt>&rsquo; file:
 </p>
 <div class="example">
 <pre class="example">#
 # MIDA Configuration File
 #
 
-prompt = &quot;mida&gt; &quot;
-prvlen = 20
-verbose = false
+prompt: &quot;mida&gt; &quot;
+prvlen: 20
+verbose: false
 </pre></div>
 
 <hr>
@@ -700,13 +669,13 @@ something like this:
 </p>
 <div class="example">
 <pre class="example">[mark@arch ~]$ mida
-MIDA Copyright © 2014, 2015 Mark Karpov
+MIDA Copyright © 2014–2016 Mark Karpov
 
 This program comes with ABSOLUTELY NO WARRANTY. This is free software,
 and you are welcome to redistribute it under certain conditions; see
 GNU General Public License for details.
 
-MIDA Interactive Environment 0.4.6
+MIDA Interactive Environment 1.0.0
 &gt;
 </pre></div>
 
@@ -2127,7 +2096,6 @@ provided the MMC is eligible for relicensing.
 </p>
 </li></ol>
 
-
 <a name="ADDENDUM_003a-How-to-use-this-License-for-your-documents"></a>
 <h2 class="heading">ADDENDUM: How to use this License for your documents</h2>
 
@@ -2164,7 +2132,6 @@ free software license, such as the GNU General Public License,
 to permit their use in free software.
 </p>
 
-
 <hr>
 <a name="Concept-Index"></a>
 <table class="header" cellpadding="1" cellspacing="1" border="0">
@@ -2191,8 +2158,6 @@ to permit their use in free software.
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-C"><b>C</b></a>
  &nbsp;
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-D"><b>D</b></a>
- &nbsp;
-<a class="summary-letter" href="#Concept-Index-1_cp_letter-H"><b>H</b></a>
  &nbsp;
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-I"><b>I</b></a>
  &nbsp;
@@ -2222,7 +2187,6 @@ to permit their use in free software.
 <tr><td></td><td valign="top"><a href="#index-breath">breath</a></td><td>&nbsp;</td><td valign="top"><a href="#Additional-Parameters">6.1.4 Additional Parameters</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
 <tr><th><a name="Concept-Index-1_cp_letter-C">C</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-Cabal">Cabal</a></td><td>&nbsp;</td><td valign="top"><a href="#Installation">2 Installation</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-command-line-options">command line options</a></td><td>&nbsp;</td><td valign="top"><a href="#Invocation">3 Invocation</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-comments">comments</a></td><td>&nbsp;</td><td valign="top"><a href="#Interactive-REPL">5 Interactive REPL</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-conditional-multivalue">conditional multivalue</a></td><td>&nbsp;</td><td valign="top"><a href="#Conditional-Multivalues">6.7 Conditional Multivalues</a></td></tr>
@@ -2232,9 +2196,6 @@ to permit their use in free software.
 <tr><td></td><td valign="top"><a href="#index-definition">definition</a></td><td>&nbsp;</td><td valign="top"><a href="#Definitions">6.3 Definitions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-division-operator">division operator</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Arithmetic">6.8.1 Basic Arithmetic</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-duration">duration</a></td><td>&nbsp;</td><td valign="top"><a href="#Duration">6.1.1 Duration</a></td></tr>
-<tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Concept-Index-1_cp_letter-H">H</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-Haskell-Platform">Haskell Platform</a></td><td>&nbsp;</td><td valign="top"><a href="#Installation">2 Installation</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
 <tr><th><a name="Concept-Index-1_cp_letter-I">I</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-identifier">identifier</a></td><td>&nbsp;</td><td valign="top"><a href="#Definitions">6.3 Definitions</a></td></tr>
@@ -2262,6 +2223,7 @@ to permit their use in free software.
 <tr><td colspan="4"> <hr></td></tr>
 <tr><th><a name="Concept-Index-1_cp_letter-S">S</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-section">section</a></td><td>&nbsp;</td><td valign="top"><a href="#Sections">6.6 Sections</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-Stack">Stack</a></td><td>&nbsp;</td><td valign="top"><a href="#Installation">2 Installation</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-subtraction-operator">subtraction operator</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Arithmetic">6.8.1 Basic Arithmetic</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
 <tr><th><a name="Concept-Index-1_cp_letter-T">T</a></th><td></td><td></td></tr>
@@ -2278,8 +2240,6 @@ to permit their use in free software.
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-C"><b>C</b></a>
  &nbsp;
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-D"><b>D</b></a>
- &nbsp;
-<a class="summary-letter" href="#Concept-Index-1_cp_letter-H"><b>H</b></a>
  &nbsp;
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-I"><b>I</b></a>
  &nbsp;
@@ -2354,7 +2314,7 @@ to permit their use in free software.
 <h1>About This Document</h1>
 
 <p>
-  This document was generated on <i>November 21, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>February 15, 2016</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
 </p>
 <p>
   The buttons in the navigation panels have the following meaning:
@@ -2456,7 +2416,7 @@ to permit their use in free software.
 <hr>
 <p>
  <font size="-1">
-  This document was generated on <i>November 21, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>February 15, 2016</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
  </font>
  <br>
 
