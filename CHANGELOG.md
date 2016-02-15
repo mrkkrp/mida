@@ -2,6 +2,8 @@
 
 * Use the `path-io` library.
 
+* Use YAML files for configuration.
+
 * Cosmetic changes in the interface.
 
 ## MIDA 0.4.6

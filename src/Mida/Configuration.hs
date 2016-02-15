@@ -1,5 +1,5 @@
 --
--- This module describes how to parse Unix-style configuration files.
+-- Parse YAML configuration.
 --
 -- Copyright © 2014–2016 Mark Karpov
 --
@@ -16,82 +16,74 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Mida.Configuration
-  ( Params
-  , parseConfig
-  , lookupCfg )
+  ( MidaConfig (..)
+  , parseMidaConfig
+  , def )
 where
 
-import Control.Applicative
-import Control.Monad
-import Data.Maybe (fromMaybe, listToMaybe)
-import Data.Text.Lazy (Text)
-import Data.Map (Map)
+import Control.Monad.IO.Class
+import Data.Aeson (withObject)
+import Data.Default
+import Data.Yaml
 import Numeric.Natural
-import Text.Megaparsec
-import Text.Megaparsec.Text.Lazy
-import qualified Data.Map as M
-import qualified Text.Megaparsec.Lexer as L
+import Path
 
--- | Collection of configuration parameters. They are kept as 'String's and
--- then converted on request.
+-- | MIDA configuration.
 
-type Params = Map String String
+data MidaConfig = MidaConfig
+  { configPrevLen :: Natural       -- ^ Length of preview principles
+  , configSrcFile :: Path Rel File -- ^ Name of current source file
+  , configProg    :: Natural       -- ^ Program to use for preview
+  , configTempo   :: Natural       -- ^ Tempo to use for preview
+  , configPrompt  :: String        -- ^ REPL prompt
+  , configVerbose :: Bool          -- ^ Verbose mode?
+  , configPrvCmd  :: String        -- ^ Command to use for preview
+  , configProgOp  :: String        -- ^ Option to set program for preview
+  , configTempoOp :: String        -- ^ Option to set tempo for preview
+  } deriving (Eq, Show)
 
-class Parsable a where
-  parseValue :: String -> Maybe a
+instance Default MidaConfig where
+  def = MidaConfig
+    { configPrevLen = 18
+    , configSrcFile = $(mkRelFile "foo.da")
+    , configProg    = 0
+    , configTempo   = 120
+    , configPrompt  = "> "
+    , configVerbose = True
+    , configPrvCmd  = "timidity"
+    , configProgOp  = "--force-program"
+    , configTempoOp = "--adjust-tempo"
+    }
 
-instance Parsable String where
-  parseValue = Just
+instance FromJSON MidaConfig where
+  parseJSON = withObject "MIDA Configuration" $ \o -> do
+    let ω f g n = do
+          mval <- o .:? n
+          case mval of
+            Nothing -> return (f def)
+            Just val -> g val
+        ξ x = case parseRelFile x of
+                Nothing -> fail $ "cannot parse relative path: " ++ show x
+                Just path -> return path
+        τ :: Int -> Parser Natural
+        τ x = if x >= 0
+                then return (fromIntegral x)
+                else fail $ "the value must be positive: " ++ show x
+    configPrevLen <- ω configPrevLen τ "prevlen"
+    configSrcFile <- ω configSrcFile ξ "src"
+    configProg    <- ω configProg    τ "prog"
+    configTempo   <- ω configTempo   τ "tempo"
+    configPrompt  <- ω configPrompt  return "prompt"
+    configVerbose <- ω configVerbose return "verbose"
+    configPrvCmd  <- ω configPrvCmd  return "prvcmd"
+    configProgOp  <- ω configProgOp  return "progop"
+    configTempoOp <- ω configTempoOp return "tempop"
+    return MidaConfig {..}
 
-instance Parsable Natural where
-  parseValue = fmap fst . listToMaybe . reads
-
-instance Parsable Bool where
-  parseValue "true"  = Just True
-  parseValue "false" = Just False
-  parseValue _       = Nothing
-
--- | Lookup a value from configuration parameters. Type of result determines
--- how value will be interpreted.
-
-lookupCfg :: Parsable a
-  => Params            -- ^ Collection of configuration parameters
-  -> String            -- ^ Name of parameter to lookup
-  -> a                 -- ^ Fallback value
-  -> a                 -- ^ Result
-lookupCfg cfg v d = fromMaybe d $ M.lookup v cfg >>= parseValue
-
--- | Parse configuration file.
-
-parseConfig :: String -> Text -> Either String Params
-parseConfig file = either (Left . show) Right . parse pConfig file
-
-pConfig :: Parser Params
-pConfig = M.fromList <$> (sc *> many pItem <* eof)
-
-pItem :: Parser (String, String)
-pItem = (,) <$> pIdentifier <* pOperator "=" <*> (pString <|> pThing)
-
-pIdentifier :: Parser String
-pIdentifier = lexeme $ (:) <$> first <*> many other
-  where first = letterChar   <|> char '_'
-        other = alphaNumChar <|> char '_'
-
-pOperator :: String -> Parser String
-pOperator = lexeme . string
-
-pString :: Parser String
-pString = lexeme $ char '"' >> manyTill L.charLiteral (char '"')
-
-pThing :: Parser String
-pThing = lexeme (some alphaNumChar)
-
-lexeme :: Parser a -> Parser a
-lexeme = L.lexeme sc
-
-sc :: Parser ()
-sc = L.space (void spaceChar) (L.skipLineComment "#") empty
+parseMidaConfig :: MonadIO m => Path b File -> m (Either String MidaConfig)
+parseMidaConfig path = liftIO $
+  either (Left . prettyPrintParseException) Right
+    <$> decodeFileEither (toFilePath path)

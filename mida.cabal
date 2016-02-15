@@ -80,8 +80,7 @@ library
                     , FlexibleInstances
                     , OverloadedStrings
                     , TupleSections
-  exposed-modules:    Mida.Configuration
-                    , Mida.Language
+  exposed-modules:    Mida.Language
                     , Mida.Language.Element
                     , Mida.Language.Environment
                     , Mida.Language.Eval
@@ -103,8 +102,10 @@ executable mida
     ghc-options:      -O2 -Wall
   ghc-prof-options:   -O2 -Wall -prof -fprof-cafs -rtsopts
   build-depends:      HCodecs                >= 0.5
+                    , aeson                  >= 0.7
                     , base                   >= 4.8 && < 5
                     , containers             >= 0.5.5.1
+                    , data-default           >= 0.5.3
                     , exceptions             >= 0.8
                     , filepath               >= 1.3.0.2
                     , formatting             >= 6.2
@@ -120,9 +121,11 @@ executable mida
                     , text                   >= 1.2.0.4
                     , tf-random              >= 0.5
                     , transformers           >= 0.2.0.0
+                    , yaml                   >= 0.8.15.1
   default-extensions: FlexibleContexts
                     , FlexibleInstances
                     , OverloadedStrings
+                    , RecordWildCards
                     , TupleSections
   other-modules:      Mida.Configuration
                     , Mida.Interaction

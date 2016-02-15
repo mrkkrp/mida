@@ -16,11 +16,10 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
-{-# LANGUAGE TemplateHaskell #-}
-
 module Main (main) where
 
 import Control.Monad
+import Control.Monad.IO.Class
 import Data.Text.Lazy (Text)
 import Data.Version (showVersion)
 import Formatting
@@ -28,10 +27,8 @@ import Mida.Configuration
 import Mida.Interaction
 import Numeric.Natural
 import Options.Applicative
-import Path
 import Path.IO
 import Paths_mida (version)
-import qualified Data.Map as M
 import qualified Data.Text.Lazy.IO as T
 
 -- | MIDA application command line options.
@@ -95,38 +92,27 @@ license =
 
 -- | Read configuration file if present and run MIDA monad.
 
-runMida' :: Mida () -> IO ()
+runMida' :: Mida a -> IO ()
 runMida' e = do
-  params <- loadConfig
-  wdir   <- getCurrentDir
-  dfname <- parseRelFile "foo.da"
-  let dfltSrcFile = fromAbsFile (wdir </> dfname)
-  srcFile <- parseAbsFile (lookupCfg params "src" dfltSrcFile)
+  mconfig <- forgivingAbsence (resolveFile' ".mida.yaml")
+  c <- case mconfig of
+    Nothing -> return def
+    Just file -> do
+      econfig <- parseMidaConfig file
+      case econfig of
+        Left msg -> liftIO (putStrLn msg) >> return def
+        Right val -> return val
+  srcFile <- makeAbsolute (configSrcFile c)
   void $ runMida e
-    MidaSt { stPrevLen = lookupCfg params "prvlen" 18
-           , stSrcFile = srcFile
-           , stProg    = lookupCfg params "prog"   0
-           , stTempo   = lookupCfg params "tempo"  120 }
-    MidaCfg { cfgPrompt  = lookupCfg params "prompt"  "> "
-            , cfgVerbose = lookupCfg params "verbose" True
-            , cfgPrvCmd  = lookupCfg params "prvcmd"  "timidity"
-            , cfgProgOp  = lookupCfg params "progop"  "--force-program"
-            , cfgTempoOp = lookupCfg params "tempop"  "--adjust-tempo" }
-
--- | Read configuration file.
-
-loadConfig :: IO Params
-loadConfig = do
-  config <- (</> $(mkRelFile ".mida")) <$> getHomeDir
-  exists <- doesFileExist config
-  if exists
-    then do
-      let fconfig = fromAbsFile config
-      params <- parseConfig fconfig <$> T.readFile fconfig
-      case params of
-        Right x -> return x
-        Left  _ -> return M.empty
-    else return M.empty
+    MidaSt  { stPrevLen  = configPrevLen c
+            , stSrcFile  = srcFile
+            , stProg     = configProg    c
+            , stTempo    = configTempo   c }
+    MidaCfg { cfgPrompt  = configPrompt  c
+            , cfgVerbose = configVerbose c
+            , cfgPrvCmd  = configPrvCmd  c
+            , cfgProgOp  = configProgOp  c
+            , cfgTempoOp = configTempoOp c }
 
 -- | Some information about the program.
 
