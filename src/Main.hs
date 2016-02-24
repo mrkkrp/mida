@@ -94,14 +94,15 @@ license =
 
 runMida' :: Mida a -> IO ()
 runMida' e = do
-  mconfig <- forgivingAbsence (resolveFile' ".mida.yaml")
-  c <- case mconfig of
-    Nothing -> return def
-    Just file -> do
-      econfig <- parseMidaConfig file
+  configFile <- resolveFile' ".mida.yaml"
+  configExists <- doesFileExist configFile
+  c <- if configExists
+    then do
+      econfig <- parseMidaConfig configFile
       case econfig of
         Left msg -> liftIO (putStrLn msg) >> return def
         Right val -> return val
+    else return def
   srcFile <- makeAbsolute (configSrcFile c)
   void $ runMida e
     MidaSt  { stPrevLen  = configPrevLen c

@@ -1,3 +1,9 @@
+## MIDA 1.0.1
+
+* Fixed issues with `directory` package. Please use `directory-1.2.3.0` or
+  newer. `stack.yaml` file is updated accordingly, if you clone the
+  repository.
+
 ## MIDA 1.0.0
 
 * Use the `path-io` library.
