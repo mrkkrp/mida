@@ -20,6 +20,7 @@ script:
  - stack $ARGS --no-terminal --install-ghc test --flag mida:dev
                --test-arguments=--threads=2\ --maximum-test-size=50
  - stack $ARGS sdist
+ - stack $ARGS haddock
 
 notifications:
   email: false
