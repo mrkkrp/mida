@@ -95,7 +95,6 @@ library
 executable mida
   main-is:            Main.hs
   hs-source-dirs:     src
-  other-modules:      Mida.Interaction
   if flag(dev)
     ghc-options:      -O2 -Wall -Werror
   else
