@@ -7,6 +7,10 @@ addons:
     packages:
     - libgmp-dev
 
+cache:
+  directories:
+    - .stack-work
+
 env:
 - ARGS=""
 - ARGS="--resolver nightly"
