@@ -11,9 +11,13 @@ cache:
   directories:
     - .stack-work
 
-env:
-- ARGS=""
-- ARGS="--resolver nightly"
+matrix:
+  include:
+    - env: ARGS=""
+    - env: ARGS="--resolver nightly"
+
+  allow_failures:
+    - env: ARGS="--resolver nightly"
 
 before_install:
 - mkdir -p ~/.local/bin
