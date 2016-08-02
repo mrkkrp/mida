@@ -1,6 +1,6 @@
 sudo: false
 
-langauge: c
+language: c
 
 addons:
   apt:
