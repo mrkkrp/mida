@@ -1,3 +1,7 @@
+## MIDA 1.0.2
+
+* Refactoring, switch to Hspec for testing and Megaparsec 5.
+
 ## MIDA 1.0.1
 
 * Fixed issues with `directory` package. Please use `directory-1.2.3.0` or
