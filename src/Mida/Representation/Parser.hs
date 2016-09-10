@@ -59,7 +59,7 @@ parseMida file txt =
     Right x -> if null x
       then Left ('\"' : file ++ "\":\ninvalid definition syntax")
       else Right x
-    Left  e -> Left (show e)
+    Left  e -> Left (parseErrorPretty e)
   where parser = if T.pack B.defOp `T.isInfixOf` txt
          then pSource
          else pure <$> pExposition

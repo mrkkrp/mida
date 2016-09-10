@@ -90,7 +90,7 @@ processExpr expr = do
   file <- gets stSrcFile
   case parseMida (fromAbsFile file) expr of
     Right x -> mapM_ f x
-    Left  x -> liftIO $ fprint (string % "\n") x
+    Left  x -> liftIO (putStr x)
     where f (Definition n t) = processDef n t
           f (Exposition   t) = do
             len     <- gets stPrevLen
