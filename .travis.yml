@@ -27,7 +27,6 @@ before_install:
 
 script:
  - stack $ARGS --no-terminal --install-ghc test --flag mida:dev
-               --test-arguments=--threads=2\ --maximum-test-size=50
  - stack $ARGS --no-terminal sdist
  - stack $ARGS --no-terminal haddock --no-haddock-deps
 

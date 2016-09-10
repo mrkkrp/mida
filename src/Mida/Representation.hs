@@ -18,8 +18,7 @@
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module Mida.Representation
-  ( Statement (..)
-  , probeMida
+  ( probeMida
   , parseMida
   , showStatement
   , showSyntaxTree

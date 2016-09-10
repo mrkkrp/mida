@@ -50,11 +50,11 @@ import System.Process
   , createProcess
   , waitForProcess
   , delegate_ctlc )
-import qualified Codec.Midi as Midi
-import qualified Data.Text.Lazy as T
-import qualified Data.Text.Lazy.IO as T
+import qualified Codec.Midi               as Midi
+import qualified Data.Text.Lazy           as T
+import qualified Data.Text.Lazy.IO        as T
 import qualified System.Console.Haskeline as L
-import qualified System.FilePath as FP
+import qualified System.FilePath          as FP
 
 -- | Description of REPL command.
 

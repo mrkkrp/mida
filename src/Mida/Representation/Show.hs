@@ -30,10 +30,10 @@ import Data.Monoid ((<>))
 import Data.Text.Lazy (Text)
 import Mida.Language.Element
 import Mida.Language.SyntaxTree
-import Mida.Representation.Parser (Statement (..))
-import qualified Data.Text.Lazy.Builder as T (Builder, fromString, toLazyText)
+import qualified Data.List.NonEmpty         as NE
+import qualified Data.Text.Lazy.Builder     as T (Builder, fromString, toLazyText)
 import qualified Data.Text.Lazy.Builder.Int as T (decimal)
-import qualified Mida.Representation.Base as B
+import qualified Mida.Representation.Base   as B
 
 -- | Render a statement. This handles definitions and expositions.
 
@@ -86,7 +86,7 @@ showSyntaxTree' t = cm f t <> "\n"
     f (Value       x) = T.decimal x
     f (Section     x) = "[" <> cm f x <> "]"
     f (Multi       x) = "{" <> cm f x <> "}"
-    f (CMulti      x) = "{" <> cm (c *** cm f >>> uncurry (<>)) x <> "}"
+    f (CMulti      x) = "{" <> cm (c *** cm f >>> uncurry (<>)) (NE.toList x) <> "}"
     f (Reference   x) = T.fromString x
     f (Range     x y) = T.decimal x <> T.fromString B.rangeOp <> T.decimal y
     f (Product   x y) = f x <> pad B.productOp   <> p y

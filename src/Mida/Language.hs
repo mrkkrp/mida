@@ -19,6 +19,7 @@
 module Mida.Language
   ( SyntaxTree
   , Sel     (..)
+  , Statement (..)
   , Principle
   , Element (..)
   , MidaEnv
@@ -38,7 +39,7 @@ module Mida.Language
   , toPrin )
 where
 
-import Mida.Language.SyntaxTree (SyntaxTree, Sel (..))
+import Mida.Language.SyntaxTree (SyntaxTree, Sel (..), Statement (..))
 import Mida.Language.Element (Principle, Element (..))
 import Mida.Language.Environment
 import Mida.Language.Eval (evalDef, eval, toPrin)

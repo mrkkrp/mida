@@ -18,30 +18,22 @@
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module Mida.Representation.Parser
-  ( Statement (..)
-  , probeMida
+  ( probeMida
   , parseMida )
 where
 
 import Control.Applicative (empty)
 import Control.Monad (void)
 import Data.Text.Lazy (Text)
-import Mida.Language.SyntaxTree (SyntaxTree, Sel (..))
+import Mida.Language.SyntaxTree
 import Numeric.Natural
 import Text.Megaparsec
 import Text.Megaparsec.Expr
 import Text.Megaparsec.Text.Lazy
-import qualified Data.Text.Lazy as T
+import qualified Data.List.NonEmpty       as NE
+import qualified Data.Text.Lazy           as T
 import qualified Mida.Representation.Base as B
-import qualified Text.Megaparsec.Lexer as L
-
--- | Statement can be either definition or exposition. Expositions are only
--- used in REPL.
-
-data Statement
-  = Definition String SyntaxTree
-  | Exposition SyntaxTree
-    deriving (Eq, Show)
+import qualified Text.Megaparsec.Lexer    as L
 
 -- | Test if given fragment of MIDA code is finished and self-contained.
 
@@ -121,7 +113,8 @@ pMulti :: Parser Sel
 pMulti = Multi <$> braces pPrinciple
 
 pCMulti :: Parser Sel
-pCMulti = CMulti <$> braces (many $ (,) <$> angles pPrinciple <*> pPrinciple)
+pCMulti = CMulti . NE.fromList <$>
+  braces (some $ (,) <$> angles pPrinciple <*> pPrinciple)
 
 pExpression :: Parser Sel
 pExpression = makeExprParser (parens pExpression <|> pElement) optTable
