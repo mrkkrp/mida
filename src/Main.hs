@@ -16,10 +16,13 @@
 -- You should have received a copy of the GNU General Public License along
 -- with this program. If not, see <http://www.gnu.org/licenses/>.
 
+{-# LANGUAGE TemplateHaskell #-}
+
 module Main (main) where
 
 import Control.Monad
 import Control.Monad.IO.Class
+import Data.FileEmbed
 import Data.Text.Lazy (Text)
 import Data.Version (showVersion)
 import Formatting
@@ -64,31 +67,12 @@ main = execParser opts >>= f
 -- | Shortish copyright notice.
 
 notice :: Text
-notice =
-  "MIDA Copyright © 2014–2016 Mark Karpov\n\n\
-  \This program comes with ABSOLUTELY NO WARRANTY. This is free software,\n\
-  \and you are welcome to redistribute it under certain conditions; see\n\
-  \GNU General Public License for details.\n"
+notice = $(embedStringFile "notice.txt")
 
 -- | Longer copyright notice.
 
 license :: Text
-license =
-  "MIDA — realization of MIDA, language for generation of MIDI files.\n\
-  \Copyright © 2014–2016 Mark Karpov\n\
-  \\n\
-  \MIDA is free software: you can redistribute it and/or modify it under the\n\
-  \terms of the GNU General Public License as published by the Free Software\n\
-  \Foundation, either version 3 of the License, or (at your option) any\n\
-  \later version.\n\
-  \\n\
-  \MIDA is distributed in the hope that it will be useful, but WITHOUT ANY\n\
-  \WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n\
-  \FOR A PARTICULAR PURPOSE. See the GNU General Public License for more\n\
-  \details.\n\
-  \\n\
-  \You should have received a copy of the GNU General Public License along\n\
-  \with this program. If not, see <http://www.gnu.org/licenses/>.\n"
+license = $(embedStringFile "license.txt")
 
 -- | Read configuration file if present and run MIDA monad.
 
