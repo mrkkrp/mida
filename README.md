@@ -85,6 +85,6 @@ natively in various DAWs.
 
 ## License
 
-Copyright © 2014–2016 Mark Karpov
+Copyright © 2014–2017 Mark Karpov
 
 Distributed under GNU GPL, version 3.

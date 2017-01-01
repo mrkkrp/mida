@@ -2,7 +2,7 @@
 -- This module describes how MIDA processes commands in interactive
 -- mode. These commands are also used in batch mode.
 --
--- Copyright © 2014–2016 Mark Karpov
+-- Copyright © 2014–2017 Mark Karpov
 --
 -- MIDA is free software: you can redistribute it and/or modify it under the
 -- terms of the GNU General Public License as published by the Free Software

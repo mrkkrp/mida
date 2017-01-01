@@ -2,7 +2,7 @@
 -- This module describes monad for interactive REPL and some basic
 -- functions.
 --
--- Copyright © 2014–2016 Mark Karpov
+-- Copyright © 2014–2017 Mark Karpov
 --
 -- MIDA is free software: you can redistribute it and/or modify it under the
 -- terms of the GNU General Public License as published by the Free Software
