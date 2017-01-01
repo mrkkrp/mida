@@ -115,15 +115,13 @@ processCmd txt =
 
 -- | Completion function to work with Haskeline.
 
-completionFunc
-  :: (HasEnv m, MonadIO m, MonadReader MidaCfg m, MonadState MidaSt m)
-  => L.CompletionFunc m
+completionFunc :: (HasEnv m, MonadIO m) => L.CompletionFunc m
 completionFunc = L.completeWordWithPrev Nothing " " getCompletions
 
 -- | Generate completions.
 
 getCompletions
-  :: (HasEnv m, MonadIO m, MonadReader MidaCfg m, MonadState MidaSt m)
+  :: (HasEnv m, MonadIO m)
   => String            -- ^ Contents of line before cursor, reversed
   -> String            -- ^ Contents of line after cursor
   -> m [L.Completion]  -- ^ List of completions
@@ -325,7 +323,7 @@ cmdUdef arg = mapM_ f (words arg)
 
 -- | Parse a number defaulting to given value.
 
-parseNum :: (Num a, Read a)
+parseNum :: Read a
   => String            -- ^ String to parse
   -> a                 -- ^ Default value
   -> a                 -- ^ Result
