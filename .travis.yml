@@ -12,23 +12,15 @@ cache:
     - $HOME/.stack
     - .stack-work
 
-matrix:
-  include:
-    - env: ARGS=""
-    - env: ARGS="--resolver nightly"
-
-  allow_failures:
-    - env: ARGS="--resolver nightly"
-
 before_install:
 - mkdir -p ~/.local/bin
 - export PATH=$HOME/.local/bin:$PATH
 - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
 
 script:
- - stack $ARGS --no-terminal --install-ghc test --flag mida:dev
- - stack $ARGS --no-terminal sdist
- - stack $ARGS --no-terminal haddock --no-haddock-deps
+ - stack --no-terminal --install-ghc test --flag mida:dev
+ - stack --no-terminal sdist
+ - stack --no-terminal haddock --no-haddock-deps
 
 notifications:
   email: false
